@@ -69,10 +69,101 @@ const loadingInterval = setInterval(() => {
 
 // Initialize the game when loading is complete
 function startGame() {
+    // Add SNES-style font
+    const fontStyle = document.createElement('style');
+    fontStyle.textContent = `
+        @font-face {
+            font-family: 'SNES';
+            src: url('https://fonts.cdnfonts.com/css/press-start-2p') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+    `;
+    document.head.appendChild(fontStyle);
+
+    // Create menu bar (SNES-style HUD)
+    const menuBar = document.createElement('div');
+    menuBar.id = 'menu-bar';
+    menuBar.style.position = 'absolute';
+    menuBar.style.top = '0';
+    menuBar.style.left = '0';
+    menuBar.style.width = '100%';
+    menuBar.style.height = '50px';
+    menuBar.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    menuBar.style.color = '#fff';
+    menuBar.style.display = 'flex';
+    menuBar.style.alignItems = 'center';
+    menuBar.style.justifyContent = 'space-between';
+    menuBar.style.padding = '0 20px';
+    menuBar.style.boxSizing = 'border-box';
+    menuBar.style.fontFamily = '"Press Start 2P", "Courier New", monospace';
+    menuBar.style.fontSize = '14px';
+    menuBar.style.zIndex = '100';
+
+    // Item slot
+    const itemSlots = document.createElement('div');
+    itemSlots.className = 'menu-item';
+    itemSlots.innerHTML = '<span>ITEM</span>';
+    menuBar.appendChild(itemSlots);
+
+    // Middle section for DAU/MRR counters
+    const statsContainer = document.createElement('div');
+    statsContainer.className = 'menu-item';
+    statsContainer.style.display = 'flex';
+    statsContainer.style.flexDirection = 'column';
+    statsContainer.style.alignItems = 'center';
+    
+    const dauDisplay = document.createElement('div');
+    dauDisplay.id = 'dau-display';
+    dauDisplay.innerHTML = '<span>DAU: </span><span>0</span>';
+    dauDisplay.style.fontSize = '12px';
+    dauDisplay.style.marginBottom = '4px';
+    
+    const mrrDisplay = document.createElement('div');
+    mrrDisplay.id = 'mrr-display';
+    mrrDisplay.innerHTML = '<span>MRR: $</span><span>0</span>';
+    mrrDisplay.style.fontSize = '12px';
+    
+    statsContainer.appendChild(dauDisplay);
+    statsContainer.appendChild(mrrDisplay);
+    menuBar.appendChild(statsContainer);
+
+    // Rupees counter with gem icon
+    const rupees = document.createElement('div');
+    rupees.className = 'menu-item';
+    rupees.id = 'rupees';
+    const gemImg = document.createElement('img');
+    gemImg.src = '/assets/textures/gem-sprite.png';
+    gemImg.alt = 'Rupees';
+    gemImg.style.height = '30px';
+    gemImg.style.marginRight = '5px';
+    const rupeeCount = document.createElement('span');
+    rupeeCount.textContent = '000';
+    rupees.appendChild(gemImg);
+    rupees.appendChild(rupeeCount);
+    menuBar.appendChild(rupees);
+
+    // Hearts for health
+    const lifeHearts = document.createElement('div');
+    lifeHearts.className = 'menu-item';
+    lifeHearts.id = 'life-hearts';
+    for (let i = 0; i < 3; i++) {
+        const heart = document.createElement('div');
+        heart.style.width = '25px';
+        heart.style.height = '25px';
+        heart.style.backgroundColor = 'red';
+        heart.style.marginLeft = '5px';
+        heart.className = 'heart-icon-placeholder';
+        lifeHearts.appendChild(heart);
+    }
+    menuBar.appendChild(lifeHearts);
+
+    document.body.appendChild(menuBar);
+
     // Create instruction overlay
     const instructions = document.createElement('div');
     instructions.style.position = 'absolute';
-    instructions.style.top = '10px';
+    instructions.style.top = '60px'; // Moved down to be below menu bar
     instructions.style.left = '10px';
     instructions.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
     instructions.style.color = '#fff';
@@ -93,6 +184,15 @@ function startGame() {
     // Create game instance to start the game
     const game = new Game();
     console.log('Game initialized!');
+    
+    // Test the DAU and MRR update functionality by changing values after a few seconds
+    setTimeout(() => {
+        if (game) {
+            // Example of updating game stats - normally this would be based on gameplay events
+            game.updateDAU(125);
+            game.updateMRR(499);
+        }
+    }, 5000); // Update after 5 seconds as a demonstration
     
     // Hide instructions after 10 seconds
     setTimeout(() => {

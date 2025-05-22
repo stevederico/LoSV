@@ -42,6 +42,7 @@ export class Game {
         this.enemies = new Enemies(this.scene, this.world);
 
         this.setupLights();
+        this.setupUI(); // Add this line
         
         this.assetsLoaded = false;
         
@@ -58,6 +59,77 @@ export class Game {
         document.getElementById('game-container').appendChild(this.renderer.domElement);
     }
     
+    setupUI() {
+        // Wait a moment for the menu elements to be available in the DOM
+        setTimeout(() => {
+            this.rupeesElement = document.querySelector('#rupees span');
+            this.lifeHeartsContainer = document.getElementById('life-hearts');
+            this.dauElement = document.querySelector('#dau-display span:last-child');
+            this.mrrElement = document.querySelector('#mrr-display span:last-child');
+            
+            // Initialize UI
+            this.updateRupees(0); // Initial rupee count
+            this.updateLife(3);   // Initial life count
+            this.updateDAU(0);    // Initial DAU count
+            this.updateMRR(0);    // Initial MRR count
+        }, 100);
+    }
+
+    updateRupees(count) {
+        if (this.rupeesElement) {
+            this.rupeesElement.textContent = String(count).padStart(3, '0');
+        } else {
+            // Try to find the element again
+            this.rupeesElement = document.querySelector('#rupees span');
+            if (this.rupeesElement) {
+                this.rupeesElement.textContent = String(count).padStart(3, '0');
+            }
+        }
+    }
+
+    updateLife(lifeCount) {
+        if (this.lifeHeartsContainer) {
+            this.lifeHeartsContainer.innerHTML = ''; // Clear existing hearts
+            for (let i = 0; i < lifeCount; i++) {
+                const heartElement = document.createElement('div');
+                heartElement.className = 'heart-icon-placeholder';
+                heartElement.style.width = '25px';
+                heartElement.style.height = '25px';
+                heartElement.style.backgroundColor = 'red';
+                heartElement.style.marginLeft = '5px';
+                this.lifeHeartsContainer.appendChild(heartElement);
+            }
+        } else {
+            // Try to find the element again
+            this.lifeHeartsContainer = document.getElementById('life-hearts');
+            if (this.lifeHeartsContainer) {
+                this.updateLife(lifeCount); // Call again with found container
+            }
+        }
+    }
+
+    updateDAU(count) {
+        if (this.dauElement) {
+            this.dauElement.textContent = count.toString();
+        } else {
+            this.dauElement = document.querySelector('#dau-display span:last-child');
+            if (this.dauElement) {
+                this.dauElement.textContent = count.toString();
+            }
+        }
+    }
+
+    updateMRR(amount) {
+        if (this.mrrElement) {
+            this.mrrElement.textContent = amount.toString();
+        } else {
+            this.mrrElement = document.querySelector('#mrr-display span:last-child');
+            if (this.mrrElement) {
+                this.mrrElement.textContent = amount.toString();
+            }
+        }
+    }
+
     setupLights() {
         // Clear existing lights first to prevent duplicates if called multiple times
         const lights = this.scene.children.filter(obj => obj.isLight);

@@ -8,12 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### TO-DO
-- Convert world boundaries to 2D sprites/tiles.
-- Implement SNES-style 2D sprites for enemies.
-- Consider a tilemap system for terrain for better variety and performance.
-- add a MRR bar to the top
+
+
+
+- ~~add a menu bar with MRR and DAU counters~~ (Completed)
 - add talking and text
-- add 
+- start the character inside the house, remvove the trees. the dialog with the NPC should ask a question what is your favorite color? give two options Red or Blue have an arrow and allow the player to select the color, the NPC should respond and say they love the color selected
+- Consider a tilemap system for terrain for better variety and performance.
+- Convert world boundaries to 2D sprites/tiles.
 
 
 ### Added
