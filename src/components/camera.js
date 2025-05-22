@@ -28,7 +28,6 @@ export class Camera {
         
         this.camera.position.set(0, 20, 0); // Position directly above
         this.camera.lookAt(0, 0, 0);        // Look straight down
-        this.camera.rotation.z = Math.PI;   // Adjust rotation for proper orientation
     }
 
     onWindowResize() {

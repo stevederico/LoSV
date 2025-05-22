@@ -209,33 +209,63 @@ export class World {
 
     createInteractiveElements() {
         // Create interactive elements like chests, pots, etc.
-        this.createChest(5, 0);
-        this.createChest(-8, 7);
+        this.createChest(5, 0, 2, 2); // Added spriteWidth, spriteHeight
+        this.createChest(-8, 7, 2, 2); // Added spriteWidth, spriteHeight
         
         // Create some rupees/gems to collect
         for (let i = 0; i < 10; i++) {
             const gemX = (Math.random() - 0.5) * (this.worldSize - 5);
             const gemZ = (Math.random() - 0.5) * (this.worldSize - 5);
-            this.createGem(gemX, gemZ);
+            this.createGem(gemX, gemZ, 1, 1); // Added spriteWidth, spriteHeight
         }
     }
 
-    createChest(x, z) {
-        const chestGeometry = new THREE.BoxGeometry(1, 0.8, 0.8);
-        const chestMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown
-        const chest = new THREE.Mesh(chestGeometry, chestMaterial);
-        chest.position.set(x, 0.4, z);
-        this.scene.add(chest);
-        this.interactiveElements.push(chest);
+    createChest(x, z, spriteWidth, spriteHeight) {
+        const chestTexture = this.textureLoader.load('/assets/textures/chest-sprite.png');
+        chestTexture.magFilter = THREE.NearestFilter;
+        chestTexture.minFilter = THREE.NearestFilter;
+
+        const chestGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const chestMaterial = new THREE.MeshBasicMaterial({
+            map: chestTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const chestSprite = new THREE.Mesh(chestGeometry, chestMaterial);
+
+        chestSprite.position.set(x, 0.1, z); // y slightly above ground
+        chestSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        chestSprite.width = spriteWidth;
+        chestSprite.depth = spriteHeight;
+        chestSprite.userData.isChest = true; // Tag for interaction
+
+        this.scene.add(chestSprite);
+        this.interactiveElements.push(chestSprite);
     }
 
-    createGem(x, z) {
-        const gemGeometry = new THREE.OctahedronGeometry(0.3);
-        const gemMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green rupee
-        const gem = new THREE.Mesh(gemGeometry, gemMaterial);
-        gem.position.set(x, 0.3, z);
-        this.scene.add(gem);
-        this.interactiveElements.push(gem);
+    createGem(x, z, spriteWidth, spriteHeight) {
+        const gemTexture = this.textureLoader.load('/assets/textures/gem-sprite.png');
+        gemTexture.magFilter = THREE.NearestFilter;
+        gemTexture.minFilter = THREE.NearestFilter;
+
+        const gemGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const gemMaterial = new THREE.MeshBasicMaterial({
+            map: gemTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const gemSprite = new THREE.Mesh(gemGeometry, gemMaterial);
+
+        gemSprite.position.set(x, 0.05, z); // y slightly above ground, below chests
+        gemSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+        
+        gemSprite.width = spriteWidth;
+        gemSprite.depth = spriteHeight;
+        gemSprite.userData.isGem = true; // Tag for animation and interaction
+
+        this.scene.add(gemSprite);
+        this.interactiveElements.push(gemSprite);
     }
 
     getObstacles() {
@@ -249,10 +279,10 @@ export class World {
     update() {
         // Animate interactive elements
         this.interactiveElements.forEach((element, index) => {
-            // Make gems float and rotate
-            if (element.geometry instanceof THREE.OctahedronGeometry) {
-                element.rotation.y += 0.02;
-                element.position.y = 0.3 + Math.sin(Date.now() * 0.003 + index) * 0.1;
+            // Make gems float and rotate (now checking userData tag)
+            if (element.userData.isGem) {
+                element.rotation.z += 0.02; // Rotate around Z as it's flat on XZ plane
+                element.position.y = 0.05 + Math.sin(Date.now() * 0.003 + index) * 0.1;
             }
         });
     }

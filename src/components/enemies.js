@@ -34,15 +34,15 @@ export class Enemies {
         this.spawnRate = 300; // Frames between spawns
         
         // Initialize enemies
-        this.initEnemies();
+        // this.initEnemies(); // Commented out to remove initial enemies
     }
     
     initEnemies() {
         // Add a few enemies to start
-        this.spawnEnemy('octorok', new THREE.Vector3(5, 0, -8));
-        this.spawnEnemy('octorok', new THREE.Vector3(-10, 0, 12));
-        this.spawnEnemy('moblin', new THREE.Vector3(8, 0, 8));
-        this.spawnEnemy('keese', new THREE.Vector3(-5, 0, -5));
+        // this.spawnEnemy('octorok', new THREE.Vector3(5, 0, -8));
+        // this.spawnEnemy('octorok', new THREE.Vector3(-10, 0, 12));
+        // this.spawnEnemy('moblin', new THREE.Vector3(8, 0, 8));
+        // this.spawnEnemy('keese', new THREE.Vector3(-5, 0, -5));
     }
 
     spawnEnemy(type, position) {
@@ -226,33 +226,33 @@ export class Enemies {
     }
     
     checkSpawn() {
-        this.spawnTimer++;
+        // this.spawnTimer++; // Commented out to prevent new spawns
         
         // Spawn new enemies occasionally if there aren't too many
-        if (this.spawnTimer >= this.spawnRate && this.enemies.length < 10) {
-            this.spawnTimer = 0;
+        // if (this.spawnTimer >= this.spawnRate && this.enemies.length < 10) { // Commented out
+            // this.spawnTimer = 0;
             
             // Choose a random enemy type
-            const types = Object.keys(this.enemyTypes);
-            const randomType = types[Math.floor(Math.random() * types.length)];
+            // const types = Object.keys(this.enemyTypes);
+            // const randomType = types[Math.floor(Math.random() * types.length)];
             
             // Choose a position away from the player
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 15 + Math.random() * 10; // Spawn 15-25 units away
-            const spawnPosition = new THREE.Vector3(
-                Math.cos(angle) * distance,
-                0,
-                Math.sin(angle) * distance
-            );
+            // const angle = Math.random() * Math.PI * 2;
+            // const distance = 15 + Math.random() * 10; // Spawn 15-25 units away
+            // const spawnPosition = new THREE.Vector3(
+            //     Math.cos(angle) * distance,
+            //     0,
+            //     Math.sin(angle) * distance
+            // );
             
             // Spawn the enemy
-            this.spawnEnemy(randomType, spawnPosition);
-        }
+            // this.spawnEnemy(randomType, spawnPosition);
+        // } // Commented out
     }
 
     update(playerPosition) {
         // Check if we should spawn new enemies
-        this.checkSpawn();
+        // this.checkSpawn(); // Commented out
         
         // Update each enemy
         this.enemies.forEach(enemy => {

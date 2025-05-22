@@ -1,106 +1,111 @@
 import * as THREE from 'three';
 
 export class Player {
-    constructor(scene, camera, onExitBuildingCallback) { // Added onExitBuildingCallback
+    constructor(scene, camera, onExitBuildingCallback) {
         this.scene = scene;
         this.camera = camera;
         this.speed = 0.1;
-        this.position = new THREE.Vector3(0, 0, 0);
+        this.position = new THREE.Vector3(0, 0.1, 0); // Adjusted Y position for flat sprite
         this.direction = 'down'; // down, up, left, right
         this.isMoving = false;
-        this.animationFrame = 0;
-        this.animationSpeed = 8; // frames before changing sprite
-        this.frameCount = 0;
+
+        this.textureLoader = new THREE.TextureLoader();
+        this.textures = {
+            'down': this.textureLoader.load('/assets/textures/player-down-sprite.png'),
+            'up': this.textureLoader.load('/assets/textures/player-up-sprite.png'),
+            'left': this.textureLoader.load('/assets/textures/player-left-sprite.png'),
+            'right': this.textureLoader.load('/assets/textures/player-right-sprite.png')
+        };
+
+        // Apply NearestFilter for crisp pixel art style to all textures
+        for (const key in this.textures) {
+            this.textures[key].magFilter = THREE.NearestFilter;
+            this.textures[key].minFilter = THREE.NearestFilter;
+        }
+
         this.mesh = this.createPlayerMesh();
-        // this.scene.add(this.mesh); // Game.js will add the player to the initial scene
+        // this.scene.add(this.mesh); // Game.js will add the player
 
         this.isInBuilding = false;
         this.buildingObstacles = [];
-        this.onExitBuildingCallback = onExitBuildingCallback; // Store callback
-        this.lastEnteredBuildingData = null; // To store { position, width, depth }
+        this.onExitBuildingCallback = onExitBuildingCallback;
+        this.lastEnteredBuildingData = null;
     }
 
     createPlayerMesh() {
-        // In a real implementation, we would load Link's sprite sheet
-        // For now, create a simple colored box as placeholder
-        const geometry = new THREE.BoxGeometry(0.8, 1.6, 0.8);
-        const material = new THREE.MeshBasicMaterial({ color: 0x44aa88 }); // Link's green tunic color
+        // Player sprite dimensions (adjust if needed)
+        const spriteWidth = 1.5;
+        const spriteHeight = 1.5;
+
+        const geometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        // Initial material with the 'down' sprite
+        const material = new THREE.MeshBasicMaterial({
+            map: this.textures['down'],
+            transparent: true,
+            side: THREE.DoubleSide
+        });
         const mesh = new THREE.Mesh(geometry, material);
-        
-        // Create a simple directional indicator (front side of player)
-        const indicatorGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-        const indicatorMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        this.indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
-        this.indicator.position.set(0, 0, 0.5);
-        mesh.add(this.indicator);
-        
+        mesh.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+        mesh.position.copy(this.position); // Set initial position
+
         return mesh;
     }
 
     updateDirection(newDirection) {
-        this.direction = newDirection;
-        
-        // Update the indicator based on direction
-        this.indicator.position.set(0, 0, 0); // Reset position
-        switch(this.direction) {
-            case 'down':
-                this.indicator.position.set(0, 0, 0.5);
-                break;
-            case 'up':
-                this.indicator.position.set(0, 0, -0.5);
-                break;
-            case 'left':
-                this.indicator.position.set(-0.5, 0, 0);
-                break;
-            case 'right':
-                this.indicator.position.set(0.5, 0, 0);
-                break;
+        if (this.direction !== newDirection) {
+            this.direction = newDirection;
+            if (this.textures[this.direction]) {
+                this.mesh.material.map = this.textures[this.direction];
+                this.mesh.material.needsUpdate = true;
+            }
         }
     }
 
     update(keys, worldObstacles = []) {
         this.isMoving = false;
         const moveVector = new THREE.Vector3(0, 0, 0);
-        
-        // Determine movement and direction
+
+        let newDirection = this.direction;
+
         if (keys['ArrowUp'] || keys['w']) {
             moveVector.z -= this.speed;
-            this.updateDirection('up');
+            newDirection = 'up';
             this.isMoving = true;
         }
         else if (keys['ArrowDown'] || keys['s']) {
             moveVector.z += this.speed;
-            this.updateDirection('down');
+            newDirection = 'down';
             this.isMoving = true;
         }
         else if (keys['ArrowLeft'] || keys['a']) {
             moveVector.x -= this.speed;
-            this.updateDirection('left');
+            newDirection = 'left';
             this.isMoving = true;
         }
         else if (keys['ArrowRight'] || keys['d']) {
             moveVector.x += this.speed;
-            this.updateDirection('right');
+            newDirection = 'right';
             this.isMoving = true;
         }
 
-        // Update animation
         if (this.isMoving) {
-            this.frameCount++;
-            if (this.frameCount >= this.animationSpeed) {
-                this.frameCount = 0;
-                this.animationFrame = (this.animationFrame + 1) % 2;
-                // In a real game, update the sprite texture based on animationFrame
-            }
+            this.updateDirection(newDirection);
         }
 
         let collision = false;
-        const tempPosition = this.position.clone().add(moveVector);
+        // Player's Y position is fixed for 2D top-down, so only XZ for tempPosition
+        const tempPosition = this.position.clone();
+        tempPosition.x += moveVector.x;
+        tempPosition.z += moveVector.z;
+
+        // Collision bounds might need adjustment based on sprite size. Assuming 1x1 sprite.
+        const playerSpriteWidth = 1;
+        const playerSpriteDepth = 1;
         const playerBounds = {
-            minX: tempPosition.x - 0.4,
-            maxX: tempPosition.x + 0.4,
-            minZ: tempPosition.z - 0.4,
-            maxZ: tempPosition.z + 0.4
+            minX: tempPosition.x - playerSpriteWidth / 2,
+            maxX: tempPosition.x + playerSpriteWidth / 2,
+            minZ: tempPosition.z - playerSpriteDepth / 2,
+            maxZ: tempPosition.z + playerSpriteDepth / 2
         };
 
         const currentObstacles = this.isInBuilding ? this.buildingObstacles : worldObstacles;
@@ -128,9 +133,9 @@ export class Player {
                 collision = true;
                 if (!this.isInBuilding && obstacle.userData && obstacle.userData.isBuilding) {
                     this.enterBuilding(obstacle);
-                    return; 
+                    return;
                 }
-                break; 
+                break;
             }
         }
 
@@ -143,24 +148,25 @@ export class Player {
             // Check if player is moving towards the door (positive Z in room coordinates)
             // and is about to cross the door plane, aligned with the opening.
             if (moveVector.z > 0 && // Moving "out"
-                this.position.z < room_Z_DoorPlane && 
+                this.position.z < room_Z_DoorPlane &&
                 tempPosition.z >= room_Z_DoorPlane &&
                 Math.abs(tempPosition.x) < doorwayWidth / 2) {
                 this.exitBuilding();
-                return; 
+                return;
             }
         }
 
         if (!collision) {
             this.position.add(moveVector);
         }
-        
+
         this.mesh.position.copy(this.position);
-        
+
         if (this.camera && this.camera.position) {
-            this.camera.position.set(this.position.x, this.position.y + 10, this.position.z);
-            this.camera.lookAt(this.position);
-            
+            // Camera follows player's XZ, Y is for height/zoom
+            this.camera.position.set(this.position.x, this.camera.position.y, this.position.z + 5); // Keep camera slightly behind or adjust as needed
+            this.camera.lookAt(this.position.x, this.position.y, this.position.z); // Look at player's actual Y
+
             // Further refined zoom functionality with explicit Math.max
             if (keys['+'] || keys['=']) {  // Zoom in
                 if (this.camera.position.y > 5) {
@@ -171,17 +177,17 @@ export class Player {
             }
         }
     }
-        
+
     enterBuilding(building) {
         // Store data of the building being entered for correct exit positioning
         this.lastEnteredBuildingData = {
             position: building.position.clone(),
-            width: building.width, // Assumes building mesh has these properties
-            depth: building.depth  // from World.js createHouse
+            width: building.width,
+            depth: building.depth
         };
 
         this.isInBuilding = true;
-        this.buildingObstacles = []; // Reset obstacles for the new interior
+        this.buildingObstacles = [];
 
         // Clear current scene
         while (this.scene.children.length > 0) {
@@ -212,7 +218,7 @@ export class Player {
         carpet.rotation.x = -Math.PI / 2;
         carpet.position.y = 0.01; // Slightly above wood floor
         this.scene.add(carpet);
-        
+
         // Walls - similar to image
         const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x8c6c46 }); // Lighter brown/tan for walls
 
@@ -233,7 +239,7 @@ export class Player {
         frontWallRight.position.set((frontWallPartWidth / 2) + 1.5, wallHeight / 2, roomDepth / 2);
         frontWallRight.width = frontWallPartWidth; frontWallRight.depth = 0.2; // For collision
         this.scene.add(frontWallRight); this.buildingObstacles.push(frontWallRight);
-        
+
         // Side walls
         const sideWallGeometry = new THREE.BoxGeometry(0.2, wallHeight, roomDepth);
         const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
@@ -255,6 +261,11 @@ export class Player {
         const table = new THREE.Mesh(tableGeometry, tableMaterial);
         table.position.set(0, tableHeight / 2, 0); // Centered on carpet
         this.scene.add(table);
+        this.buildingObstacles.push({ // Add table to obstacles
+            position: table.position,
+            width: tableWidth,
+            depth: tableDepth
+        });
 
         // Chairs and NPCs
         const chairSize = 0.6;
@@ -282,17 +293,27 @@ export class Player {
             const chair = new THREE.Mesh(chairGeometry, chairMaterial);
             chair.position.set(pos.x, chairHeight / 2, pos.z);
             this.scene.add(chair);
+            this.buildingObstacles.push({ // Add chairs to obstacles
+                position: chair.position,
+                width: chairSize,
+                depth: chairSize
+            });
 
             const npcGeometry = new THREE.CylinderGeometry(chairSize / 2, chairSize / 2, npcHeight, 8);
             const npc = new THREE.Mesh(npcGeometry, pos.facingPlayer ? npcMaterialFront : npcMaterialBack);
             npc.position.set(pos.x, npcHeight / 2, pos.z); // Position NPC on the chair
             this.scene.add(npc);
+            this.buildingObstacles.push({ // Add NPCs to obstacles
+                position: npc.position,
+                width: chairSize, // Approximate NPC width
+                depth: chairSize  // Approximate NPC depth
+            });
         });
-        
+
         // Torches/Sconces (simple placeholders)
         const sconceGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
         const sconceMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD700 }); // Gold
-        
+
         const sconceLeft = new THREE.Mesh(sconceGeometry, sconceMaterial);
         sconceLeft.position.set(-roomWidth / 2 + 0.25, wallHeight * 0.6, -roomDepth * 0.3);
         this.scene.add(sconceLeft);
@@ -301,12 +322,11 @@ export class Player {
         sconceRight.position.set(roomWidth / 2 - 0.25, wallHeight * 0.6, -roomDepth * 0.3);
         this.scene.add(sconceRight);
 
-
         // Add the player back to the scene, positioned inside the door
-        this.position.set(0, 0, roomDepth / 2 - 1); 
+        this.position.set(0, 0.1, roomDepth / 2 - 1); // Player Y position for flat sprite
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
-        
+
         // Add lights back to the scene
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.scene.add(ambientLight);
@@ -316,11 +336,11 @@ export class Player {
 
         console.log('Entered building, scene recreated to match image.');
     }
-    
+
     exitBuilding() {
         console.log("Player: Attempting to exit building...");
         this.isInBuilding = false;
-        
+
         // Clear interior scene objects
         while (this.scene.children.length > 0) {
             this.scene.remove(this.scene.children[0]);
@@ -329,24 +349,24 @@ export class Player {
 
         // Call the callback to Game.js to handle main world restoration
         if (this.onExitBuildingCallback) {
-            this.onExitBuildingCallback(); 
+            this.onExitBuildingCallback();
         }
 
         // Position player outside the building they just exited
         if (this.lastEnteredBuildingData) {
             const buildingPos = this.lastEnteredBuildingData.position;
             // Ensure buildingDepth is a number, use a default if not
-            const buildingDepth = typeof this.lastEnteredBuildingData.depth === 'number' ? this.lastEnteredBuildingData.depth : 4; 
-            
+            const buildingDepth = typeof this.lastEnteredBuildingData.depth === 'number' ? this.lastEnteredBuildingData.depth : 4;
+
             this.position.set(
                 buildingPos.x,
-                0, // Player Y position on ground in main world
+                0.1, // Player Y position for flat sprite in main world
                 // Position just in front of the building's original Z-face
-                buildingPos.z + (buildingDepth / 2) + 0.6 
+                buildingPos.z + (buildingDepth / 2) + 0.6
             );
         } else {
             // Fallback position if something went wrong
-            this.position.set(0, 0, 5); 
+            this.position.set(0, 0.1, 5);
             console.warn("Player: lastEnteredBuildingData was null, using fallback exit position.");
         }
         this.mesh.position.copy(this.position);
@@ -361,7 +381,7 @@ export class Player {
     getPosition() {
         return this.position;
     }
-    
+
     getMesh() {
         return this.mesh;
     }
