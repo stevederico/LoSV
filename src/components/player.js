@@ -28,6 +28,7 @@ export class Player {
 
         this.isInBuilding = false;
         this.buildingObstacles = [];
+        this.interactiveNPCs = []; // For NPCs that can be interacted with
         this.onExitBuildingCallback = onExitBuildingCallback;
         this.lastEnteredBuildingData = null;
     }
@@ -64,6 +65,19 @@ export class Player {
     update(keys, worldObstacles = []) {
         this.isMoving = false;
         const moveVector = new THREE.Vector3(0, 0, 0);
+
+        // If dialogue is active, don't allow player movement
+        if (this.game && this.game.dialogueManager && this.game.dialogueManager.isActive()) {
+            // Allow interaction to advance dialogue
+            if (keys['Enter'] || keys['Space']) { // Assuming 'Enter' or 'Space' to advance
+                this.game.dialogueManager.advanceDialogue();
+                // Prevent movement by consuming the key press
+                if (keys['Enter']) delete keys['Enter'];
+                if (keys['Space']) delete keys['Space'];
+            }
+            return; // Stop further movement processing
+        }
+
 
         let newDirection = this.direction;
 
@@ -135,6 +149,14 @@ export class Player {
                     this.enterBuilding(obstacle);
                     return;
                 }
+                // Check for NPC interaction
+                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.dialogue) {
+                    if (this.game && this.game.dialogueManager) {
+                        this.game.dialogueManager.showDialogue(obstacle.userData.dialogue);
+                        // Potentially stop player movement slightly before collision with NPC
+                        // or handle it so player doesn't get stuck "inside" the NPC
+                    }
+                }
                 break;
             }
         }
@@ -188,139 +210,97 @@ export class Player {
 
         this.isInBuilding = true;
         this.buildingObstacles = [];
+        this.interactiveNPCs = []; // For NPCs that can be interacted with
 
         // Clear current scene
         while (this.scene.children.length > 0) {
             this.scene.remove(this.scene.children[0]);
         }
 
-        // Set a neutral background, or keep the red one if preferred
-        this.scene.background = new THREE.Color(0x3d291e); // Dark brown, similar to image shadows
+        // Set a neutral background
+        this.scene.background = new THREE.Color(0x3d291e); // Dark brown
 
         const roomWidth = 16;
-        const roomDepth = 12; // Used for door plane calculation
+        const roomDepth = 12;
         const wallHeight = 3;
 
         // Floor
-        // Wooden floor base
         const woodFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const woodFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Brown for wood
+        const woodFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
         const woodFloor = new THREE.Mesh(woodFloorGeometry, woodFloorMaterial);
         woodFloor.rotation.x = -Math.PI / 2;
         this.scene.add(woodFloor);
 
-        // Green carpet
         const carpetWidth = roomWidth * 0.6;
         const carpetDepth = roomDepth * 0.8;
         const carpetGeometry = new THREE.PlaneGeometry(carpetWidth, carpetDepth);
-        const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0x2a572a }); // Darker green
+        const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0x2a572a });
         const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
         carpet.rotation.x = -Math.PI / 2;
-        carpet.position.y = 0.01; // Slightly above wood floor
+        carpet.position.y = 0.01;
         this.scene.add(carpet);
 
-        // Walls - similar to image
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x8c6c46 }); // Lighter brown/tan for walls
+        // Walls
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x8c6c46 });
 
-        // Back wall
         const backWall = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, wallHeight, 0.2), wallMaterial);
         backWall.position.set(0, wallHeight / 2, -roomDepth / 2);
-        backWall.width = roomWidth; backWall.depth = 0.2; // For collision
+        backWall.width = roomWidth; backWall.depth = 0.2;
         this.scene.add(backWall); this.buildingObstacles.push(backWall);
 
-        // Front wall (with assumed doorway) - split into two parts
         const frontWallPartWidth = (roomWidth / 2) - 1.5; // Opening of 3 units
         const frontWallLeft = new THREE.Mesh(new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2), wallMaterial);
         frontWallLeft.position.set(- (frontWallPartWidth / 2) - 1.5 , wallHeight / 2, roomDepth / 2);
-        frontWallLeft.width = frontWallPartWidth; frontWallLeft.depth = 0.2; // For collision
+        frontWallLeft.width = frontWallPartWidth; frontWallLeft.depth = 0.2;
         this.scene.add(frontWallLeft); this.buildingObstacles.push(frontWallLeft);
 
         const frontWallRight = new THREE.Mesh(new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2), wallMaterial);
         frontWallRight.position.set((frontWallPartWidth / 2) + 1.5, wallHeight / 2, roomDepth / 2);
-        frontWallRight.width = frontWallPartWidth; frontWallRight.depth = 0.2; // For collision
+        frontWallRight.width = frontWallPartWidth; frontWallRight.depth = 0.2;
         this.scene.add(frontWallRight); this.buildingObstacles.push(frontWallRight);
 
-        // Side walls
         const sideWallGeometry = new THREE.BoxGeometry(0.2, wallHeight, roomDepth);
         const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
         leftWall.position.set(-roomWidth / 2, wallHeight / 2, 0);
-        leftWall.width = 0.2; leftWall.depth = roomDepth; // For collision
+        leftWall.width = 0.2; leftWall.depth = roomDepth;
         this.scene.add(leftWall); this.buildingObstacles.push(leftWall);
 
         const rightWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
         rightWall.position.set(roomWidth / 2, wallHeight / 2, 0);
-        rightWall.width = 0.2; rightWall.depth = roomDepth; // For collision
+        rightWall.width = 0.2; rightWall.depth = roomDepth;
         this.scene.add(rightWall); this.buildingObstacles.push(rightWall);
 
-        // Table
-        const tableWidth = carpetWidth * 0.8;
-        const tableDepth = 1;
-        const tableHeight = 0.8;
-        const tableGeometry = new THREE.BoxGeometry(tableWidth, tableHeight, tableDepth);
-        const tableMaterial = new THREE.MeshBasicMaterial({ color: 0x5C3317 }); // Darker wood for table
-        const table = new THREE.Mesh(tableGeometry, tableMaterial);
-        table.position.set(0, tableHeight / 2, 0); // Centered on carpet
-        this.scene.add(table);
-        this.buildingObstacles.push({ // Add table to obstacles
-            position: table.position,
-            width: tableWidth,
-            depth: tableDepth
-        });
+        // Remove Table, Chairs, old NPCs, and Sconces
+        // const tableWidth = carpetWidth * 0.8;
+        // ... (table creation code removed) ...
+        // this.buildingObstacles.push({ position: table.position, width: tableWidth, depth: tableDepth });
 
-        // Chairs and NPCs
-        const chairSize = 0.6;
-        const chairHeight = 0.5;
-        const chairMaterial = new THREE.MeshBasicMaterial({ color: 0x4A2511 }); // Dark brown for chairs
-        const npcMaterialFront = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Blue for front NPCs
-        const npcMaterialBack = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red for back NPCs
-        const npcHeight = 0.8; // Taller than chair back
+        // const chairSize = 0.6;
+        // ... (chair and old NPC creation code removed) ...
+        // npcPositions.forEach(pos => { ... });
 
-        const npcPositions = [
-            // Back row (facing player)
-            { x: -tableWidth / 2 + 0.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
-            { x: -tableWidth / 2 + 1.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
-            { x: tableWidth / 2 - 1.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
-            { x: tableWidth / 2 - 0.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
-            // Front row (back to player)
-            { x: -tableWidth / 2 + 0.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
-            { x: -tableWidth / 2 + 1.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
-            { x: tableWidth / 2 - 1.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
-            { x: tableWidth / 2 - 0.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
-        ];
+        // const sconceGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+        // ... (sconce creation code removed) ...
 
-        npcPositions.forEach(pos => {
-            const chairGeometry = new THREE.BoxGeometry(chairSize, chairHeight, chairSize);
-            const chair = new THREE.Mesh(chairGeometry, chairMaterial);
-            chair.position.set(pos.x, chairHeight / 2, pos.z);
-            this.scene.add(chair);
-            this.buildingObstacles.push({ // Add chairs to obstacles
-                position: chair.position,
-                width: chairSize,
-                depth: chairSize
-            });
+        // Add a single NPC placeholder
+        const npcSpriteWidth = 1.5;
+        const npcSpriteHeight = 1.5;
+        const npcGeometry = new THREE.PlaneGeometry(npcSpriteWidth, npcSpriteHeight);
+        const npcMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide }); // Blue placeholder
+        const npcMesh = new THREE.Mesh(npcGeometry, npcMaterial);
+        
+        npcMesh.position.set(0, 0.1, -roomDepth / 2 + 1.5); // Positioned near the back wall, on the carpet
+        npcMesh.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
 
-            const npcGeometry = new THREE.CylinderGeometry(chairSize / 2, chairSize / 2, npcHeight, 8);
-            const npc = new THREE.Mesh(npcGeometry, pos.facingPlayer ? npcMaterialFront : npcMaterialBack);
-            npc.position.set(pos.x, npcHeight / 2, pos.z); // Position NPC on the chair
-            this.scene.add(npc);
-            this.buildingObstacles.push({ // Add NPCs to obstacles
-                position: npc.position,
-                width: chairSize, // Approximate NPC width
-                depth: chairSize  // Approximate NPC depth
-            });
-        });
-
-        // Torches/Sconces (simple placeholders)
-        const sconceGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
-        const sconceMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD700 }); // Gold
-
-        const sconceLeft = new THREE.Mesh(sconceGeometry, sconceMaterial);
-        sconceLeft.position.set(-roomWidth / 2 + 0.25, wallHeight * 0.6, -roomDepth * 0.3);
-        this.scene.add(sconceLeft);
-
-        const sconceRight = new THREE.Mesh(sconceGeometry, sconceMaterial);
-        sconceRight.position.set(roomWidth / 2 - 0.25, wallHeight * 0.6, -roomDepth * 0.3);
-        this.scene.add(sconceRight);
+        npcMesh.width = npcSpriteWidth;
+        npcMesh.depth = npcSpriteHeight;
+        npcMesh.userData = {
+            isNPC: true,
+            dialogue: ["Hello and welcome to Silicon Valley,", "we are excited you are here"]
+        };
+        this.scene.add(npcMesh);
+        this.buildingObstacles.push(npcMesh); // Add to obstacles for collision-based interaction
+        this.interactiveNPCs.push(npcMesh); // Also keep a separate list for easy access
 
         // Add the player back to the scene, positioned inside the door
         this.position.set(0, 0.1, roomDepth / 2 - 1); // Player Y position for flat sprite

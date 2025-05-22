@@ -4,6 +4,7 @@ import { World } from './components/world.js';
 import { Camera } from './components/camera.js';
 import { Controls } from './components/controls.js';
 import { Enemies } from './components/enemies.js';
+import { DialogueManager } from './components/DialogueManager.js'; // Import DialogueManager
 import { loadAssets, setupKeyboardControls } from './utils/helpers.js';
 
 export class Game {
@@ -16,20 +17,23 @@ export class Game {
         
         // Set up game components
         this.setupRenderer();
-        // this.setupLights(); // Lights will be set up after world/player or when re-entering main world
         
         // Initialize keyboard controls
         this.keys = setupKeyboardControls();
+
+        // Initialize DialogueManager
+        this.dialogueManager = new DialogueManager();
         
         // Create game world
-        this.world = new World(this.scene); // World adds its own initial elements
+        this.world = new World(this.scene);
         
         // Set up camera after world is created
         this.camera = new Camera(this.scene, this.renderer);
         
         // Create player after camera is set up, passing the exit callback
         this.player = new Player(this.scene, this.camera, this.handleExitBuilding.bind(this));
-        this.scene.add(this.player.getMesh()); // Add player to the initial scene
+        this.player.game = this; // Give player a reference to the game instance for dialogue
+        this.scene.add(this.player.getMesh());
         
         // Create controls after player is created
         this.controls = new Controls(this.player, this.camera, this.world);
@@ -37,16 +41,13 @@ export class Game {
         // Create enemies after world and player exist
         this.enemies = new Enemies(this.scene, this.world);
 
-        this.setupLights(); // Setup lights for the initial main world
+        this.setupLights();
         
-        // Asset loading status
         this.assetsLoaded = false;
         
-        // Load assets and start the game
         this.loadAssets();
         this.startGameLoop();
         
-        // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
 
@@ -90,22 +91,30 @@ export class Game {
 
     update() {
         if (!this.assetsLoaded) return;
-        
+
+        // Handle dialogue advancement/interaction first
+        // The DialogueManager itself doesn't need an update() call here,
+        // but player input for it is handled in Player.update()
+        // and visibility is managed by its own methods.
+
         // Update controls to handle player movement and actions
-        // Controls.update will call player.update with proper keys and obstacles
         if (this.player.isInBuilding) {
-            this.controls.update(this.player.buildingObstacles); 
+            // Pass all interactive elements in the building, including NPCs
+            const buildingInteractiveElements = [...this.player.buildingObstacles, ...this.player.interactiveNPCs];
+            // Filter out duplicates if any (e.g. NPC is in both lists)
+            const uniqueBuildingElements = Array.from(new Set(buildingInteractiveElements));
+            this.controls.update(uniqueBuildingElements);
         } else {
             this.controls.update(this.world.getObstacles());
         }
         
-        // Update enemies only if not in a building
-        if (!this.player.isInBuilding) {
+        // Update enemies only if not in a building and dialogue is not active
+        if (!this.player.isInBuilding && !this.dialogueManager.isActive()) {
             this.enemies.update(this.player.getPosition());
         }
         
-        // Update world for any animations or environmental changes (if not in building)
-        if (!this.player.isInBuilding) {
+        // Update world for any animations or environmental changes (if not in building and dialogue not active)
+        if (!this.player.isInBuilding && !this.dialogueManager.isActive()) {
             this.world.update();
         }
     }

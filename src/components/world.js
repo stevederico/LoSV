@@ -209,15 +209,15 @@ export class World {
 
     createInteractiveElements() {
         // Create interactive elements like chests, pots, etc.
-        this.createChest(5, 0, 2, 2); // Added spriteWidth, spriteHeight
-        this.createChest(-8, 7, 2, 2); // Added spriteWidth, spriteHeight
+        // this.createChest(5, 0, 2, 2); // Commented out
+        // this.createChest(-8, 7, 2, 2); // Commented out
         
         // Create some rupees/gems to collect
-        for (let i = 0; i < 10; i++) {
-            const gemX = (Math.random() - 0.5) * (this.worldSize - 5);
-            const gemZ = (Math.random() - 0.5) * (this.worldSize - 5);
-            this.createGem(gemX, gemZ, 1, 1); // Added spriteWidth, spriteHeight
-        }
+        // for (let i = 0; i < 10; i++) { // Commented out
+        //     const gemX = (Math.random() - 0.5) * (this.worldSize - 5);
+        //     const gemZ = (Math.random() - 0.5) * (this.worldSize - 5);
+        //     this.createGem(gemX, gemZ, 1, 1); 
+        // }
     }
 
     createChest(x, z, spriteWidth, spriteHeight) {
@@ -280,10 +280,10 @@ export class World {
         // Animate interactive elements
         this.interactiveElements.forEach((element, index) => {
             // Make gems float and rotate (now checking userData tag)
-            if (element.userData.isGem) {
-                element.rotation.z += 0.02; // Rotate around Z as it's flat on XZ plane
-                element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; // Adjusted Y animation
-            }
+            // if (element.userData.isGem) { // Commented out gem animation
+            //     element.rotation.z += 0.02; 
+            //     element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; 
+            // }
         });
     }
 }
