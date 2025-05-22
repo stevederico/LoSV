@@ -15,20 +15,10 @@ export class Controls {
         // Set up keyboard event listeners
         window.addEventListener('keydown', (event) => {
             event.preventDefault();
-            console.log(`Key down: ${event.key}`);
             this.keys[event.key] = true;
-            
-            // Debug controls
-            if (event.key === '+') {
-                this.camera.zoomIn();
-            }
-            if (event.key === '-') {
-                this.camera.zoomOut();
-            }
         });
 
         window.addEventListener('keyup', (event) => {
-            console.log(`Key up: ${event.key}`);
             this.keys[event.key] = false;
         });
         

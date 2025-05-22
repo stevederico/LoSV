@@ -89,7 +89,7 @@ function startGame() {
     menuBar.style.left = '0';
     menuBar.style.width = '100%';
     menuBar.style.height = '50px';
-    menuBar.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    menuBar.style.backgroundColor = 'transparent';
     menuBar.style.color = '#fff';
     menuBar.style.display = 'flex';
     menuBar.style.alignItems = 'center';
@@ -103,60 +103,57 @@ function startGame() {
     // Item slot
     const itemSlots = document.createElement('div');
     itemSlots.className = 'menu-item';
-    itemSlots.innerHTML = '<span>ITEM</span>';
+    itemSlots.innerHTML = ''; // Remove "ITEM" text
     menuBar.appendChild(itemSlots);
 
     // Middle section for DAU/MRR counters
     const statsContainer = document.createElement('div');
     statsContainer.className = 'menu-item';
     statsContainer.style.display = 'flex';
-    statsContainer.style.flexDirection = 'column';
-    statsContainer.style.alignItems = 'center';
+    statsContainer.style.flexDirection = 'row'; // Changed from column
+    statsContainer.style.justifyContent = 'space-around'; // To space DAU and MRR
+    statsContainer.style.alignItems = 'center'; 
+    statsContainer.style.flexGrow = '1'; 
     
+    // DAU Display
     const dauDisplay = document.createElement('div');
     dauDisplay.id = 'dau-display';
-    dauDisplay.innerHTML = '<span>DAU: </span><span>0</span>';
+    dauDisplay.style.display = 'flex';
+    dauDisplay.style.flexDirection = 'column';
+    dauDisplay.style.alignItems = 'center';
     dauDisplay.style.fontSize = '12px';
-    dauDisplay.style.marginBottom = '4px';
+
+    const dauLabel = document.createElement('span');
+    dauLabel.textContent = 'DAU';
+    dauLabel.style.marginBottom = '10px'; // Updated margin
+    const dauValue = document.createElement('span');
+    dauValue.className = 'stat-value'; // Added class for easier targeting
+    dauValue.textContent = '0';
     
+    dauDisplay.appendChild(dauLabel);
+    dauDisplay.appendChild(dauValue);
+    
+    // MRR Display
     const mrrDisplay = document.createElement('div');
     mrrDisplay.id = 'mrr-display';
-    mrrDisplay.innerHTML = '<span>MRR: $</span><span>0</span>';
+    mrrDisplay.style.display = 'flex';
+    mrrDisplay.style.flexDirection = 'column';
+    mrrDisplay.style.alignItems = 'center';
     mrrDisplay.style.fontSize = '12px';
+
+    const mrrLabel = document.createElement('span');
+    mrrLabel.textContent = 'MRR';
+    mrrLabel.style.marginBottom = '10px'; // Updated margin
+    const mrrValue = document.createElement('span');
+    mrrValue.className = 'stat-value'; // Added class for easier targeting
+    mrrValue.textContent = '$0'; 
+    
+    mrrDisplay.appendChild(mrrLabel);
+    mrrDisplay.appendChild(mrrValue);
     
     statsContainer.appendChild(dauDisplay);
     statsContainer.appendChild(mrrDisplay);
     menuBar.appendChild(statsContainer);
-
-    // Rupees counter with gem icon
-    const rupees = document.createElement('div');
-    rupees.className = 'menu-item';
-    rupees.id = 'rupees';
-    const gemImg = document.createElement('img');
-    gemImg.src = '/assets/textures/gem-sprite.png';
-    gemImg.alt = 'Rupees';
-    gemImg.style.height = '30px';
-    gemImg.style.marginRight = '5px';
-    const rupeeCount = document.createElement('span');
-    rupeeCount.textContent = '000';
-    rupees.appendChild(gemImg);
-    rupees.appendChild(rupeeCount);
-    menuBar.appendChild(rupees);
-
-    // Hearts for health
-    const lifeHearts = document.createElement('div');
-    lifeHearts.className = 'menu-item';
-    lifeHearts.id = 'life-hearts';
-    for (let i = 0; i < 3; i++) {
-        const heart = document.createElement('div');
-        heart.style.width = '25px';
-        heart.style.height = '25px';
-        heart.style.backgroundColor = 'red';
-        heart.style.marginLeft = '5px';
-        heart.className = 'heart-icon-placeholder';
-        lifeHearts.appendChild(heart);
-    }
-    menuBar.appendChild(lifeHearts);
 
     document.body.appendChild(menuBar);
 

@@ -110,22 +110,30 @@ export class Game {
 
     updateDAU(count) {
         if (this.dauElement) {
-            this.dauElement.textContent = count.toString();
+            // this.dauElement.textContent = count.toString(); // Old way
+            const valueElement = this.dauElement.querySelector('.stat-value');
+            if (valueElement) valueElement.textContent = count.toString();
         } else {
-            this.dauElement = document.querySelector('#dau-display span:last-child');
+            this.dauElement = document.getElementById('dau-display'); // Get the container
             if (this.dauElement) {
-                this.dauElement.textContent = count.toString();
+                // this.dauElement.textContent = count.toString(); // Old way
+                const valueElement = this.dauElement.querySelector('.stat-value');
+                if (valueElement) valueElement.textContent = count.toString();
             }
         }
     }
 
     updateMRR(amount) {
         if (this.mrrElement) {
-            this.mrrElement.textContent = amount.toString();
+            // this.mrrElement.textContent = amount.toString(); // Old way
+            const valueElement = this.mrrElement.querySelector('.stat-value');
+            if (valueElement) valueElement.textContent = `$${amount.toString()}`;
         } else {
-            this.mrrElement = document.querySelector('#mrr-display span:last-child');
+            this.mrrElement = document.getElementById('mrr-display'); // Get the container
             if (this.mrrElement) {
-                this.mrrElement.textContent = amount.toString();
+                // this.mrrElement.textContent = amount.toString(); // Old way
+                const valueElement = this.mrrElement.querySelector('.stat-value');
+                if (valueElement) valueElement.textContent = `$${amount.toString()}`;
             }
         }
     }
