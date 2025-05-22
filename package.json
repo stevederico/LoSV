@@ -1,7 +1,7 @@
 {
-  "name": "zelda-tribute",
+  "name": "legend-sv",
   "version": "1.0.0",
-  "description": "A tribute game inspired by Zelda: A Link to the Past using Three.js.",
+  "description": "A tribute game inspired by Legend of Zelda: A Link to the Past using Three.js.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,6 @@
   "keywords": [
     "three.js",
     "game",
-    "zelda",
     "tribute"
   ],
   "author": "Your Name",
