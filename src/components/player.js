@@ -127,12 +127,21 @@ export class Player {
         
         this.mesh.position.copy(this.position);
         
-        if (this.camera) {
-            if (this.camera.position) {
-                this.camera.position.set(this.position.x, this.position.y + 10, this.position.z);
-                this.camera.lookAt(this.position);
+if (this.camera) {
+    if (this.camera.position) {
+        this.camera.position.set(this.position.x, this.position.y + 10, this.position.z);
+        this.camera.lookAt(this.position);
+        
+        // Further refined zoom functionality with explicit Math.max
+        if (keys['+'] || keys['=']) {  // Zoom in
+            if (this.camera.position.y > 5) {
+                this.camera.position.y = Math.max(5, this.camera.position.y - 1);
             }
+        } else if (keys['-']) {  // Zoom out
+            this.camera.position.y += 1;
         }
+    }
+}
         
         this.enterBuilding = function(building) {
             if (Math.abs(building.position.x - 10) < 1 && Math.abs(building.position.z + 10) < 1) {  // Check for first building at (10, -10)
@@ -167,10 +176,34 @@ export class Player {
                 this.scene.add(wall4);
                 
                 console.log('Entered home interior');
-            } else {
-                console.log('Entered a generic building');
-                alert('Entered a generic building!');
-            }
+} else {
+    console.log('Entered a generic building');
+    // Remove alert and add generic scene change
+    while (this.scene.children.length > 0) {
+        this.scene.remove(this.scene.children[0]);
+    }
+    const genericFloorGeometry = new THREE.PlaneGeometry(10, 10);
+    const genericFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });  // Gray for generic interior
+    const genericFloor = new THREE.Mesh(genericFloorGeometry, genericFloorMaterial);
+    genericFloor.rotation.x = -Math.PI / 2;
+    this.scene.add(genericFloor);
+    // Add basic walls for generic building
+    const wallGeometry = new THREE.BoxGeometry(10, 3, 0.1);
+    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
+    const wall1 = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall1.position.set(0, 1.5, -5);
+    this.scene.add(wall1);
+    const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall2.position.set(0, 1.5, 5);
+    this.scene.add(wall2);
+    const sideWallGeometry = new THREE.BoxGeometry(0.1, 3, 10);
+    const wall3 = new THREE.Mesh(sideWallGeometry, wallMaterial);
+    wall3.position.set(-5, 1.5, 0);
+    this.scene.add(wall3);
+    const wall4 = new THREE.Mesh(sideWallGeometry, wallMaterial);
+    wall4.position.set(5, 1.5, 0);
+    this.scene.add(wall4);
+}
         };
     }
     
