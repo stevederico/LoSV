@@ -18,7 +18,6 @@ export class World {
         this.createTerrain();
         this.createBoundaries(); // We'll address this later
         this.createBuildings();
-        this.createTrees(); // We'll address this later
         this.createInteractiveElements(); // We'll address this later
     }
 
@@ -156,55 +155,6 @@ export class World {
         // roof.userData.isBuilding = true;  // Tag as building
         // this.scene.add(roof);
         // this.buildings.push(roof);
-    }
-
-    createTrees() {
-        // Create trees as obstacles around the map
-        for (let i = 0; i < 15; i++) { // Restore loop
-            const treeX = (Math.random() - 0.5) * (this.worldSize - 5);
-            const treeZ = (Math.random() - 0.5) * (this.worldSize - 5);
-            // Define sprite dimensions for the tree - adjust these to match your sprite
-            const treeSpriteWidth = 1.5; // Adjusted size
-            const treeSpriteHeight = 1.5; // Adjusted size
-            this.createTree(treeX, treeZ, treeSpriteWidth, treeSpriteHeight);
-        }
-
-        // Create one large, centrally located test tree // Remove Test tree
-        // const testTreeX = 0;
-        // const testTreeZ = 0;
-        // const testTreeSpriteWidth = 10; // Make it large for testing
-        // const testTreeSpriteHeight = 10; // Make it large for testing
-        // this.createTree(testTreeX, testTreeZ, testTreeSpriteWidth, testTreeSpriteHeight);
-    }
-
-    createTree(x, z, spriteWidth, spriteHeight) {
-        const treeTexture = this.textureLoader.load('/assets/textures/tree-sprite.png'); // Restore texture
-        treeTexture.magFilter = THREE.NearestFilter;
-        treeTexture.minFilter = THREE.NearestFilter;
-
-        const treeGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
-        const treeMaterial = new THREE.MeshBasicMaterial({
-            map: treeTexture, // Use texture
-            transparent: true, // Assuming PNG with transparency
-            side: THREE.DoubleSide
-            // depthTest: false, // Remove testing property
-            // depthWrite: false // Remove testing property
-        });
-        const treeSprite = new THREE.Mesh(treeGeometry, treeMaterial);
-
-        // Position the tree sprite flat on the ground
-        treeSprite.position.set(x, 0.15, z); // x, z are center, y is slightly above ground
-        treeSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
-        // treeSprite.renderOrder = 999; // Remove testing property
-
-        // Add width and depth properties for collision detection if needed,
-        // these might be different from spriteWidth if the collision area is smaller/larger.
-        treeSprite.width = spriteWidth; 
-        treeSprite.depth = spriteHeight; // Or a more appropriate depth for collision
-
-        this.scene.add(treeSprite);
-        this.obstacles.push(treeSprite);
-        this.colliders.push(treeSprite); // Re-enable tree collision
     }
 
     createInteractiveElements() {
