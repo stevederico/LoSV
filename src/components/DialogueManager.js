@@ -13,6 +13,8 @@ export class DialogueManager {
         this.currentLineIndex = 0;
         this.isVisible = false;
         this.onDialogueCompleteCallback = null; // Callback for when dialogue finishes
+        this.lineDisplayTime = 1500; // Time in ms to display each line (50% faster than 3000ms)
+        this.dialogueTimeoutId = null; // To store the timeout ID
     }
 
     createDialogueUI() {
@@ -59,33 +61,44 @@ export class DialogueManager {
             console.error("Cannot show dialogue, UI elements are missing.");
             return;
         }
+
+        // Clear any existing dialogue timeout
+        if (this.dialogueTimeoutId) {
+            clearTimeout(this.dialogueTimeoutId);
+            this.dialogueTimeoutId = null;
+        }
+
         this.currentDialogueLines = lines;
         this.currentLineIndex = 0;
         this.onDialogueCompleteCallback = onComplete || null;
 
         if (this.currentDialogueLines.length > 0) {
-            this.dialogueTextElement.textContent = this.currentDialogueLines[this.currentLineIndex];
             this.dialogueBox.style.display = 'block';
             this.isVisible = true;
+            this._autoAdvance(); // Start auto-advancing
         } else {
-            this.hideDialogue();
+            this.hideDialogue(); // No lines to show, just hide
         }
     }
 
-    advanceDialogue() {
-        if (!this.isVisible) return false; // Not active, nothing to advance
+    _autoAdvance() {
+        if (!this.isVisible) return; // Stop if dialogue was hidden externally
 
-        this.currentLineIndex++;
         if (this.currentLineIndex < this.currentDialogueLines.length) {
             this.dialogueTextElement.textContent = this.currentDialogueLines[this.currentLineIndex];
-            return true; // Dialogue continues
+            this.currentLineIndex++;
+            this.dialogueTimeoutId = setTimeout(() => this._autoAdvance(), this.lineDisplayTime);
         } else {
-            this.hideDialogue();
-            return false; // Dialogue ended
+            // All lines have been shown, wait for lineDisplayTime then hide
+            this.dialogueTimeoutId = setTimeout(() => this.hideDialogue(), this.lineDisplayTime);
         }
     }
 
     hideDialogue() {
+        if (this.dialogueTimeoutId) {
+            clearTimeout(this.dialogueTimeoutId);
+            this.dialogueTimeoutId = null;
+        }
         if (!this.dialogueBox) return;
         this.dialogueBox.style.display = 'none';
         this.isVisible = false;

@@ -8,6 +8,8 @@ export class Player {
         this.position = new THREE.Vector3(0, 0.1, 0); // Adjusted Y position for flat sprite
         this.direction = 'down'; // down, up, left, right
         this.isMoving = false;
+        this.game = null; // Will be set by Game.js
+        this.currentSpeaker = null; // To track the NPC the player is talking to
 
         this.textureLoader = new THREE.TextureLoader();
         this.textures = {
@@ -66,18 +68,15 @@ export class Player {
         this.isMoving = false;
         const moveVector = new THREE.Vector3(0, 0, 0);
 
-        // If dialogue is active, don't allow player movement
-        if (this.game && this.game.dialogueManager && this.game.dialogueManager.isActive()) {
-            // Allow interaction to advance dialogue
-            if (keys['Enter'] || keys['Space']) { // Assuming 'Enter' or 'Space' to advance
-                this.game.dialogueManager.advanceDialogue();
-                // Prevent movement by consuming the key press
-                if (keys['Enter']) delete keys['Enter'];
-                if (keys['Space']) delete keys['Space'];
+        // If dialogue is active, check distance to speaker. If too far, hide dialogue.
+        // Player movement is no longer blocked here.
+        if (this.game && this.game.dialogueManager && this.game.dialogueManager.isActive() && this.currentSpeaker) {
+            const distanceToSpeaker = this.position.distanceTo(this.currentSpeaker.position);
+            const maxDialogueDistance = 7; // Max distance before dialogue disappears
+            if (distanceToSpeaker > maxDialogueDistance) {
+                this.game.dialogueManager.hideDialogue(); // This will trigger onComplete, clearing currentSpeaker
             }
-            return; // Stop further movement processing
         }
-
 
         let newDirection = this.direction;
 
@@ -151,10 +150,12 @@ export class Player {
                 }
                 // Check for NPC interaction
                 if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.dialogue) {
-                    if (this.game && this.game.dialogueManager) {
-                        this.game.dialogueManager.showDialogue(obstacle.userData.dialogue);
-                        // Potentially stop player movement slightly before collision with NPC
-                        // or handle it so player doesn't get stuck "inside" the NPC
+                    // Only start new dialogue if not already talking or talking to someone else
+                    if (this.game && this.game.dialogueManager && (!this.game.dialogueManager.isActive() || this.currentSpeaker !== obstacle)) {
+                        this.currentSpeaker = obstacle; // Set current speaker
+                        this.game.dialogueManager.showDialogue(obstacle.userData.dialogue, () => {
+                            this.currentSpeaker = null; // Clear speaker when dialogue naturally ends or is hidden
+                        });
                     }
                 }
                 break;
