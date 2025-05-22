@@ -4,7 +4,6 @@ export class World {
     constructor(scene) {
         this.scene = scene;
         this.terrain = [];
-        this.obstacles = [];
         this.interactiveElements = [];
         this.buildings = [];
         this.colliders = [];
@@ -16,9 +15,9 @@ export class World {
 
     init() {
         this.createTerrain();
-        this.createBoundaries(); // We'll address this later
+        this.createBoundaries();
         this.createBuildings();
-        this.createInteractiveElements(); // We'll address this later
+        this.createInteractiveElements();
     }
 
     createTerrain() {
@@ -43,7 +42,6 @@ export class World {
         this.terrain.push(ground);
 
         // Create paths with a different texture/color
-        // This will be simplified for now, ideally paths are part of a tilemap
         this.createPath(-5, -5, 10, 2); // Horizontal path
         this.createPath(-1, -5, 2, 10); // Vertical path
     }
@@ -78,7 +76,6 @@ export class World {
         const wallGeometry = new THREE.BoxGeometry(this.worldSize + wallThickness * 2, wallHeight, wallThickness);
         const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x777777 });
         
-        // North wall
         const northWall = new THREE.Mesh(wallGeometry, wallMaterial);
         northWall.position.set(0, wallHeight/2, -halfSize - wallThickness/2);
         northWall.width = this.worldSize + wallThickness * 2;
@@ -86,7 +83,6 @@ export class World {
         this.scene.add(northWall);
         this.colliders.push(northWall);
         
-        // South wall
         const southWall = new THREE.Mesh(wallGeometry, wallMaterial);
         southWall.position.set(0, wallHeight/2, halfSize + wallThickness/2);
         southWall.width = this.worldSize + wallThickness * 2;
@@ -94,10 +90,8 @@ export class World {
         this.scene.add(southWall);
         this.colliders.push(southWall);
         
-        // East & West walls
         const sideWallGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, this.worldSize + wallThickness * 2);
         
-        // East wall
         const eastWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
         eastWall.position.set(halfSize + wallThickness/2, wallHeight/2, 0);
         eastWall.width = wallThickness;
@@ -105,7 +99,6 @@ export class World {
         this.scene.add(eastWall);
         this.colliders.push(eastWall);
         
-        // West wall
         const westWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
         westWall.position.set(-halfSize - wallThickness/2, wallHeight/2, 0);
         westWall.width = wallThickness;
@@ -115,8 +108,8 @@ export class World {
     }
 
     createBuildings() {
-        // Create a house similar to the one in the image
-        this.createHouse(10, -10, 6, 4); // Dimensions might represent sprite size now
+        this.createHouse(10, -10, 3, 3); 
+        this.createGarage(15, -10, 3, 3); 
     }
 
     createHouse(x, z, spriteWidth, spriteHeight) {
@@ -142,19 +135,39 @@ export class World {
         houseSprite.depth = spriteHeight;
 
         houseSprite.userData.isBuilding = true;  // Tag as building
+        houseSprite.userData.buildingType = 'house'; // Specify building type
         this.scene.add(houseSprite);
         this.buildings.push(houseSprite);
         this.colliders.push(houseSprite); // Collision might need adjustment based on sprite
+    }
+
+    createGarage(x, z, spriteWidth, spriteHeight) {
+        const garageTexture = this.textureLoader.load('/assets/textures/garage.png');
+        garageTexture.magFilter = THREE.NearestFilter;
+        garageTexture.minFilter = THREE.NearestFilter;
         
-        // Remove old 3D roof
-        // const roofGeometry = new THREE.ConeGeometry(Math.sqrt(width*width + depth*depth)/2, 2, 4);
-        // const roofMaterial = new THREE.MeshBasicMaterial({ color: 0xaa3333 }); // Red roof
-        // const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-        // roof.position.set(x + width/2, height + 1, z + depth/2);
-        // roof.rotation.y = Math.PI / 4;
-        // roof.userData.isBuilding = true;  // Tag as building
-        // this.scene.add(roof);
-        // this.buildings.push(roof);
+        const garageGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const garageMaterial = new THREE.MeshBasicMaterial({ 
+            map: garageTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const garageSprite = new THREE.Mesh(garageGeometry, garageMaterial);
+        
+        // Position the garage sprite flat on the ground
+        garageSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        garageSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        garageSprite.width = spriteWidth;
+        garageSprite.depth = spriteHeight;
+
+        garageSprite.userData.isBuilding = true;  // Tag as building
+        garageSprite.userData.buildingType = 'garage'; // Specify building type
+        this.scene.add(garageSprite);
+        this.buildings.push(garageSprite);
+        this.colliders.push(garageSprite); // Collision might need adjustment based on sprite
     }
 
     createInteractiveElements() {
@@ -228,12 +241,12 @@ export class World {
 
     update() {
         // Animate interactive elements
-        this.interactiveElements.forEach((element, index) => {
-            // Make gems float and rotate (now checking userData tag)
-            // if (element.userData.isGem) { // Commented out gem animation
-            //     element.rotation.z += 0.02; 
-            //     element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; 
-            // }
-        });
+        // this.interactiveElements.forEach((element, index) => {
+        //     // Make gems float and rotate (now checking userData tag)
+        //     if (element.userData.isGem) { // Commented out gem animation
+        //         element.rotation.z += 0.02; 
+        //         element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; 
+        //     }
+        // });
     }
 }

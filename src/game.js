@@ -36,7 +36,7 @@ export class Game {
         this.scene.add(this.player.getMesh());
         
         // Create controls after player is created
-        this.controls = new Controls(this.player, this.camera, this.world);
+        this.controls = new Controls(this.player, this.camera, this.world, this.handleEnterBuilding.bind(this));
         
         // Create enemies after world and player exist
         this.enemies = new Enemies(this.scene, this.world);
@@ -226,6 +226,85 @@ export class Game {
         
         // Update renderer size
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    handleEnterBuilding(building) {
+        console.log("Game: Handling enter building:", building.userData.buildingType);
+        this.player.isInBuilding = true;
+        this.player.currentBuilding = building;
+
+        // 1. Clear the main scene (except player and camera, if they are managed separately)
+        // Remove world elements
+        this.world.terrain.forEach(t => this.scene.remove(t));
+        this.world.obstacles.forEach(o => this.scene.remove(o));
+        this.world.interactiveElements.forEach(i => this.scene.remove(i));
+        this.world.buildings.forEach(b => this.scene.remove(b)); // Remove building sprites from outdoor scene
+        this.world.colliders.forEach(c => { // Also ensure colliders that are meshes are removed
+            if (c instanceof THREE.Mesh) {
+                this.scene.remove(c);
+            }
+        });
+
+
+        // Remove enemies from the outdoor scene
+        this.enemies.enemies.forEach(enemy => this.scene.remove(enemy.mesh));
+        this.enemies.enemies = []; // Clear the list
+
+        // 2. Set up the building interior
+        if (building.userData.buildingType === 'house') {
+            this.renderer.setClearColor(0xaaaaaa); // Example: Grey interior for house
+            // Load house interior (simplified: just change color and remove outdoor elements)
+            // You would typically load a new set of meshes/models for the interior
+            this.player.buildingObstacles = []; // Clear previous building obstacles
+            // Add specific obstacles for the house interior if any
+            // e.g., this.player.buildingObstacles.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(0, 0.5, -2), new THREE.Vector3(1, 1, 1)));
+            // Add a placeholder table
+            const tableGeometry = new THREE.BoxGeometry(2, 0.5, 1);
+            const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Brown
+            const table = new THREE.Mesh(tableGeometry, tableMaterial);
+            table.position.set(0, 0.25, -3);
+            this.scene.add(table);
+            this.player.buildingObstacles.push(table);
+
+
+        } else if (building.userData.buildingType === 'garage') {
+            this.renderer.setClearColor(0xbbbbbb); // Example: Different Grey for garage
+            // Load garage interior
+            this.player.buildingObstacles = []; // Clear previous building obstacles
+            
+            // Add a placeholder for a car (orange square)
+            const carGeometry = new THREE.BoxGeometry(2, 1, 4); // width, height, depth
+            const carMaterial = new THREE.MeshStandardMaterial({ color: 0xffa500 }); // Orange
+            const car = new THREE.Mesh(carGeometry, carMaterial);
+            car.position.set(0, 0.5, -2); // Position it in the garage
+            this.scene.add(car);
+            this.player.buildingObstacles.push(car); // Make the car an obstacle
+
+            // Add some garage-specific walls or obstacles if needed
+            // Example: A workbench
+            const workbenchGeometry = new THREE.BoxGeometry(3, 0.8, 0.8);
+            const workbenchMaterial = new THREE.MeshStandardMaterial({ color: 0x654321 }); // Darker Brown
+            const workbench = new THREE.Mesh(workbenchGeometry, workbenchMaterial);
+            workbench.position.set(-2, 0.4, 2);
+            this.scene.add(workbench);
+            this.player.buildingObstacles.push(workbench);
+        }
+
+        // 3. Position player inside the building (example positions)
+        this.player.getMesh().position.set(0, 0.5, 0); // Adjust as needed for each interior
+
+        // 4. Adjust camera if necessary (e.g., different zoom or angle for interiors)
+        this.camera.setInteriorView(); // You'll need to implement this in Camera.js
+
+        // 5. Remove main world lights and set up interior lighting
+        const lights = this.scene.children.filter(obj => obj.isLight);
+        lights.forEach(light => this.scene.remove(light));
+        
+        const interiorLight = new THREE.PointLight(0xffffff, 0.8, 50);
+        interiorLight.position.set(0, 3, 0); // Example position
+        this.scene.add(interiorLight);
+
+        console.log("Game: Entered building interior.");
     }
 
     handleExitBuilding() {
