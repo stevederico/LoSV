@@ -282,7 +282,7 @@ export class World {
             // Make gems float and rotate (now checking userData tag)
             if (element.userData.isGem) {
                 element.rotation.z += 0.02; // Rotate around Z as it's flat on XZ plane
-                element.position.y = 0.05 + Math.sin(Date.now() * 0.003 + index) * 0.1;
+                element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; // Adjusted Y animation
             }
         });
     }
