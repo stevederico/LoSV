@@ -137,6 +137,11 @@ export class World {
         houseSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
         houseSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
 
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        houseSprite.width = spriteWidth;
+        houseSprite.depth = spriteHeight;
+
         houseSprite.userData.isBuilding = true;  // Tag as building
         this.scene.add(houseSprite);
         this.buildings.push(houseSprite);
@@ -199,7 +204,7 @@ export class World {
 
         this.scene.add(treeSprite);
         this.obstacles.push(treeSprite);
-        // this.colliders.push(treeSprite); // Temporarily disable tree collision
+        this.colliders.push(treeSprite); // Re-enable tree collision
     }
 
     createInteractiveElements() {
