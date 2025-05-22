@@ -16,25 +16,28 @@ export class Game {
         
         // Set up game components
         this.setupRenderer();
-        this.setupLights();
+        // this.setupLights(); // Lights will be set up after world/player or when re-entering main world
         
         // Initialize keyboard controls
         this.keys = setupKeyboardControls();
         
         // Create game world
-        this.world = new World(this.scene);
+        this.world = new World(this.scene); // World adds its own initial elements
         
         // Set up camera after world is created
         this.camera = new Camera(this.scene, this.renderer);
         
-        // Create player after camera is set up
-        this.player = new Player(this.scene, this.camera);
+        // Create player after camera is set up, passing the exit callback
+        this.player = new Player(this.scene, this.camera, this.handleExitBuilding.bind(this));
+        this.scene.add(this.player.getMesh()); // Add player to the initial scene
         
         // Create controls after player is created
         this.controls = new Controls(this.player, this.camera, this.world);
         
         // Create enemies after world and player exist
         this.enemies = new Enemies(this.scene, this.world);
+
+        this.setupLights(); // Setup lights for the initial main world
         
         // Asset loading status
         this.assetsLoaded = false;
@@ -50,11 +53,15 @@ export class Game {
     setupRenderer() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(0x87CEEB); // Light blue sky color
+        this.renderer.setClearColor(0x87CEEB); // Light blue sky color - Default for main world
         document.getElementById('game-container').appendChild(this.renderer.domElement);
     }
     
     setupLights() {
+        // Clear existing lights first to prevent duplicates if called multiple times
+        const lights = this.scene.children.filter(obj => obj.isLight);
+        lights.forEach(light => this.scene.remove(light));
+
         // Add ambient light for overall illumination
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         this.scene.add(ambientLight);
@@ -86,13 +93,21 @@ export class Game {
         
         // Update controls to handle player movement and actions
         // Controls.update will call player.update with proper keys and obstacles
-        this.controls.update();
+        if (this.player.isInBuilding) {
+            this.controls.update(this.player.buildingObstacles); 
+        } else {
+            this.controls.update(this.world.getObstacles());
+        }
         
-        // Update enemies to move around and interact with player
-        this.enemies.update(this.player.getPosition());
+        // Update enemies only if not in a building
+        if (!this.player.isInBuilding) {
+            this.enemies.update(this.player.getPosition());
+        }
         
-        // Update world for any animations or environmental changes
-        this.world.update();
+        // Update world for any animations or environmental changes (if not in building)
+        if (!this.player.isInBuilding) {
+            this.world.update();
+        }
     }
 
     render() {
@@ -122,5 +137,33 @@ export class Game {
         
         // Update renderer size
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    handleExitBuilding() {
+        console.log("Game: Handling exit building.");
+
+        // 1. Reset scene background/renderer clear color for the main world
+        this.renderer.setClearColor(0x87CEEB); // Light blue sky color
+        this.scene.background = null; // Or your original main world background if it was a texture/skybox
+
+        // 2. Repopulate the main world
+        // Assuming world.init() clears and re-adds its own elements. 
+        // If not, manual clearing of old world elements might be needed before this.
+        this.world.init(); // This should re-add terrain, buildings, etc.
+
+        // 3. Re-add the player's mesh to the scene
+        this.scene.add(this.player.getMesh());
+        // Player position is already updated in player.js exitBuilding method
+
+        // 4. Setting up main world lights
+        this.setupLights();
+
+        // 5. Re-initialize or re-add enemies
+        // If enemies are simple, re-creating them might be easiest.
+        // Otherwise, you might need a method to re-add existing enemy meshes to the scene.
+        this.scene.remove(this.enemies.enemies.map(e => e.mesh)); // Remove old enemy meshes if any
+        this.enemies = new Enemies(this.scene, this.world); // Recreate enemies for the main world
+
+        console.log("Game: Main world restored. Player and enemies re-added.");
     }
 }

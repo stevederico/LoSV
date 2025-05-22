@@ -17,13 +17,13 @@ loadingScreen.style.zIndex = '999';
 loadingScreen.style.fontFamily = 'Arial, sans-serif';
 
 const title = document.createElement('h1');
-title.textContent = 'THE LEGEND OF ZELDA';
+title.textContent = 'THE LEGEND OF SILICON VALLEY';
 title.style.marginBottom = '10px';
 title.style.color = '#e4c025';
 title.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
 
 const subtitle = document.createElement('h2');
-subtitle.textContent = 'A Link to the Past Tribute';
+subtitle.textContent = 'A Founder\'s Journey';
 subtitle.style.marginBottom = '30px';
 subtitle.style.color = '#e4c025';
 subtitle.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';

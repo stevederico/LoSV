@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export class Player {
-    constructor(scene, camera) {
+    constructor(scene, camera, onExitBuildingCallback) { // Added onExitBuildingCallback
         this.scene = scene;
         this.camera = camera;
         this.speed = 0.1;
@@ -12,7 +12,12 @@ export class Player {
         this.animationSpeed = 8; // frames before changing sprite
         this.frameCount = 0;
         this.mesh = this.createPlayerMesh();
-        this.scene.add(this.mesh);
+        // this.scene.add(this.mesh); // Game.js will add the player to the initial scene
+
+        this.isInBuilding = false;
+        this.buildingObstacles = [];
+        this.onExitBuildingCallback = onExitBuildingCallback; // Store callback
+        this.lastEnteredBuildingData = null; // To store { position, width, depth }
     }
 
     createPlayerMesh() {
@@ -53,8 +58,7 @@ export class Player {
         }
     }
 
-    update(keys, obstacles = []) {
-        // Reset movement
+    update(keys, worldObstacles = []) {
         this.isMoving = false;
         const moveVector = new THREE.Vector3(0, 0, 0);
         
@@ -90,123 +94,270 @@ export class Player {
             }
         }
 
-        // Check for collisions with obstacles before moving
-        if (this.isMoving && obstacles && obstacles.length > 0) {
-            const tempPosition = this.position.clone().add(moveVector);
-            const playerBounds = {
-                minX: tempPosition.x - 0.4,
-                maxX: tempPosition.x + 0.4,
-                minZ: tempPosition.z - 0.4,
-                maxZ: tempPosition.z + 0.4
+        let collision = false;
+        const tempPosition = this.position.clone().add(moveVector);
+        const playerBounds = {
+            minX: tempPosition.x - 0.4,
+            maxX: tempPosition.x + 0.4,
+            minZ: tempPosition.z - 0.4,
+            maxZ: tempPosition.z + 0.4
+        };
+
+        const currentObstacles = this.isInBuilding ? this.buildingObstacles : worldObstacles;
+
+        for (const obstacle of currentObstacles) {
+            const obsWidth = obstacle.width || (obstacle.userData && obstacle.userData.width);
+            const obsDepth = obstacle.depth || (obstacle.userData && obstacle.userData.depth);
+
+            if (!obsWidth && obsWidth !== 0 || !obsDepth && obsDepth !== 0) { // Allow 0 for very thin walls if necessary
+                // console.warn("Obstacle missing width/depth for collision", obstacle);
+                continue;
+            }
+
+            const obstacleBounds = {
+                minX: obstacle.position.x - obsWidth / 2,
+                maxX: obstacle.position.x + obsWidth / 2,
+                minZ: obstacle.position.z - obsDepth / 2,
+                maxZ: obstacle.position.z + obsDepth / 2
             };
-            let collision = false;
-            for (const obstacle of obstacles) {
-                const obstacleBounds = {
-                    minX: obstacle.position.x - obstacle.width / 2,
-                    maxX: obstacle.position.x + obstacle.width / 2,
-                    minZ: obstacle.position.z - obstacle.depth / 2,
-                    maxZ: obstacle.position.z + obstacle.depth / 2
-                };
-                if (playerBounds.maxX > obstacleBounds.minX &&
-                    playerBounds.minX < obstacleBounds.maxX &&
-                    playerBounds.maxZ > obstacleBounds.minZ &&
-                    playerBounds.minZ < obstacleBounds.maxZ) {
-                    collision = true;
-                    if (obstacle.userData && obstacle.userData.isBuilding) {
-                        this.enterBuilding(obstacle);  // Automatically enter on collision
-                    }
-                    break;
+
+            if (playerBounds.maxX > obstacleBounds.minX &&
+                playerBounds.minX < obstacleBounds.maxX &&
+                playerBounds.maxZ > obstacleBounds.minZ &&
+                playerBounds.minZ < obstacleBounds.maxZ) {
+                collision = true;
+                if (!this.isInBuilding && obstacle.userData && obstacle.userData.isBuilding) {
+                    this.enterBuilding(obstacle);
+                    return; 
                 }
+                break; 
             }
-            if (!collision) {
-                this.position.add(moveVector);
+        }
+
+        // Exit Logic: Check before applying movement if inside a building
+        if (this.isInBuilding && this.isMoving) {
+            const roomDepth = 12; // Must match roomDepth in enterBuilding
+            const room_Z_DoorPlane = roomDepth / 2;
+            const doorwayWidth = 3; // Width of the door opening
+
+            // Check if player is moving towards the door (positive Z in room coordinates)
+            // and is about to cross the door plane, aligned with the opening.
+            if (moveVector.z > 0 && // Moving "out"
+                this.position.z < room_Z_DoorPlane && 
+                tempPosition.z >= room_Z_DoorPlane &&
+                Math.abs(tempPosition.x) < doorwayWidth / 2) {
+                this.exitBuilding();
+                return; 
             }
-        } else {
+        }
+
+        if (!collision) {
             this.position.add(moveVector);
         }
         
         this.mesh.position.copy(this.position);
         
-if (this.camera) {
-    if (this.camera.position) {
-        this.camera.position.set(this.position.x, this.position.y + 10, this.position.z);
-        this.camera.lookAt(this.position);
-        
-        // Further refined zoom functionality with explicit Math.max
-        if (keys['+'] || keys['=']) {  // Zoom in
-            if (this.camera.position.y > 5) {
-                this.camera.position.y = Math.max(5, this.camera.position.y - 1);
+        if (this.camera && this.camera.position) {
+            this.camera.position.set(this.position.x, this.position.y + 10, this.position.z);
+            this.camera.lookAt(this.position);
+            
+            // Further refined zoom functionality with explicit Math.max
+            if (keys['+'] || keys['=']) {  // Zoom in
+                if (this.camera.position.y > 5) {
+                    this.camera.position.y = Math.max(5, this.camera.position.y - 1);
+                }
+            } else if (keys['-']) {  // Zoom out
+                this.camera.position.y += 1;
             }
-        } else if (keys['-']) {  // Zoom out
-            this.camera.position.y += 1;
         }
     }
-}
         
-        this.enterBuilding = function(building) {
-            if (Math.abs(building.position.x - 10) < 1 && Math.abs(building.position.z + 10) < 1) {  // Check for first building at (10, -10)
-                // Clear current scene
-                while (this.scene.children.length > 0) {
-                    this.scene.remove(this.scene.children[0]);
-                }
-                // Add simple home interior: four walls and a floor
-                const floorGeometry = new THREE.PlaneGeometry(10, 10);
-                const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });  // Brown for wooden floor
-                const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-                floor.rotation.x = -Math.PI / 2;
-                this.scene.add(floor);
-                
-                const wallGeometry = new THREE.BoxGeometry(10, 3, 0.1);  // Long wall
-                const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });  // Wood color
-                const wall1 = new THREE.Mesh(wallGeometry, wallMaterial);  // Back wall
-                wall1.position.set(0, 1.5, -5);
-                this.scene.add(wall1);
-                
-                const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);  // Front wall with door
-                wall2.position.set(0, 1.5, 5);
-                this.scene.add(wall2);
-                
-                const sideWallGeometry = new THREE.BoxGeometry(0.1, 3, 10);  // Side wall
-                const wall3 = new THREE.Mesh(sideWallGeometry, wallMaterial);  // Left wall
-                wall3.position.set(-5, 1.5, 0);
-                this.scene.add(wall3);
-                
-                const wall4 = new THREE.Mesh(sideWallGeometry, wallMaterial);  // Right wall
-                wall4.position.set(5, 1.5, 0);
-                this.scene.add(wall4);
-                
-                console.log('Entered home interior');
-} else {
-    console.log('Entered a generic building');
-    // Remove alert and add generic scene change
-    while (this.scene.children.length > 0) {
-        this.scene.remove(this.scene.children[0]);
-    }
-    const genericFloorGeometry = new THREE.PlaneGeometry(10, 10);
-    const genericFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });  // Gray for generic interior
-    const genericFloor = new THREE.Mesh(genericFloorGeometry, genericFloorMaterial);
-    genericFloor.rotation.x = -Math.PI / 2;
-    this.scene.add(genericFloor);
-    // Add basic walls for generic building
-    const wallGeometry = new THREE.BoxGeometry(10, 3, 0.1);
-    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
-    const wall1 = new THREE.Mesh(wallGeometry, wallMaterial);
-    wall1.position.set(0, 1.5, -5);
-    this.scene.add(wall1);
-    const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);
-    wall2.position.set(0, 1.5, 5);
-    this.scene.add(wall2);
-    const sideWallGeometry = new THREE.BoxGeometry(0.1, 3, 10);
-    const wall3 = new THREE.Mesh(sideWallGeometry, wallMaterial);
-    wall3.position.set(-5, 1.5, 0);
-    this.scene.add(wall3);
-    const wall4 = new THREE.Mesh(sideWallGeometry, wallMaterial);
-    wall4.position.set(5, 1.5, 0);
-    this.scene.add(wall4);
-}
+    enterBuilding(building) {
+        // Store data of the building being entered for correct exit positioning
+        this.lastEnteredBuildingData = {
+            position: building.position.clone(),
+            width: building.width, // Assumes building mesh has these properties
+            depth: building.depth  // from World.js createHouse
         };
+
+        this.isInBuilding = true;
+        this.buildingObstacles = []; // Reset obstacles for the new interior
+
+        // Clear current scene
+        while (this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+
+        // Set a neutral background, or keep the red one if preferred
+        this.scene.background = new THREE.Color(0x3d291e); // Dark brown, similar to image shadows
+
+        const roomWidth = 16;
+        const roomDepth = 12; // Used for door plane calculation
+        const wallHeight = 3;
+
+        // Floor
+        // Wooden floor base
+        const woodFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const woodFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Brown for wood
+        const woodFloor = new THREE.Mesh(woodFloorGeometry, woodFloorMaterial);
+        woodFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(woodFloor);
+
+        // Green carpet
+        const carpetWidth = roomWidth * 0.6;
+        const carpetDepth = roomDepth * 0.8;
+        const carpetGeometry = new THREE.PlaneGeometry(carpetWidth, carpetDepth);
+        const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0x2a572a }); // Darker green
+        const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
+        carpet.rotation.x = -Math.PI / 2;
+        carpet.position.y = 0.01; // Slightly above wood floor
+        this.scene.add(carpet);
+        
+        // Walls - similar to image
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x8c6c46 }); // Lighter brown/tan for walls
+
+        // Back wall
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, wallHeight, 0.2), wallMaterial);
+        backWall.position.set(0, wallHeight / 2, -roomDepth / 2);
+        backWall.width = roomWidth; backWall.depth = 0.2; // For collision
+        this.scene.add(backWall); this.buildingObstacles.push(backWall);
+
+        // Front wall (with assumed doorway) - split into two parts
+        const frontWallPartWidth = (roomWidth / 2) - 1.5; // Opening of 3 units
+        const frontWallLeft = new THREE.Mesh(new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2), wallMaterial);
+        frontWallLeft.position.set(- (frontWallPartWidth / 2) - 1.5 , wallHeight / 2, roomDepth / 2);
+        frontWallLeft.width = frontWallPartWidth; frontWallLeft.depth = 0.2; // For collision
+        this.scene.add(frontWallLeft); this.buildingObstacles.push(frontWallLeft);
+
+        const frontWallRight = new THREE.Mesh(new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2), wallMaterial);
+        frontWallRight.position.set((frontWallPartWidth / 2) + 1.5, wallHeight / 2, roomDepth / 2);
+        frontWallRight.width = frontWallPartWidth; frontWallRight.depth = 0.2; // For collision
+        this.scene.add(frontWallRight); this.buildingObstacles.push(frontWallRight);
+        
+        // Side walls
+        const sideWallGeometry = new THREE.BoxGeometry(0.2, wallHeight, roomDepth);
+        const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+        leftWall.position.set(-roomWidth / 2, wallHeight / 2, 0);
+        leftWall.width = 0.2; leftWall.depth = roomDepth; // For collision
+        this.scene.add(leftWall); this.buildingObstacles.push(leftWall);
+
+        const rightWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+        rightWall.position.set(roomWidth / 2, wallHeight / 2, 0);
+        rightWall.width = 0.2; rightWall.depth = roomDepth; // For collision
+        this.scene.add(rightWall); this.buildingObstacles.push(rightWall);
+
+        // Table
+        const tableWidth = carpetWidth * 0.8;
+        const tableDepth = 1;
+        const tableHeight = 0.8;
+        const tableGeometry = new THREE.BoxGeometry(tableWidth, tableHeight, tableDepth);
+        const tableMaterial = new THREE.MeshBasicMaterial({ color: 0x5C3317 }); // Darker wood for table
+        const table = new THREE.Mesh(tableGeometry, tableMaterial);
+        table.position.set(0, tableHeight / 2, 0); // Centered on carpet
+        this.scene.add(table);
+
+        // Chairs and NPCs
+        const chairSize = 0.6;
+        const chairHeight = 0.5;
+        const chairMaterial = new THREE.MeshBasicMaterial({ color: 0x4A2511 }); // Dark brown for chairs
+        const npcMaterialFront = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Blue for front NPCs
+        const npcMaterialBack = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red for back NPCs
+        const npcHeight = 0.8; // Taller than chair back
+
+        const npcPositions = [
+            // Back row (facing player)
+            { x: -tableWidth / 2 + 0.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
+            { x: -tableWidth / 2 + 1.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
+            { x: tableWidth / 2 - 1.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
+            { x: tableWidth / 2 - 0.5, z: tableDepth / 2 + chairSize, facingPlayer: true },
+            // Front row (back to player)
+            { x: -tableWidth / 2 + 0.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
+            { x: -tableWidth / 2 + 1.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
+            { x: tableWidth / 2 - 1.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
+            { x: tableWidth / 2 - 0.5, z: -tableDepth / 2 - chairSize, facingPlayer: false },
+        ];
+
+        npcPositions.forEach(pos => {
+            const chairGeometry = new THREE.BoxGeometry(chairSize, chairHeight, chairSize);
+            const chair = new THREE.Mesh(chairGeometry, chairMaterial);
+            chair.position.set(pos.x, chairHeight / 2, pos.z);
+            this.scene.add(chair);
+
+            const npcGeometry = new THREE.CylinderGeometry(chairSize / 2, chairSize / 2, npcHeight, 8);
+            const npc = new THREE.Mesh(npcGeometry, pos.facingPlayer ? npcMaterialFront : npcMaterialBack);
+            npc.position.set(pos.x, npcHeight / 2, pos.z); // Position NPC on the chair
+            this.scene.add(npc);
+        });
+        
+        // Torches/Sconces (simple placeholders)
+        const sconceGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+        const sconceMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD700 }); // Gold
+        
+        const sconceLeft = new THREE.Mesh(sconceGeometry, sconceMaterial);
+        sconceLeft.position.set(-roomWidth / 2 + 0.25, wallHeight * 0.6, -roomDepth * 0.3);
+        this.scene.add(sconceLeft);
+
+        const sconceRight = new THREE.Mesh(sconceGeometry, sconceMaterial);
+        sconceRight.position.set(roomWidth / 2 - 0.25, wallHeight * 0.6, -roomDepth * 0.3);
+        this.scene.add(sconceRight);
+
+
+        // Add the player back to the scene, positioned inside the door
+        this.position.set(0, 0, roomDepth / 2 - 1); 
+        this.mesh.position.copy(this.position);
+        this.scene.add(this.mesh);
+        
+        // Add lights back to the scene
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight.position.set(0, 10, 5); // Light from above and slightly front
+        this.scene.add(directionalLight);
+
+        console.log('Entered building, scene recreated to match image.');
     }
     
+    exitBuilding() {
+        console.log("Player: Attempting to exit building...");
+        this.isInBuilding = false;
+        
+        // Clear interior scene objects
+        while (this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+        this.buildingObstacles = []; // Clear interior obstacles
+
+        // Call the callback to Game.js to handle main world restoration
+        if (this.onExitBuildingCallback) {
+            this.onExitBuildingCallback(); 
+        }
+
+        // Position player outside the building they just exited
+        if (this.lastEnteredBuildingData) {
+            const buildingPos = this.lastEnteredBuildingData.position;
+            // Ensure buildingDepth is a number, use a default if not
+            const buildingDepth = typeof this.lastEnteredBuildingData.depth === 'number' ? this.lastEnteredBuildingData.depth : 4; 
+            
+            this.position.set(
+                buildingPos.x,
+                0, // Player Y position on ground in main world
+                // Position just in front of the building's original Z-face
+                buildingPos.z + (buildingDepth / 2) + 0.6 
+            );
+        } else {
+            // Fallback position if something went wrong
+            this.position.set(0, 0, 5); 
+            console.warn("Player: lastEnteredBuildingData was null, using fallback exit position.");
+        }
+        this.mesh.position.copy(this.position);
+        // The Game.js callback (onExitBuildingCallback) is responsible for:
+        // 1. Resetting scene background/renderer clear color.
+        // 2. Repopulating the main world (terrain, other buildings, enemies).
+        // 3. Re-adding the player's mesh to the scene (this.scene.add(this.mesh)).
+        // 4. Setting up main world lights.
+        console.log('Player: Exited building. Callback invoked to restore main world.');
+    }
+
     getPosition() {
         return this.position;
     }
