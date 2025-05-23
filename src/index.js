@@ -8,16 +8,20 @@ loadingScreen.style.left = '0';
 loadingScreen.style.width = '100%';
 loadingScreen.style.height = '100%';
 loadingScreen.style.zIndex = '999';
+loadingScreen.style.backgroundColor = '#000'; // Black background for letterboxing
 
 // Add full screen loading image
 const loadingImage = document.createElement('img');
 loadingImage.src = '/assets/textures/loading.png';
 loadingImage.style.position = 'absolute';
-loadingImage.style.top = '0';
-loadingImage.style.left = '0';
-loadingImage.style.width = '100%';
-loadingImage.style.height = '100%';
-loadingImage.style.objectFit = 'cover';
+loadingImage.style.top = '50%';
+loadingImage.style.left = '50%';
+loadingImage.style.transform = 'translate(-50%, -50%)';
+loadingImage.style.maxWidth = '100%';
+loadingImage.style.maxHeight = '100%';
+loadingImage.style.width = 'auto';
+loadingImage.style.height = 'auto';
+loadingImage.style.objectFit = 'contain'; // Maintain aspect ratio
 loadingImage.style.imageRendering = 'pixelated'; // For crisp pixel art
 loadingImage.style.imageRendering = '-moz-crisp-edges';
 loadingImage.style.imageRendering = 'crisp-edges';
@@ -25,26 +29,32 @@ loadingImage.style.imageRendering = 'crisp-edges';
 // Progress bar container
 const progressContainer = document.createElement('div');
 progressContainer.style.position = 'absolute';
-progressContainer.style.bottom = '50px';
+progressContainer.style.bottom = '60px';
 progressContainer.style.left = '50%';
 progressContainer.style.transform = 'translateX(-50%)';
-progressContainer.style.width = '400px';
+progressContainer.style.width = '80%';
+progressContainer.style.maxWidth = '500px';
+progressContainer.style.padding = '0 20px';
+progressContainer.style.boxSizing = 'border-box';
 
 const loadingBar = document.createElement('div');
 loadingBar.style.width = '100%';
-loadingBar.style.height = '20px';
-loadingBar.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-loadingBar.style.borderRadius = '10px';
+loadingBar.style.height = '24px';
+loadingBar.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+loadingBar.style.borderRadius = '12px';
 loadingBar.style.overflow = 'hidden';
-loadingBar.style.border = '2px solid #fff';
+loadingBar.style.border = '3px solid #fff';
+loadingBar.style.padding = '2px';
+loadingBar.style.boxSizing = 'border-box';
 
 const loadingProgress = document.createElement('div');
 loadingProgress.style.width = '0%';
 loadingProgress.style.height = '100%';
 loadingProgress.style.backgroundColor = '#e4c025';
-loadingProgress.style.transition = 'width 0.5s';
-loadingBar.appendChild(loadingProgress);
+loadingProgress.style.borderRadius = '8px';
+loadingProgress.style.transition = 'width 0.5s ease-in-out';
 
+loadingBar.appendChild(loadingProgress);
 progressContainer.appendChild(loadingBar);
 loadingScreen.appendChild(loadingImage);
 loadingScreen.appendChild(progressContainer);
