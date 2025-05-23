@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "description": "Centralized dialogue system for Legend SV game",
+  "description": "Centralized dialogue system for The Legend of Silicon Valley game",
   "settings": {
     "defaultLineDisplayTime": 1500,
     "maxDialogueDistance": 7,
@@ -9,7 +9,7 @@
   "characters": {
     "house_npc": {
       "id": "house_npc",
-      "name": "Home Owner",
+      "name": "Founder",
       "color": "#ff6b6b",
       "location": "house",
       "position": { "x": -5, "y": 0.75, "z": -3 },
@@ -18,9 +18,39 @@
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to my home!",
-            "Make yourself comfortable.",
-            "This is where I live and work."
+            "Welcome to your entrepreneurial journey!",
+            "This is Level 1: Product Ideation at Your Home.",
+            "Goal: Validate problem-solution fit in 3 rounds.",
+            "You'll evaluate 3 ideas per round with Target User, Value Proposition, and Technical Feasibility.",
+            "Allocate your research budget wisely - user feedback events will adjust validation scores.",
+            "Pick up the MacBook and iPhone to get started with your startup tools!",
+            "Ready to brainstorm your next big idea?"
+          ],
+          "repeatable": true
+        },
+        "ideation_help": {
+          "id": "ideation_help",
+          "trigger": "interaction",
+          "lines": [
+            "Remember: Focus on real problems people face.",
+            "Consider your target users carefully - who exactly needs this solution?",
+            "Think about your value proposition - what unique benefit do you provide?",
+            "Assess technical feasibility - can you actually build this?",
+            "User feedback is crucial - listen to what potential customers say.",
+            "Don't fall in love with your first idea - be ready to pivot!"
+          ],
+          "repeatable": true
+        },
+        "validation_tips": {
+          "id": "validation_tips",
+          "trigger": "interaction",
+          "lines": [
+            "Problem-solution fit comes before product-market fit.",
+            "Talk to at least 10 potential customers before building anything.",
+            "Ask 'What's the biggest challenge you face with [problem area]?'",
+            "Look for patterns in the feedback you receive.",
+            "A validated problem is worth more than a cool solution.",
+            "Your research budget is limited - spend it on the most promising ideas!"
           ],
           "repeatable": true
         }
@@ -285,7 +315,7 @@
       "game_start": {
         "id": "game_start",
         "lines": [
-          "Welcome to Legend SV!",
+          "Welcome to The Legend of Silicon Valley!",
           "Your entrepreneurial journey begins now.",
           "Explore the Silicon Valley ecosystem."
         ]
