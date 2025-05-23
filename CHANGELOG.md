@@ -1,16 +1,12 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
 ### TO-DO
-
-- add talking and text
-- start the character inside the house, remvove the trees. the dialog with the NPC should ask a question what is your favorite color? give two options Red or Blue have an arrow and allow the player to select the color, the NPC should respond and say they love the color selected
+- loading screen with new image
+- start the character inside the house.
+- NPC placeholder should be a triangle. 
+- make a dedicated file that manages all the dialog for each NPC. 
+- Make sure exit works perfectly on all buildings.
+ the dialog with the house NPC should ask a question what is your favorite color? give two options Red or Blue have an arrow and allow the player to select the color, the NPC should respond and say they love the color selected
 - Consider a tilemap system for terrain for better variety and performance.
 - Convert world boundaries to 2D sprites/tiles.
 
@@ -62,3 +58,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extended world path system to accommodate 9 total buildings.
   - Unique interior designs with thematic furniture, equipment, and atmospheric lighting for each building.
   - Interactive NPCs in each building with placeholder dialogue (3 lines each).
+0.0.3
