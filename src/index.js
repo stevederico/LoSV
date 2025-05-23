@@ -180,8 +180,9 @@ function startGame() {
     instructions.style.zIndex = '10';
     instructions.innerHTML = `
         <h3>Controls:</h3>
-        <p>Arrow Keys/WASD: Move Link</p>
-        <p>Space/Z/Enter: Action</p>
+        <p>Arrow Keys/WASD: Move</p>
+        <p>Space/Z/Enter: Action/Pickup</p>
+        <p>I: Open Inventory</p>
         <p>+/-: Zoom in/out</p>
     `;
     document.body.appendChild(instructions);
@@ -190,14 +191,7 @@ function startGame() {
     const game = new Game();
     console.log('Game initialized!');
     
-    // Test the DAU and MRR update functionality by changing values after a few seconds
-    setTimeout(() => {
-        if (game) {
-            // Example of updating game stats - normally this would be based on gameplay events
-            game.updateDAU(125);
-            game.updateMRR(499);
-        }
-    }, 5000); // Update after 5 seconds as a demonstration
+    // DAU and MRR start at 0 and will be updated by the simulator
     
     // Hide instructions after 10 seconds
     setTimeout(() => {

@@ -7,13 +7,114 @@ export class DialogueLoader {
 
     async loadDialogues() {
         try {
-            const response = await fetch('/src/data/dialogues.json');
+            const response = await fetch('./src/data/dialogues.json');
             this.dialogueData = await response.json();
             console.log('Dialogue data loaded successfully');
             return this.dialogueData;
         } catch (error) {
             console.error('Failed to load dialogue data:', error);
-            return null;
+            // Fallback with hardcoded data for testing
+            this.dialogueData = {
+                settings: {
+                    defaultLineDisplayTime: 1500,
+                    maxDialogueDistance: 7,
+                    autoAdvance: true
+                },
+                characters: {
+                    house_npc: {
+                        name: "Home Owner",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to my home!", "Make yourself comfortable.", "This is where I live and work."],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    garage_npc: {
+                        name: "Mechanic",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to my garage!", "I love working on cars here.", "Check out my tools!"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    venture_npc: {
+                        name: "VC Partner",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to our venture capital firm!", "We invest in the future.", "Got a great startup idea?"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    data_center_npc: {
+                        name: "Data Engineer",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to our data center!", "We process petabytes of data.", "The servers never sleep!"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    conference_npc: {
+                        name: "Executive",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to our conference room!", "We make important decisions here.", "Time for a board meeting!"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    loft_npc: {
+                        name: "Creative Director",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to my creative loft!", "Art and innovation happen here.", "Feel the creative energy!"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    accelerator_npc: {
+                        name: "Program Director",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to our startup accelerator!", "We help startups grow fast.", "Ready to scale your business?"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    law_npc: {
+                        name: "Attorney",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to our law office!", "Justice and legal expertise.", "How can we help you legally?"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    nasdaq_npc: {
+                        name: "Trader",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to the trading floor!", "Markets are always moving.", "Buy low, sell high!"],
+                                repeatable: true
+                            }
+                        }
+                    },
+                    generic_npc: {
+                        name: "Resident",
+                        dialogues: {
+                            greeting: {
+                                lines: ["Welcome to this building!", "This is a generic space.", "Thanks for visiting!"],
+                                repeatable: true
+                            }
+                        }
+                    }
+                }
+            };
+            console.log('Using fallback dialogue data');
+            return this.dialogueData;
         }
     }
 

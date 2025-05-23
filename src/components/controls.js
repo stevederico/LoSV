@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 
 export class Controls {
-    constructor(player, camera, world) {
+    constructor(player, camera, world, onEnterBuilding) {
         this.player = player;
         this.camera = camera;
         this.world = world;
+        this.onEnterBuilding = onEnterBuilding;
         this.keys = {};
         this.actionCooldown = 0;
         this.actionCooldownTime = 20; // Frames to wait between actions
@@ -106,8 +107,47 @@ export class Controls {
                         // Reset cooldown
                         this.actionCooldown = this.actionCooldownTime;
                         
+                        // Check if it's a pickup item
+                        if (element.userData.isPickupItem) {
+                            console.log(`Picking up ${element.userData.itemType}!`);
+                            
+                            // Add to inventory if game has inventory system
+                            if (this.player.game && this.player.game.inventory) {
+                                const itemData = element.userData.itemData;
+                                const added = this.player.game.inventory.addItem(itemData);
+                                
+                                if (added) {
+                                    // Remove from scene
+                                    if (element.parent) {
+                                        element.parent.remove(element);
+                                    }
+                                    
+                                    // Remove from interactive elements list
+                                    const index = interactives.indexOf(element);
+                                    if (index > -1) {
+                                        interactives.splice(index, 1);
+                                    }
+                                    
+                                    // Also remove from building interactive elements if in building
+                                    if (this.player.buildingInteractiveElements) {
+                                        const buildingIndex = this.player.buildingInteractiveElements.indexOf(element);
+                                        if (buildingIndex > -1) {
+                                            this.player.buildingInteractiveElements.splice(buildingIndex, 1);
+                                        }
+                                    }
+                                    
+                                    // Show pickup message
+                                    if (this.player.game.dialogueManager) {
+                                        this.player.game.dialogueManager.showDialogue(
+                                            [`You picked up a ${itemData.name}!`],
+                                            null
+                                        );
+                                    }
+                                }
+                            }
+                        }
                         // If the element is a gem, remove it from the scene
-                        if (element.geometry instanceof THREE.OctahedronGeometry) {
+                        else if (element.geometry instanceof THREE.OctahedronGeometry) {
                             this.world.scene.remove(element);
                             const index = interactives.indexOf(element);
                             if (index > -1) {
@@ -122,7 +162,7 @@ export class Controls {
         }
     }
 
-    update() {
+    update(obstacles) {
         // Create a direction vector to store movement input
         const moveDirection = { x: 0, z: 0 };
         
@@ -145,15 +185,76 @@ export class Controls {
             this.actionCooldown--;
         }
         
-        // Get obstacles for collision detection
-        const obstacles = this.world ? this.world.getObstacles() : [];
-        
         // Update player based on combined inputs
-        this.player.update(this.keys, obstacles);
+        this.player.update(this.keys, obstacles || []);
         
         // Update camera to follow player
         if (this.camera) {
             this.camera.update(this.player.getPosition());
+        }
+    }
+    
+    checkBuildingInteraction() {
+        // Check if player is trying to interact with something in a building
+        if (this.keys[' '] || this.keys['z'] || this.keys['Enter']) {
+            if (this.actionCooldown <= 0 && this.player.interactiveNPCs) {
+                const playerPos = this.player.getPosition();
+                
+                // Check for nearby interactive elements in building (including items)
+                for (const element of this.player.interactiveNPCs) {
+                    const distance = playerPos.distanceTo(element.position);
+                    if (distance < 1.5) {
+                        console.log('Interacting with building element');
+                        
+                        // Reset cooldown
+                        this.actionCooldown = this.actionCooldownTime;
+                        
+                        // Check if it's a pickup item
+                        if (element.userData.isPickupItem) {
+                            console.log(`Picking up ${element.userData.itemType}!`);
+                            
+                            // Add to inventory if game has inventory system
+                            if (this.player.game && this.player.game.inventory) {
+                                const itemData = element.userData.itemData;
+                                const added = this.player.game.inventory.addItem(itemData);
+                                
+                                if (added) {
+                                    // Mark item as picked up
+                                    if (element.userData.buildingType && element.userData.itemType) {
+                                        const building = element.userData.buildingType;
+                                        const itemType = element.userData.itemType;
+                                        
+                                        if (this.player.game.pickedUpItems[building]) {
+                                            this.player.game.pickedUpItems[building].push(itemType);
+                                        }
+                                    }
+                                    
+                                    // Remove from scene
+                                    if (element.parent) {
+                                        element.parent.remove(element);
+                                    }
+                                    
+                                    // Remove from interactiveNPCs array
+                                    const npcIndex = this.player.interactiveNPCs.indexOf(element);
+                                    if (npcIndex > -1) {
+                                        this.player.interactiveNPCs.splice(npcIndex, 1);
+                                    }
+                                    
+                                    // Show pickup message
+                                    if (this.player.game.dialogueManager) {
+                                        this.player.game.dialogueManager.showDialogue(
+                                            [`You picked up a ${itemData.name}!`],
+                                            null
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        
+                        break;
+                    }
+                }
+            }
         }
     }
 }

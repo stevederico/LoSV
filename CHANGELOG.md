@@ -1,11 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 ### TO-DO
-- make a dedicated file that manages all the dialog for each NPC. 
-- Make sure exit works perfectly on all buildings.
- the dialog with the house NPC should ask a question what is your favorite color? give two options Red or Blue have an arrow and allow the player to select the color, the NPC should respond and say they love the color selected
-- Consider a tilemap system for terrain for better variety and performance.
-- Convert world boundaries to 2D sprites/tiles.
+
+
 
 ### Changes
 
@@ -64,4 +61,58 @@ All notable changes to this project will be documented in this file.
 - ~~NPC placeholder should be a triangle.~~ (Completed)
 - ~~add a menu bar with MRR and DAU counters~~ (Completed)
 
+## [0.2.0] - 2025-01-22
 
+### Added
+- **Startup Founder Simulator Integration:**
+  - Created `StartupSimulator.js` class with complete 10-level startup journey
+  - Implemented all 10 levels with 3 rounds each, following the exact game specification
+  - Level progression: Product Ideation → MVP Development → Fundraising → Team Building → Go-to-Market → Scaling → Crisis Management → Series A → Corporate Governance → Exit Strategy
+  - Dynamic scoring system with hidden scores (0-100) per choice
+  - Progress tracking for each level with specific goals and units
+  - Random events system (positive, negative, neutral) that affect gameplay
+  - Player stats tracking: DAU, MRR, funding, team size, morale, runway
+
+- **Simulator Dialogue System:**
+  - Created `SimulatorDialogue.js` for SNES-style terminal interface
+  - Green terminal text on black background with retro styling
+  - Formatted display showing Level, Round, Objective, and Options
+  - Progress bars showing goal completion
+  - Score display after each choice
+  - Random event notifications with color-coded borders
+  - Level success/failure screens
+  - Keyboard input (1, 2, 3) for option selection
+
+- **Building-Level Integration:**
+  - Mapped each building to its corresponding simulator level
+  - House → Product Ideation
+  - Garage → MVP Development
+  - Accelerator → Fundraising
+  - Loft → Team Building
+  - Conference → Go-to-Market
+  - Data Center → Scaling
+  - Venture → Series A
+  - Law → Corporate Governance
+  - Nasdaq → Exit Strategy
+  - Note: Board Room building needed for Crisis Management level
+
+- **Enhanced Building Interiors:**
+  - Unique furniture and obstacles for each building type
+  - House: Table and bookshelf
+  - Garage: Car and workbench
+  - Accelerator: Desks and whiteboard
+  - Loft: Art easels and couch
+  - Conference: Conference table and chairs
+  - Data Center: Server racks with blinking lights
+  - Venture: Executive desk and leather chairs
+  - Law: Bookshelves and desk with papers
+  - Nasdaq: Trading terminals and stock ticker display
+
+- **Game Stats Integration:**
+  - DAU and MRR counters update based on simulator progress
+  - Stats persist across building visits
+  - Real-time updates during gameplay
+
+### Fixed
+- Fixed DAU/MRR display elements to properly update values
+- Improved UI element selection for stats display

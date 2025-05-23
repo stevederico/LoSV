@@ -397,6 +397,8 @@ export class World {
     }
 
     createInteractiveElements() {
+        // Items will be created inside the house, not in the main world
+        
         // Create interactive elements like chests, pots, etc.
         // this.createChest(5, 0, 2, 2); // Commented out
         // this.createChest(-8, 7, 2, 2); // Commented out
@@ -407,6 +409,76 @@ export class World {
         //     const gemZ = (Math.random() - 0.5) * (this.worldSize - 5);
         //     this.createGem(gemX, gemZ, 1, 1); 
         // }
+    }
+    
+    createMacBook(x, z, spriteWidth, spriteHeight) {
+        console.log('Creating MacBook at position:', x, z);
+        
+        // Load MacBook texture
+        const macbookTexture = this.textureLoader.load('/assets/textures/macbook.png');
+        macbookTexture.magFilter = THREE.NearestFilter;
+        macbookTexture.minFilter = THREE.NearestFilter;
+        
+        const macbookGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const macbookMaterial = new THREE.MeshBasicMaterial({
+            map: macbookTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const macbookSprite = new THREE.Mesh(macbookGeometry, macbookMaterial);
+        
+        macbookSprite.position.set(x, 0.5, z); // Raised higher to be more visible
+        macbookSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+        
+        macbookSprite.width = spriteWidth;
+        macbookSprite.depth = spriteHeight;
+        macbookSprite.userData.isPickupItem = true; // Generic pickup tag
+        macbookSprite.userData.itemType = 'macbook'; // Specific type
+        macbookSprite.userData.itemData = {
+            name: 'MacBook Pro',
+            icon: '💻',
+            description: 'A powerful laptop for building your startup'
+        };
+        
+        this.scene.add(macbookSprite);
+        this.interactiveElements.push(macbookSprite);
+        console.log('MacBook created successfully');
+        return macbookSprite;
+    }
+    
+    createiPhone(x, z, spriteWidth, spriteHeight) {
+        console.log('Creating iPhone at position:', x, z);
+        
+        // Load iPhone texture
+        const iphoneTexture = this.textureLoader.load('/assets/textures/iphone.png');
+        iphoneTexture.magFilter = THREE.NearestFilter;
+        iphoneTexture.minFilter = THREE.NearestFilter;
+        
+        const iphoneGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const iphoneMaterial = new THREE.MeshBasicMaterial({
+            map: iphoneTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const iphoneSprite = new THREE.Mesh(iphoneGeometry, iphoneMaterial);
+        
+        iphoneSprite.position.set(x, 0.5, z); // Raised higher to be more visible
+        iphoneSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+        
+        iphoneSprite.width = spriteWidth;
+        iphoneSprite.depth = spriteHeight;
+        iphoneSprite.userData.isPickupItem = true; // Generic pickup tag
+        iphoneSprite.userData.itemType = 'iphone'; // Specific type
+        iphoneSprite.userData.itemData = {
+            name: 'iPhone 15 Pro',
+            icon: '📱',
+            description: 'Essential for staying connected with your team'
+        };
+        
+        this.scene.add(iphoneSprite);
+        this.interactiveElements.push(iphoneSprite);
+        console.log('iPhone created successfully');
+        return iphoneSprite;
     }
 
     createChest(x, z, spriteWidth, spriteHeight) {

@@ -4,7 +4,7 @@ export class Player {
     constructor(scene, camera, onExitBuildingCallback) {
         this.scene = scene;
         this.camera = camera;
-        this.speed = 0.1;
+        this.speed = 0.2; // Increased speed for better movement
         this.position = new THREE.Vector3(0, 0.1, 5); // Start inside house near door
         this.direction = 'down'; // down, up, left, right
         this.isMoving = false;
@@ -659,10 +659,74 @@ export class Player {
         const houseNPC = this.createNPC(-5, -3, 0xff6b6b, 'house_npc');
         this.scene.add(houseNPC);
         this.buildingObstacles.push(houseNPC);
+        
+        // Add MacBook and iPhone items
+        this.addHouseItems();
+    }
+    
+    addHouseItems() {
+        // Create MacBook
+        const macbookTexture = new THREE.TextureLoader().load('/assets/textures/macbook.png');
+        macbookTexture.magFilter = THREE.NearestFilter;
+        macbookTexture.minFilter = THREE.NearestFilter;
+        
+        const macbookGeometry = new THREE.PlaneGeometry(0.8, 0.6);
+        const macbookMaterial = new THREE.MeshBasicMaterial({
+            map: macbookTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const macbookSprite = new THREE.Mesh(macbookGeometry, macbookMaterial);
+        
+        macbookSprite.position.set(0, 0.5, -2.5); // On the table
+        macbookSprite.rotation.x = -Math.PI / 2;
+        
+        macbookSprite.width = 0.8;
+        macbookSprite.depth = 0.6;
+        macbookSprite.userData.isPickupItem = true;
+        macbookSprite.userData.itemType = 'macbook';
+        macbookSprite.userData.itemData = {
+            name: 'MacBook Pro',
+            icon: '💻',
+            description: 'A powerful laptop for building your startup'
+        };
+        
+        this.scene.add(macbookSprite);
+        this.interactiveNPCs.push(macbookSprite); // Add to interactive elements
+        
+        // Create iPhone
+        const iphoneTexture = new THREE.TextureLoader().load('/assets/textures/iphone.png');
+        iphoneTexture.magFilter = THREE.NearestFilter;
+        iphoneTexture.minFilter = THREE.NearestFilter;
+        
+        const iphoneGeometry = new THREE.PlaneGeometry(0.3, 0.5);
+        const iphoneMaterial = new THREE.MeshBasicMaterial({
+            map: iphoneTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const iphoneSprite = new THREE.Mesh(iphoneGeometry, iphoneMaterial);
+        
+        iphoneSprite.position.set(-2.7, 0.5, 0); // Near the NPC
+        iphoneSprite.rotation.x = -Math.PI / 2;
+        
+        iphoneSprite.width = 0.3;
+        iphoneSprite.depth = 0.5;
+        iphoneSprite.userData.isPickupItem = true;
+        iphoneSprite.userData.itemType = 'iphone';
+        iphoneSprite.userData.itemData = {
+            name: 'iPhone 15 Pro',
+            icon: '📱',
+            description: 'Essential for staying connected with your team'
+        };
+        
+        this.scene.add(iphoneSprite);
+        this.interactiveNPCs.push(iphoneSprite); // Add to interactive elements
     }
 
     createNPC(x, z, color, characterId) {
-        const npcGeometry = new THREE.BoxGeometry(1, 1.5, 1);
+        // Create triangle geometry for NPCs (cone with 3 sides)
+        const npcGeometry = new THREE.ConeGeometry(0.5, 1.5, 3);
         const npcMaterial = new THREE.MeshBasicMaterial({ color: color });
         const npc = new THREE.Mesh(npcGeometry, npcMaterial);
         npc.position.set(x, 0.75, z);
