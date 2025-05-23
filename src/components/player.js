@@ -166,12 +166,12 @@ export class Player {
                     this.enterBuilding(obstacle);
                     return;
                 }
-                // Check for NPC interaction
-                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.dialogue) {
+                // Check for NPC interaction using new JSON system
+                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.characterId) {
                     // Only start new dialogue if not already talking or talking to someone else
                     if (this.game && this.game.dialogueManager && (!this.game.dialogueManager.isActive() || this.currentSpeaker !== obstacle)) {
                         this.currentSpeaker = obstacle; // Set current speaker
-                        this.game.dialogueManager.showDialogue(obstacle.userData.dialogue, () => {
+                        this.game.dialogueManager.showCharacterDialogue(obstacle.userData.characterId, 'greeting', () => {
                             this.currentSpeaker = null; // Clear speaker when dialogue naturally ends or is hidden
                         });
                     }
@@ -360,8 +360,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x888888);
 
         // Add garage NPC
-        const garageNPC = this.createNPC(-2, -3, 0xff8800, // Orange NPC
-            ["Welcome to my garage!", "I love working on cars here.", "Check out my tools!"]);
+        const garageNPC = this.createNPC(-2, -3, 0xff8800, 'garage_npc');
         this.scene.add(garageNPC);
         this.buildingObstacles.push(garageNPC);
 
@@ -385,8 +384,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x444444);
 
         // Add venture NPC
-        const ventureNPC = this.createNPC(-1, -3, 0x0088ff, // Blue NPC
-            ["Welcome to our venture capital firm!", "We invest in the future.", "Got a great startup idea?"]);
+        const ventureNPC = this.createNPC(-1, -3, 0x0088ff, 'venture_npc');
         this.scene.add(ventureNPC);
         this.buildingObstacles.push(ventureNPC);
 
@@ -410,8 +408,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x334455);
 
         // Add data center NPC
-        const dataNPC = this.createNPC(-1, -3, 0x00ffff, // Cyan NPC
-            ["Welcome to our data center!", "We process petabytes of data.", "The servers never sleep!"]);
+        const dataNPC = this.createNPC(-1, -3, 0x00ffff, 'data_center_npc');
         this.scene.add(dataNPC);
         this.buildingObstacles.push(dataNPC);
 
@@ -435,8 +432,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x5a4a3a);
 
         // Add conference NPC
-        const confNPC = this.createNPC(-1, -3, 0x8b4513, // Brown NPC
-            ["Welcome to our conference room!", "We make important decisions here.", "Time for a board meeting!"]);
+        const confNPC = this.createNPC(-1, -3, 0x8b4513, 'conference_npc');
         this.scene.add(confNPC);
         this.buildingObstacles.push(confNPC);
 
@@ -460,8 +456,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x6a6a5a);
 
         // Add loft NPC
-        const loftNPC = this.createNPC(-1, -3, 0xff8800, // Orange NPC
-            ["Welcome to my creative loft!", "Art and innovation happen here.", "Feel the creative energy!"]);
+        const loftNPC = this.createNPC(-1, -3, 0xff8800, 'loft_npc');
         this.scene.add(loftNPC);
         this.buildingObstacles.push(loftNPC);
 
@@ -485,8 +480,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a3a5a);
 
         // Add accelerator NPC
-        const accelNPC = this.createNPC(-1, -3, 0x4169e1, // Royal blue NPC
-            ["Welcome to our startup accelerator!", "We help startups grow fast.", "Ready to scale your business?"]);
+        const accelNPC = this.createNPC(-1, -3, 0x4169e1, 'accelerator_npc');
         this.scene.add(accelNPC);
         this.buildingObstacles.push(accelNPC);
 
@@ -510,8 +504,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x4a3a3a);
 
         // Add law NPC
-        const lawNPC = this.createNPC(-1, -3, 0x191970, // Dark navy NPC
-            ["Welcome to our law office!", "Justice and legal expertise.", "How can we help you legally?"]);
+        const lawNPC = this.createNPC(-1, -3, 0x191970, 'law_npc');
         this.scene.add(lawNPC);
         this.buildingObstacles.push(lawNPC);
 
@@ -535,8 +528,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a5a3a);
 
         // Add nasdaq NPC
-        const nasdaqNPC = this.createNPC(-1, -3, 0x00ff00, // Green NPC
-            ["Welcome to the trading floor!", "Markets are always moving.", "Buy low, sell high!"]);
+        const nasdaqNPC = this.createNPC(-1, -3, 0x00ff00, 'nasdaq_npc');
         this.scene.add(nasdaqNPC);
         this.buildingObstacles.push(nasdaqNPC);
 
@@ -560,8 +552,7 @@ export class Player {
         this.createWalls(roomWidth, roomDepth, wallHeight, 0x555555);
 
         // Add generic NPC
-        const genericNPC = this.createNPC(-1, -3, 0x888888, // Gray NPC
-            ["Welcome to this building!", "This is a generic space.", "Thanks for visiting!"]);
+        const genericNPC = this.createNPC(-1, -3, 0x888888, 'generic_npc');
         this.scene.add(genericNPC);
         this.buildingObstacles.push(genericNPC);
 
@@ -665,13 +656,12 @@ export class Player {
 
     addHouseNPC() {
         // Create house NPC
-        const houseNPC = this.createNPC(-5, -3, 0xff6b6b, // Light red NPC
-            ["Welcome to my home!", "Make yourself comfortable.", "This is where I live and work."]);
+        const houseNPC = this.createNPC(-5, -3, 0xff6b6b, 'house_npc');
         this.scene.add(houseNPC);
         this.buildingObstacles.push(houseNPC);
     }
 
-    createNPC(x, z, color, dialogue) {
+    createNPC(x, z, color, characterId) {
         const npcGeometry = new THREE.BoxGeometry(1, 1.5, 1);
         const npcMaterial = new THREE.MeshBasicMaterial({ color: color });
         const npc = new THREE.Mesh(npcGeometry, npcMaterial);
@@ -680,7 +670,7 @@ export class Player {
         npc.depth = 1;
         npc.userData = {
             isNPC: true,
-            dialogue: dialogue
+            characterId: characterId
         };
         return npc;
     }
