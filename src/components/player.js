@@ -447,17 +447,30 @@ export class Player {
     }
 
     createNPC(x, z, color, dialogue) {
-        const npcSpriteWidth = 1.5;
-        const npcSpriteHeight = 1.5;
-        const npcGeometry = new THREE.PlaneGeometry(npcSpriteWidth, npcSpriteHeight);
-        const npcMaterial = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
+        const npcSize = 1.5;
+        
+        // Create triangle geometry for NPC
+        const npcGeometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array([
+            0, 0, npcSize / 2,      // Top vertex
+            -npcSize / 2, 0, -npcSize / 2,  // Bottom left
+            npcSize / 2, 0, -npcSize / 2    // Bottom right
+        ]);
+        npcGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        
+        // Calculate normals for proper lighting
+        npcGeometry.computeVertexNormals();
+        
+        const npcMaterial = new THREE.MeshBasicMaterial({ 
+            color: color, 
+            side: THREE.DoubleSide 
+        });
         const npcMesh = new THREE.Mesh(npcGeometry, npcMaterial);
         
         npcMesh.position.set(x, 0.1, z);
-        npcMesh.rotation.x = -Math.PI / 2;
 
-        npcMesh.width = npcSpriteWidth;
-        npcMesh.depth = npcSpriteHeight;
+        npcMesh.width = npcSize;
+        npcMesh.depth = npcSize;
         npcMesh.userData = {
             isNPC: true,
             dialogue: dialogue

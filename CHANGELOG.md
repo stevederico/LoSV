@@ -1,9 +1,6 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 ### TO-DO
-- ~~loading.png image on the loading screen~~ (Completed)
-- ~~start the character inside the house.~~ (Completed)
-- NPC placeholder should be a triangle. 
 - make a dedicated file that manages all the dialog for each NPC. 
 - Make sure exit works perfectly on all buildings.
  the dialog with the house NPC should ask a question what is your favorite color? give two options Red or Blue have an arrow and allow the player to select the color, the NPC should respond and say they love the color selected
@@ -45,7 +42,6 @@ All notable changes to this project will be documented in this file.
 - Game logic in `Game.js` now handles transitions between the main world and building interiors, including lighting and enemy management.
 - Fixed collision detection logic to use appropriate obstacles based on whether the player is in a building or the main world.
 - Fixed ensured player mesh is added to the scene on initial game load.
-- ~~add a menu bar with MRR and DAU counters~~ (Completed)
 - **New Buildings:** Added 6 additional buildings to the game world:
   - **Data Center**: High-tech server room with server racks, cooling units, and network equipment. Features cyan tech specialist NPC.
   - **Conference**: Professional boardroom with large conference table, executive chairs, presentation screen, and podium. Features brown business professional NPC.
@@ -58,6 +54,14 @@ All notable changes to this project will be documented in this file.
   - Extended world path system to accommodate 9 total buildings.
   - Unique interior designs with thematic furniture, equipment, and atmospheric lighting for each building.
   - Interactive NPCs in each building with placeholder dialogue (3 lines each).
-- **Loading Screen:** Added loading.png image to the loading screen with proper pixel art rendering for crisp display.
+- **Loading Screen:** Enhanced loading.png image display with full-screen presentation, proper aspect ratio preservation using `objectFit: 'contain'`, centered positioning with black letterboxing, and improved progress bar with better margin/padding (20px padding, responsive width, rounded corners).
 - **Scene Management:** Fixed visual clipping issue where house interior overlapped with main map when player starts in the house.
-0.0.3
+- **NPC System:** Converted NPC placeholders from rectangular sprites to triangular geometry using `THREE.BufferGeometry` for better visual distinction and game aesthetics.
+
+### Completed Tasks
+- ~~loading.png image on the loading screen~~ (Completed)
+- ~~start the character inside the house.~~ (Completed)
+- ~~NPC placeholder should be a triangle.~~ (Completed)
+- ~~add a menu bar with MRR and DAU counters~~ (Completed)
+
+
