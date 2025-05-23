@@ -46,17 +46,18 @@ export class World {
         this.createPath(-1, -5, 2, 10); // Vertical path
         
         // Create main path in front of all buildings - extended for new buildings
-        this.createPath(-18, -8, 36, 3); // Long horizontal path in front of buildings (from x=-18 to x=18, z=-8 to z=-5)
+        this.createPath(-18, -8, 46, 3); // Long horizontal path in front of buildings (from x=-18 to x=28, z=-8 to z=-5)
         
         // Create connecting paths to each building
-        this.createPath(-17.5, -10, 2, 2); // Path to YComb building
-        this.createPath(-12.5, -10, 2, 2); // Path to House
-        this.createPath(-7.5, -10, 2, 2); // Path to Garage  
-        this.createPath(-2.5, -10, 2, 2); // Path to Venture building
-        this.createPath(2.5, -10, 2, 2); // Path to Data Center
-        this.createPath(7.5, -10, 2, 2); // Path to Conference
-        this.createPath(12.5, -10, 2, 2); // Path to Loft
-        this.createPath(17.5, -10, 2, 2); // Path to Accelerator
+        this.createPath(-17.5, -10, 2, 2); // Path to House
+        this.createPath(-12.5, -10, 2, 2); // Path to Garage
+        this.createPath(-7.5, -10, 2, 2); // Path to Accelerator  
+        this.createPath(-2.5, -10, 2, 2); // Path to Loft
+        this.createPath(2.5, -10, 2, 2); // Path to Conference
+        this.createPath(7.5, -10, 2, 2); // Path to Data Center
+        this.createPath(12.5, -10, 2, 2); // Path to Venture building
+        this.createPath(17.5, -10, 2, 2); // Path to Law building
+        this.createPath(22.5, -10, 2, 2); // Path to Nasdaq building
     }
 
     createPath(x, z, width, depth) {
@@ -121,7 +122,6 @@ export class World {
     }
 
     createBuildings() {
-
         this.createHouse(-17, -10, 3, 3); 
         this.createGarage(-12, -10, 3, 3);
         this.createAccelerator(-7, -10, 3, 3);
@@ -129,10 +129,8 @@ export class World {
         this.createConference(3, -10, 3, 3);
         this.createDataCenter(8, -10, 3, 3);
         this.createVentureBuilding(13, -10, 3, 3);
-        
-        
-        
-        
+        this.createLawBuilding(18, -10, 3, 3);
+        this.createNasdaqBuilding(23, -10, 3, 3);
     }
 
     createHouse(x, z, spriteWidth, spriteHeight) {
@@ -338,6 +336,64 @@ export class World {
         this.scene.add(acceleratorSprite);
         this.buildings.push(acceleratorSprite);
         this.colliders.push(acceleratorSprite); // Collision might need adjustment based on sprite
+    }
+
+    createLawBuilding(x, z, spriteWidth, spriteHeight) {
+        const lawTexture = this.textureLoader.load('/assets/textures/law.png');
+        lawTexture.magFilter = THREE.NearestFilter;
+        lawTexture.minFilter = THREE.NearestFilter;
+        
+        const lawGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const lawMaterial = new THREE.MeshBasicMaterial({ 
+            map: lawTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const lawSprite = new THREE.Mesh(lawGeometry, lawMaterial);
+        
+        // Position the Law building sprite flat on the ground
+        lawSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        lawSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        lawSprite.width = spriteWidth;
+        lawSprite.depth = spriteHeight;
+
+        lawSprite.userData.isBuilding = true;  // Tag as building
+        lawSprite.userData.buildingType = 'law'; // Specify building type
+        this.scene.add(lawSprite);
+        this.buildings.push(lawSprite);
+        this.colliders.push(lawSprite); // Collision might need adjustment based on sprite
+    }
+
+    createNasdaqBuilding(x, z, spriteWidth, spriteHeight) {
+        const nasdaqTexture = this.textureLoader.load('/assets/textures/nasdaq.png');
+        nasdaqTexture.magFilter = THREE.NearestFilter;
+        nasdaqTexture.minFilter = THREE.NearestFilter;
+        
+        const nasdaqGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const nasdaqMaterial = new THREE.MeshBasicMaterial({ 
+            map: nasdaqTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const nasdaqSprite = new THREE.Mesh(nasdaqGeometry, nasdaqMaterial);
+        
+        // Position the Nasdaq building sprite flat on the ground
+        nasdaqSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        nasdaqSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        nasdaqSprite.width = spriteWidth;
+        nasdaqSprite.depth = spriteHeight;
+
+        nasdaqSprite.userData.isBuilding = true;  // Tag as building
+        nasdaqSprite.userData.buildingType = 'nasdaq'; // Specify building type
+        this.scene.add(nasdaqSprite);
+        this.buildings.push(nasdaqSprite);
+        this.colliders.push(nasdaqSprite); // Collision might need adjustment based on sprite
     }
 
     createInteractiveElements() {

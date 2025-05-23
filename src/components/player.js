@@ -33,6 +33,7 @@ export class Player {
         this.interactiveNPCs = []; // For NPCs that can be interacted with
         this.onExitBuildingCallback = onExitBuildingCallback;
         this.lastEnteredBuildingData = null;
+        this.currentRoomDepth = null; // Store current room depth for exit logic
     }
 
     createPlayerMesh() {
@@ -164,7 +165,8 @@ export class Player {
 
         // Exit Logic: Check before applying movement if inside a building
         if (this.isInBuilding && this.isMoving) {
-            const roomDepth = 12; // Must match roomDepth in enterBuilding
+            // Use the current room depth stored when entering the building
+            const roomDepth = this.currentRoomDepth || 12; // Fallback to 12 if not set
             const room_Z_DoorPlane = roomDepth / 2;
             const doorwayWidth = 3; // Width of the door opening
 
@@ -225,10 +227,20 @@ export class Player {
             this.createHouseInterior();
         } else if (buildingType === 'garage') {
             this.createGarageInterior();
-        } else if (buildingType === 'ycomb') {
-            this.createYCombInterior();
         } else if (buildingType === 'venture') {
             this.createVentureInterior();
+        } else if (buildingType === 'data-center') {
+            this.createDataCenterInterior();
+        } else if (buildingType === 'conference') {
+            this.createConferenceInterior();
+        } else if (buildingType === 'loft') {
+            this.createLoftInterior();
+        } else if (buildingType === 'accelerator') {
+            this.createAcceleratorInterior();
+        } else if (buildingType === 'law') {
+            this.createLawInterior();
+        } else if (buildingType === 'nasdaq') {
+            this.createNasdaqInterior();
         } else {
             // Fallback for unknown building types
             this.createGenericInterior();
@@ -351,40 +363,6 @@ export class Player {
         this.addInteriorLighting();
     }
 
-    createYCombInterior() {
-        // Set YComb-specific background (startup/tech atmosphere)
-        this.scene.background = new THREE.Color(0x1a1a2e); // Dark blue-purple
-
-        const roomWidth = 20; // Large open office space
-        const roomDepth = 16; 
-        const wallHeight = 3.5;
-
-        // Create modern tech floor
-        const techFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const techFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c54 }); // Dark purple-blue
-        const techFloor = new THREE.Mesh(techFloorGeometry, techFloorMaterial);
-        techFloor.rotation.x = -Math.PI / 2;
-        this.scene.add(techFloor);
-
-        // Add carpet areas for different zones
-        const carpetGeometry = new THREE.PlaneGeometry(8, 6);
-        const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0xff6b35 }); // Orange accent
-        const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
-        carpet.rotation.x = -Math.PI / 2;
-        carpet.position.set(-4, 0.01, -3);
-        this.scene.add(carpet);
-
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x4a4a4a); // Dark grey walls
-
-        // Add YComb office furniture
-        this.addYCombFurniture();
-
-        // Add YComb NPC
-        this.addYCombNPC();
-
-        this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
-    }
 
     createVentureInterior() {
         // Set Venture-specific background (corporate/investment atmosphere)
@@ -609,13 +587,6 @@ export class Player {
         this.interactiveNPCs.push(garageNPC);
     }
 
-    addYCombNPC() {
-        const ycombNPC = this.createNPC(2, -6, 0xff6b35, // Orange NPC for YComb
-            ["Welcome to Y Combinator!", "We're looking for the next big startup.", "Do you have a disruptive idea?"]);
-        this.scene.add(ycombNPC);
-        this.buildingObstacles.push(ycombNPC);
-        this.interactiveNPCs.push(ycombNPC);
-    }
 
     addVentureNPC() {
         const ventureNPC = this.createNPC(-3, -7, 0x2f4f2f, // Dark green NPC for Venture
@@ -625,70 +596,6 @@ export class Player {
         this.interactiveNPCs.push(ventureNPC);
     }
 
-    addYCombFurniture() {
-        // Conference table with chairs (startup meeting setup)
-        const conferenceTableGeometry = new THREE.BoxGeometry(6, 0.6, 2.5);
-        const conferenceTableMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 }); // Dark modern table
-        const conferenceTable = new THREE.Mesh(conferenceTableGeometry, conferenceTableMaterial);
-        conferenceTable.position.set(-4, 0.3, -3);
-        conferenceTable.width = 6; 
-        conferenceTable.depth = 2.5;
-        this.scene.add(conferenceTable);
-        this.buildingObstacles.push(conferenceTable);
-
-        // Modern chairs around conference table
-        const modernChairGeometry = new THREE.BoxGeometry(0.6, 1, 0.6);
-        const modernChairMaterial = new THREE.MeshBasicMaterial({ color: 0xff6b35 }); // Orange chairs
-
-        // Add chairs around the table
-        for (let i = 0; i < 6; i++) {
-            const chair = new THREE.Mesh(modernChairGeometry, modernChairMaterial);
-            const angle = (i / 6) * Math.PI * 2;
-            chair.position.set(-4 + Math.cos(angle) * 2, 0.5, -3 + Math.sin(angle) * 1.8);
-            chair.width = 0.6; 
-            chair.depth = 0.6;
-            this.scene.add(chair);
-            this.buildingObstacles.push(chair);
-        }
-
-        // Standing desks
-        const standingDeskGeometry = new THREE.BoxGeometry(2, 1.2, 1);
-        const standingDeskMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c54 });
-        
-        const desk1 = new THREE.Mesh(standingDeskGeometry, standingDeskMaterial);
-        desk1.position.set(6, 0.6, -5);
-        desk1.width = 2; 
-        desk1.depth = 1;
-        this.scene.add(desk1);
-        this.buildingObstacles.push(desk1);
-
-        const desk2 = new THREE.Mesh(standingDeskGeometry, standingDeskMaterial);
-        desk2.position.set(6, 0.6, -2);
-        desk2.width = 2; 
-        desk2.depth = 1;
-        this.scene.add(desk2);
-        this.buildingObstacles.push(desk2);
-
-        // Whiteboard
-        const whiteboardGeometry = new THREE.BoxGeometry(0.1, 2, 3);
-        const whiteboardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const whiteboard = new THREE.Mesh(whiteboardGeometry, whiteboardMaterial);
-        whiteboard.position.set(-9.9, 1, -4);
-        whiteboard.width = 0.1; 
-        whiteboard.depth = 3;
-        this.scene.add(whiteboard);
-        this.buildingObstacles.push(whiteboard);
-
-        // Server rack (tech startup essential)
-        const serverRackGeometry = new THREE.BoxGeometry(0.8, 2, 1.2);
-        const serverRackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const serverRack = new THREE.Mesh(serverRackGeometry, serverRackMaterial);
-        serverRack.position.set(8, 1, 5);
-        serverRack.width = 0.8; 
-        serverRack.depth = 1.2;
-        this.scene.add(serverRack);
-        this.buildingObstacles.push(serverRack);
-    }
 
     addVentureFurniture() {
         // Executive conference table
@@ -758,6 +665,636 @@ export class Player {
         artPiece.depth = 1.5;
         this.scene.add(artPiece);
         this.buildingObstacles.push(artPiece);
+    }
+
+    createDataCenterInterior() {
+        // Set data center background (high-tech server atmosphere)
+        this.scene.background = new THREE.Color(0x0a0a0a); // Very dark for server room
+
+        const roomWidth = 24; // Large server room
+        const roomDepth = 20;
+        const wallHeight = 4;
+
+        // Create raised server floor
+        const serverFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const serverFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f }); // Dark grey
+        const serverFloor = new THREE.Mesh(serverFloorGeometry, serverFloorMaterial);
+        serverFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(serverFloor);
+
+        // Add cable management areas
+        const cableAreaGeometry = new THREE.PlaneGeometry(2, roomDepth);
+        const cableAreaMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1a1a }); // Darker for cables
+        const cableArea = new THREE.Mesh(cableAreaGeometry, cableAreaMaterial);
+        cableArea.rotation.x = -Math.PI / 2;
+        cableArea.position.set(0, 0.01, 0);
+        this.scene.add(cableArea);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x404040); // Dark grey walls
+        this.addDataCenterEquipment();
+        this.addDataCenterNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createConferenceInterior() {
+        // Set conference background (professional meeting atmosphere)
+        this.scene.background = new THREE.Color(0x2c1810); // Dark brown professional
+
+        const roomWidth = 20; // Large conference space
+        const roomDepth = 16;
+        const wallHeight = 3.5;
+
+        // Create professional carpet floor
+        const carpetFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const carpetFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x4a4a4a }); // Professional grey
+        const carpetFloor = new THREE.Mesh(carpetFloorGeometry, carpetFloorMaterial);
+        carpetFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(carpetFloor);
+
+        // Add presentation area carpet
+        const presentationCarpetGeometry = new THREE.PlaneGeometry(roomWidth * 0.8, 4);
+        const presentationCarpetMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 }); // Deep red
+        const presentationCarpet = new THREE.Mesh(presentationCarpetGeometry, presentationCarpetMaterial);
+        presentationCarpet.rotation.x = -Math.PI / 2;
+        presentationCarpet.position.set(0, 0.01, -roomDepth/2 + 2);
+        this.scene.add(presentationCarpet);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x654321); // Professional brown walls
+        this.addConferenceFurniture();
+        this.addConferenceNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createLoftInterior() {
+        // Set loft background (modern creative atmosphere)
+        this.scene.background = new THREE.Color(0x2a2a2a); // Modern dark grey
+
+        const roomWidth = 18; // Open loft space
+        const roomDepth = 15;
+        const wallHeight = 5; // High loft ceiling
+
+        // Create polished concrete floor
+        const concreteFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const concreteFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x696969 }); // Light grey concrete
+        const concreteFloor = new THREE.Mesh(concreteFloorGeometry, concreteFloorMaterial);
+        concreteFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(concreteFloor);
+
+        // Add area rugs for different zones
+        const rugGeometry = new THREE.PlaneGeometry(6, 4);
+        const rugMaterial = new THREE.MeshBasicMaterial({ color: 0xff6b35 }); // Orange accent
+        const rug1 = new THREE.Mesh(rugGeometry, rugMaterial);
+        rug1.rotation.x = -Math.PI / 2;
+        rug1.position.set(-4, 0.01, -3);
+        this.scene.add(rug1);
+
+        const rug2 = new THREE.Mesh(rugGeometry, rugMaterial);
+        rug2.rotation.x = -Math.PI / 2;
+        rug2.position.set(4, 0.01, 2);
+        this.scene.add(rug2);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x8b4513); // Exposed brick color
+        this.addLoftFurniture();
+        this.addLoftNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createAcceleratorInterior() {
+        // Set accelerator background (innovation/startup atmosphere)
+        this.scene.background = new THREE.Color(0x1a1a3a); // Deep blue innovation
+
+        const roomWidth = 22; // Large innovation space
+        const roomDepth = 18;
+        const wallHeight = 4;
+
+        // Store room depth for exit logic
+        this.currentRoomDepth = roomDepth;
+
+        // Create modern tech floor
+        const techFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const techFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c54 }); // Tech blue
+        const techFloor = new THREE.Mesh(techFloorGeometry, techFloorMaterial);
+        techFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(techFloor);
+
+        // Add innovation zones with different colored areas
+        const innovationZone1 = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 6),
+            new THREE.MeshBasicMaterial({ color: 0x4169e1 }) // Royal blue
+        );
+        innovationZone1.rotation.x = -Math.PI / 2;
+        innovationZone1.position.set(-5, 0.01, -4);
+        this.scene.add(innovationZone1);
+
+        const innovationZone2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 6),
+            new THREE.MeshBasicMaterial({ color: 0x32cd32 }) // Lime green
+        );
+        innovationZone2.rotation.x = -Math.PI / 2;
+        innovationZone2.position.set(5, 0.01, 2);
+        this.scene.add(innovationZone2);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x483d8b); // Dark slate blue walls
+        this.addAcceleratorFurniture();
+        this.addAcceleratorNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    addDataCenterEquipment() {
+        // Server racks in rows
+        const serverRackGeometry = new THREE.BoxGeometry(0.8, 2.2, 1.2);
+        const serverRackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+        // Row 1 of servers
+        for (let i = 0; i < 6; i++) {
+            const serverRack = new THREE.Mesh(serverRackGeometry, serverRackMaterial);
+            serverRack.position.set(-8 + (i * 2.5), 1.1, -6);
+            serverRack.width = 0.8;
+            serverRack.depth = 1.2;
+            this.scene.add(serverRack);
+            this.buildingObstacles.push(serverRack);
+        }
+
+        // Row 2 of servers
+        for (let i = 0; i < 6; i++) {
+            const serverRack = new THREE.Mesh(serverRackGeometry, serverRackMaterial);
+            serverRack.position.set(-8 + (i * 2.5), 1.1, -3);
+            serverRack.width = 0.8;
+            serverRack.depth = 1.2;
+            this.scene.add(serverRack);
+            this.buildingObstacles.push(serverRack);
+        }
+
+        // Cooling units
+        const coolingUnitGeometry = new THREE.BoxGeometry(2, 2.5, 1.5);
+        const coolingUnitMaterial = new THREE.MeshBasicMaterial({ color: 0x4169e1 }); // Blue cooling units
+
+        const coolingUnit1 = new THREE.Mesh(coolingUnitGeometry, coolingUnitMaterial);
+        coolingUnit1.position.set(-9, 1.25, 4);
+        coolingUnit1.width = 2;
+        coolingUnit1.depth = 1.5;
+        this.scene.add(coolingUnit1);
+        this.buildingObstacles.push(coolingUnit1);
+
+        const coolingUnit2 = new THREE.Mesh(coolingUnitGeometry, coolingUnitMaterial);
+        coolingUnit2.position.set(9, 1.25, 4);
+        coolingUnit2.width = 2;
+        coolingUnit2.depth = 1.5;
+        this.scene.add(coolingUnit2);
+        this.buildingObstacles.push(coolingUnit2);
+
+        // Network equipment cabinet
+        const networkCabinetGeometry = new THREE.BoxGeometry(1.2, 2, 0.8);
+        const networkCabinetMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f });
+        const networkCabinet = new THREE.Mesh(networkCabinetGeometry, networkCabinetMaterial);
+        networkCabinet.position.set(0, 1, 7);
+        networkCabinet.width = 1.2;
+        networkCabinet.depth = 0.8;
+        this.scene.add(networkCabinet);
+        this.buildingObstacles.push(networkCabinet);
+    }
+
+    addConferenceFurniture() {
+        // Large conference table
+        const conferenceTableGeometry = new THREE.BoxGeometry(12, 0.8, 4);
+        const conferenceTableMaterial = new THREE.MeshBasicMaterial({ color: 0x4a2c17 }); // Rich wood
+        const conferenceTable = new THREE.Mesh(conferenceTableGeometry, conferenceTableMaterial);
+        conferenceTable.position.set(0, 0.4, 0);
+        conferenceTable.width = 12;
+        conferenceTable.depth = 4;
+        this.scene.add(conferenceTable);
+        this.buildingObstacles.push(conferenceTable);
+
+        // Executive chairs around table
+        const execChairGeometry = new THREE.BoxGeometry(0.8, 1.4, 0.8);
+        const execChairMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
+
+        // Chairs along the sides
+        for (let i = 0; i < 10; i++) {
+            const chair = new THREE.Mesh(execChairGeometry, execChairMaterial);
+            if (i < 5) {
+                chair.position.set(-5 + (i * 2.5), 0.7, -2.5);
+            } else {
+                chair.position.set(-5 + ((i-5) * 2.5), 0.7, 2.5);
+            }
+            chair.width = 0.8;
+            chair.depth = 0.8;
+            this.scene.add(chair);
+            this.buildingObstacles.push(chair);
+        }
+
+        // Presentation screen
+        const screenGeometry = new THREE.BoxGeometry(0.1, 3, 5);
+        const screenMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+        screen.position.set(0, 1.5, -7.9);
+        screen.width = 0.1;
+        screen.depth = 5;
+        this.scene.add(screen);
+        this.buildingObstacles.push(screen);
+
+        // Podium
+        const podiumGeometry = new THREE.BoxGeometry(1.2, 1.2, 0.8);
+        const podiumMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+        const podium = new THREE.Mesh(podiumGeometry, podiumMaterial);
+        podium.position.set(0, 0.6, -6);
+        podium.width = 1.2;
+        podium.depth = 0.8;
+        this.scene.add(podium);
+        this.buildingObstacles.push(podium);
+    }
+
+    addLoftFurniture() {
+        // Modern sectional sofa
+        const sofaGeometry = new THREE.BoxGeometry(4, 0.8, 2);
+        const sofaMaterial = new THREE.MeshBasicMaterial({ color: 0x696969 }); // Grey sofa
+        const sofa = new THREE.Mesh(sofaGeometry, sofaMaterial);
+        sofa.position.set(-4, 0.4, -3);
+        sofa.width = 4;
+        sofa.depth = 2;
+        this.scene.add(sofa);
+        this.buildingObstacles.push(sofa);
+
+        // Coffee table
+        const coffeeTableGeometry = new THREE.BoxGeometry(2, 0.4, 1);
+        const coffeeTableMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+        const coffeeTable = new THREE.Mesh(coffeeTableGeometry, coffeeTableMaterial);
+        coffeeTable.position.set(-4, 0.2, -1);
+        coffeeTable.width = 2;
+        coffeeTable.depth = 1;
+        this.scene.add(coffeeTable);
+        this.buildingObstacles.push(coffeeTable);
+
+        // Kitchen island
+        const kitchenIslandGeometry = new THREE.BoxGeometry(3, 1, 1.5);
+        const kitchenIslandMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f });
+        const kitchenIsland = new THREE.Mesh(kitchenIslandGeometry, kitchenIslandMaterial);
+        kitchenIsland.position.set(5, 0.5, 2);
+        kitchenIsland.width = 3;
+        kitchenIsland.depth = 1.5;
+        this.scene.add(kitchenIsland);
+        this.buildingObstacles.push(kitchenIsland);
+
+        // Bar stools
+        const stoolGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2);
+        const stoolMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
+
+        const stool1 = new THREE.Mesh(stoolGeometry, stoolMaterial);
+        stool1.position.set(4, 0.6, 3);
+        stool1.width = 0.6;
+        stool1.depth = 0.6;
+        this.scene.add(stool1);
+        this.buildingObstacles.push(stool1);
+
+        const stool2 = new THREE.Mesh(stoolGeometry, stoolMaterial);
+        stool2.position.set(6, 0.6, 3);
+        stool2.width = 0.6;
+        stool2.depth = 0.6;
+        this.scene.add(stool2);
+        this.buildingObstacles.push(stool2);
+
+        // Art easel
+        const easelGeometry = new THREE.BoxGeometry(0.1, 2, 1.5);
+        const easelMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+        const easel = new THREE.Mesh(easelGeometry, easelMaterial);
+        easel.position.set(7, 1, -5);
+        easel.width = 0.1;
+        easel.depth = 1.5;
+        this.scene.add(easel);
+        this.buildingObstacles.push(easel);
+    }
+
+    addAcceleratorFurniture() {
+        // Innovation pods (circular workspaces)
+        const podGeometry = new THREE.CylinderGeometry(2, 2, 0.6);
+        const podMaterial = new THREE.MeshBasicMaterial({ color: 0x4169e1 });
+
+        const pod1 = new THREE.Mesh(podGeometry, podMaterial);
+        pod1.position.set(-5, 0.3, -4);
+        pod1.width = 4;
+        pod1.depth = 4;
+        this.scene.add(pod1);
+        this.buildingObstacles.push(pod1);
+
+        const pod2 = new THREE.Mesh(podGeometry, podMaterial);
+        pod2.position.set(5, 0.3, 2);
+        pod2.width = 4;
+        pod2.depth = 4;
+        this.scene.add(pod2);
+        this.buildingObstacles.push(pod2);
+
+        // Collaboration stations
+        const collabStationGeometry = new THREE.BoxGeometry(3, 1.2, 1.5);
+        const collabStationMaterial = new THREE.MeshBasicMaterial({ color: 0x32cd32 });
+
+        const station1 = new THREE.Mesh(collabStationGeometry, collabStationMaterial);
+        station1.position.set(-8, 0.6, 3);
+        station1.width = 3;
+        station1.depth = 1.5;
+        this.scene.add(station1);
+        this.buildingObstacles.push(station1);
+
+        const station2 = new THREE.Mesh(collabStationGeometry, collabStationMaterial);
+        station2.position.set(8, 0.6, -2);
+        station2.width = 3;
+        station2.depth = 1.5;
+        this.scene.add(station2);
+        this.buildingObstacles.push(station2);
+
+        // Innovation wall (interactive display)
+        const innovationWallGeometry = new THREE.BoxGeometry(0.1, 3, 6);
+        const innovationWallMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff }); // Cyan tech color
+        const innovationWall = new THREE.Mesh(innovationWallGeometry, innovationWallMaterial);
+        innovationWall.position.set(-10.9, 1.5, -2);
+        innovationWall.width = 0.1;
+        innovationWall.depth = 6;
+        this.scene.add(innovationWall);
+        this.buildingObstacles.push(innovationWall);
+
+        // Prototype workbench
+        const prototypeWorkbenchGeometry = new THREE.BoxGeometry(4, 1, 2);
+        const prototypeWorkbenchMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f });
+        const prototypeWorkbench = new THREE.Mesh(prototypeWorkbenchGeometry, prototypeWorkbenchMaterial);
+        prototypeWorkbench.position.set(0, 0.5, 6);
+        prototypeWorkbench.width = 4;
+        prototypeWorkbench.depth = 2;
+        this.scene.add(prototypeWorkbench);
+        this.buildingObstacles.push(prototypeWorkbench);
+    }
+
+    addDataCenterNPC() {
+        const dataCenterNPC = this.createNPC(2, -7, 0x00ffff, // Cyan NPC for data center
+            ["Welcome to our data center!", "We process millions of requests per second.", "The servers never sleep here."]);
+        this.scene.add(dataCenterNPC);
+        this.buildingObstacles.push(dataCenterNPC);
+        this.interactiveNPCs.push(dataCenterNPC);
+    }
+
+    addConferenceNPC() {
+        const conferenceNPC = this.createNPC(-2, -6, 0x4a2c17, // Brown NPC for conference
+            ["Welcome to our conference center!", "We host the most important meetings here.", "What brings you to our boardroom?"]);
+        this.scene.add(conferenceNPC);
+        this.buildingObstacles.push(conferenceNPC);
+        this.interactiveNPCs.push(conferenceNPC);
+    }
+
+    addLoftNPC() {
+        const loftNPC = this.createNPC(1, -5, 0xff6b35, // Orange NPC for loft
+            ["Hey! Welcome to my creative loft!", "This is where all the magic happens.", "Feel free to check out my latest projects!"]);
+        this.scene.add(loftNPC);
+        this.buildingObstacles.push(loftNPC);
+        this.interactiveNPCs.push(loftNPC);
+    }
+
+    addAcceleratorNPC() {
+        const acceleratorNPC = this.createNPC(-1, -7, 0x4169e1, // Royal blue NPC for accelerator
+            ["Welcome to our startup accelerator!", "We turn ideas into billion-dollar companies.", "Do you have what it takes to disrupt an industry?"]);
+        this.scene.add(acceleratorNPC);
+        this.buildingObstacles.push(acceleratorNPC);
+        this.interactiveNPCs.push(acceleratorNPC);
+    }
+
+    createLawInterior() {
+        // Set law background (professional legal atmosphere)
+        this.scene.background = new THREE.Color(0x1a1a2e); // Dark navy professional
+
+        const roomWidth = 20; // Large law office space
+        const roomDepth = 16;
+        const wallHeight = 4; // High ceiling for authority
+
+        // Store room depth for exit logic
+        this.currentRoomDepth = roomDepth;
+
+        // Create professional marble floor
+        const marbleFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const marbleFloorMaterial = new THREE.MeshBasicMaterial({ color: 0xf5f5dc }); // Beige marble
+        const marbleFloor = new THREE.Mesh(marbleFloorGeometry, marbleFloorMaterial);
+        marbleFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(marbleFloor);
+
+        // Add legal carpet area
+        const legalCarpetGeometry = new THREE.PlaneGeometry(12, 8);
+        const legalCarpetMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 }); // Deep red legal carpet
+        const legalCarpet = new THREE.Mesh(legalCarpetGeometry, legalCarpetMaterial);
+        legalCarpet.rotation.x = -Math.PI / 2;
+        legalCarpet.position.set(0, 0.01, -2);
+        this.scene.add(legalCarpet);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x654321); // Professional brown walls
+        this.addLawFurniture();
+        this.addLawNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createNasdaqInterior() {
+        // Set nasdaq background (financial trading atmosphere)
+        this.scene.background = new THREE.Color(0x0a0a1a); // Very dark blue financial
+
+        const roomWidth = 24; // Large trading floor
+        const roomDepth = 20;
+        const wallHeight = 4;
+
+        // Store room depth for exit logic
+        this.currentRoomDepth = roomDepth;
+
+        // Create trading floor
+        const tradingFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const tradingFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f }); // Dark trading floor
+        const tradingFloor = new THREE.Mesh(tradingFloorGeometry, tradingFloorMaterial);
+        tradingFloor.rotation.x = -Math.PI / 2;
+        this.scene.add(tradingFloor);
+
+        // Add trading zones with different colors
+        const tradingZone1 = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 6),
+            new THREE.MeshBasicMaterial({ color: 0x00ff00 }) // Green for gains
+        );
+        tradingZone1.rotation.x = -Math.PI / 2;
+        tradingZone1.position.set(-6, 0.01, -4);
+        this.scene.add(tradingZone1);
+
+        const tradingZone2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 6),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 }) // Red for losses
+        );
+        tradingZone2.rotation.x = -Math.PI / 2;
+        tradingZone2.position.set(6, 0.01, 2);
+        this.scene.add(tradingZone2);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x1a1a1a); // Dark financial walls
+        this.addNasdaqFurniture();
+        this.addNasdaqNPC();
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    addLawFurniture() {
+        // Large legal desk
+        const legalDeskGeometry = new THREE.BoxGeometry(6, 0.8, 3);
+        const legalDeskMaterial = new THREE.MeshBasicMaterial({ color: 0x4a2c17 }); // Rich mahogany
+        const legalDesk = new THREE.Mesh(legalDeskGeometry, legalDeskMaterial);
+        legalDesk.position.set(0, 0.4, -3);
+        legalDesk.width = 6;
+        legalDesk.depth = 3;
+        this.scene.add(legalDesk);
+        this.buildingObstacles.push(legalDesk);
+
+        // Legal bookshelves with law books
+        const lawBookshelfGeometry = new THREE.BoxGeometry(0.4, 3, 8);
+        const lawBookshelfMaterial = new THREE.MeshBasicMaterial({ color: 0x2f1b14 }); // Dark wood
+
+        const bookshelf1 = new THREE.Mesh(lawBookshelfGeometry, lawBookshelfMaterial);
+        bookshelf1.position.set(-9.8, 1.5, -2);
+        bookshelf1.width = 0.4;
+        bookshelf1.depth = 8;
+        this.scene.add(bookshelf1);
+        this.buildingObstacles.push(bookshelf1);
+
+        const bookshelf2 = new THREE.Mesh(lawBookshelfGeometry, lawBookshelfMaterial);
+        bookshelf2.position.set(9.8, 1.5, -2);
+        bookshelf2.width = 0.4;
+        bookshelf2.depth = 8;
+        this.scene.add(bookshelf2);
+        this.buildingObstacles.push(bookshelf2);
+
+        // Client chairs
+        const clientChairGeometry = new THREE.BoxGeometry(0.8, 1.2, 0.8);
+        const clientChairMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Leather brown
+
+        const chair1 = new THREE.Mesh(clientChairGeometry, clientChairMaterial);
+        chair1.position.set(-1.5, 0.6, -1);
+        chair1.width = 0.8;
+        chair1.depth = 0.8;
+        this.scene.add(chair1);
+        this.buildingObstacles.push(chair1);
+
+        const chair2 = new THREE.Mesh(clientChairGeometry, clientChairMaterial);
+        chair2.position.set(1.5, 0.6, -1);
+        chair2.width = 0.8;
+        chair2.depth = 0.8;
+        this.scene.add(chair2);
+        this.buildingObstacles.push(chair2);
+
+        // Legal filing cabinets
+        const filingCabinetGeometry = new THREE.BoxGeometry(1.2, 1.8, 0.6);
+        const filingCabinetMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2f2f });
+
+        const cabinet1 = new THREE.Mesh(filingCabinetGeometry, filingCabinetMaterial);
+        cabinet1.position.set(-7, 0.9, 6);
+        cabinet1.width = 1.2;
+        cabinet1.depth = 0.6;
+        this.scene.add(cabinet1);
+        this.buildingObstacles.push(cabinet1);
+
+        const cabinet2 = new THREE.Mesh(filingCabinetGeometry, filingCabinetMaterial);
+        cabinet2.position.set(7, 0.9, 6);
+        cabinet2.width = 1.2;
+        cabinet2.depth = 0.6;
+        this.scene.add(cabinet2);
+        this.buildingObstacles.push(cabinet2);
+
+        // Legal scales (symbol of justice)
+        const scalesGeometry = new THREE.BoxGeometry(0.8, 1.5, 0.8);
+        const scalesMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Gold scales
+        const scales = new THREE.Mesh(scalesGeometry, scalesMaterial);
+        scales.position.set(0, 0.75, -4.5);
+        scales.width = 0.8;
+        scales.depth = 0.8;
+        this.scene.add(scales);
+        this.buildingObstacles.push(scales);
+    }
+
+    addNasdaqFurniture() {
+        // Trading desks in rows
+        const tradingDeskGeometry = new THREE.BoxGeometry(3, 0.8, 1.5);
+        const tradingDeskMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1a1a }); // Dark trading desks
+
+        // Row 1 of trading desks
+        for (let i = 0; i < 6; i++) {
+            const desk = new THREE.Mesh(tradingDeskGeometry, tradingDeskMaterial);
+            desk.position.set(-10 + (i * 3.5), 0.4, -6);
+            desk.width = 3;
+            desk.depth = 1.5;
+            this.scene.add(desk);
+            this.buildingObstacles.push(desk);
+        }
+
+        // Row 2 of trading desks
+        for (let i = 0; i < 6; i++) {
+            const desk = new THREE.Mesh(tradingDeskGeometry, tradingDeskMaterial);
+            desk.position.set(-10 + (i * 3.5), 0.4, -3);
+            desk.width = 3;
+            desk.depth = 1.5;
+            this.scene.add(desk);
+            this.buildingObstacles.push(desk);
+        }
+
+        // Large display screens
+        const screenGeometry = new THREE.BoxGeometry(0.1, 4, 8);
+        const screenMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Black screens
+
+        const screen1 = new THREE.Mesh(screenGeometry, screenMaterial);
+        screen1.position.set(-11.9, 2, 2);
+        screen1.width = 0.1;
+        screen1.depth = 8;
+        this.scene.add(screen1);
+        this.buildingObstacles.push(screen1);
+
+        const screen2 = new THREE.Mesh(screenGeometry, screenMaterial);
+        screen2.position.set(11.9, 2, 2);
+        screen2.width = 0.1;
+        screen2.depth = 8;
+        this.scene.add(screen2);
+        this.buildingObstacles.push(screen2);
+
+        // Server towers for trading systems
+        const serverTowerGeometry = new THREE.BoxGeometry(1, 2.5, 1);
+        const serverTowerMaterial = new THREE.MeshBasicMaterial({ color: 0x4169e1 }); // Blue servers
+
+        const server1 = new THREE.Mesh(serverTowerGeometry, serverTowerMaterial);
+        server1.position.set(-8, 1.25, 8);
+        server1.width = 1;
+        server1.depth = 1;
+        this.scene.add(server1);
+        this.buildingObstacles.push(server1);
+
+        const server2 = new THREE.Mesh(serverTowerGeometry, serverTowerMaterial);
+        server2.position.set(8, 1.25, 8);
+        server2.width = 1;
+        server2.depth = 1;
+        this.scene.add(server2);
+        this.buildingObstacles.push(server2);
+
+        // Central trading podium
+        const podiumGeometry = new THREE.BoxGeometry(2, 1.5, 2);
+        const podiumMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Gold podium
+        const podium = new THREE.Mesh(podiumGeometry, podiumMaterial);
+        podium.position.set(0, 0.75, 0);
+        podium.width = 2;
+        podium.depth = 2;
+        this.scene.add(podium);
+        this.buildingObstacles.push(podium);
+    }
+
+    addLawNPC() {
+        const lawNPC = this.createNPC(-2, -6, 0x1a1a2e, // Dark navy NPC for law
+            ["Welcome to our law firm!", "We handle the most complex legal cases.", "Do you need legal representation?"]);
+        this.scene.add(lawNPC);
+        this.buildingObstacles.push(lawNPC);
+        this.interactiveNPCs.push(lawNPC);
+    }
+
+    addNasdaqNPC() {
+        const nasdaqNPC = this.createNPC(3, -8, 0x00ff00, // Green NPC for nasdaq (money/gains)
+            ["Welcome to the NASDAQ trading floor!", "We move billions of dollars every second.", "Are you ready to make some trades?"]);
+        this.scene.add(nasdaqNPC);
+        this.buildingObstacles.push(nasdaqNPC);
+        this.interactiveNPCs.push(nasdaqNPC);
     }
 
     createNPC(x, z, color, dialogue) {
