@@ -45,14 +45,18 @@ export class World {
         this.createPath(-5, -5, 10, 2); // Horizontal path
         this.createPath(-1, -5, 2, 10); // Vertical path
         
-        // Create main path in front of all buildings
-        this.createPath(2, -8, 21, 3); // Long horizontal path in front of buildings (from x=2 to x=23, z=-8 to z=-5)
+        // Create main path in front of all buildings - extended for new buildings
+        this.createPath(-18, -8, 36, 3); // Long horizontal path in front of buildings (from x=-18 to x=18, z=-8 to z=-5)
         
         // Create connecting paths to each building
-        this.createPath(4.5, -10, 2, 2); // Path to YComb building
-        this.createPath(9.5, -10, 2, 2); // Path to House
-        this.createPath(14.5, -10, 2, 2); // Path to Garage  
-        this.createPath(19.5, -10, 2, 2); // Path to Venture building
+        this.createPath(-17.5, -10, 2, 2); // Path to YComb building
+        this.createPath(-12.5, -10, 2, 2); // Path to House
+        this.createPath(-7.5, -10, 2, 2); // Path to Garage  
+        this.createPath(-2.5, -10, 2, 2); // Path to Venture building
+        this.createPath(2.5, -10, 2, 2); // Path to Data Center
+        this.createPath(7.5, -10, 2, 2); // Path to Conference
+        this.createPath(12.5, -10, 2, 2); // Path to Loft
+        this.createPath(17.5, -10, 2, 2); // Path to Accelerator
     }
 
     createPath(x, z, width, depth) {
@@ -117,10 +121,18 @@ export class World {
     }
 
     createBuildings() {
-        this.createHouse(10, -10, 3, 3); 
-        this.createGarage(15, -10, 3, 3);
-        this.createYCombBuilding(5, -10, 3, 3);
-        this.createVentureBuilding(20, -10, 3, 3);
+
+        this.createHouse(-17, -10, 3, 3); 
+        this.createGarage(-12, -10, 3, 3);
+        this.createAccelerator(-7, -10, 3, 3);
+        this.createLoft(-2, -10, 3, 3);
+        this.createConference(3, -10, 3, 3);
+        this.createDataCenter(8, -10, 3, 3);
+        this.createVentureBuilding(13, -10, 3, 3);
+        
+        
+        
+        
     }
 
     createHouse(x, z, spriteWidth, spriteHeight) {
@@ -181,34 +193,7 @@ export class World {
         this.colliders.push(garageSprite); // Collision might need adjustment based on sprite
     }
 
-    createYCombBuilding(x, z, spriteWidth, spriteHeight) {
-        const ycombTexture = this.textureLoader.load('/assets/textures/ycomb.png');
-        ycombTexture.magFilter = THREE.NearestFilter;
-        ycombTexture.minFilter = THREE.NearestFilter;
-        
-        const ycombGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
-        const ycombMaterial = new THREE.MeshBasicMaterial({ 
-            map: ycombTexture, 
-            transparent: true, // Assuming PNG with transparency
-            side: THREE.DoubleSide 
-        });
-        const ycombSprite = new THREE.Mesh(ycombGeometry, ycombMaterial);
-        
-        // Position the YComb building sprite flat on the ground
-        ycombSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
-        ycombSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
 
-        // Define width and depth for collision detection
-        // When rotated, spriteWidth is along X, spriteHeight is along Z
-        ycombSprite.width = spriteWidth;
-        ycombSprite.depth = spriteHeight;
-
-        ycombSprite.userData.isBuilding = true;  // Tag as building
-        ycombSprite.userData.buildingType = 'ycomb'; // Specify building type
-        this.scene.add(ycombSprite);
-        this.buildings.push(ycombSprite);
-        this.colliders.push(ycombSprite); // Collision might need adjustment based on sprite
-    }
 
     createVentureBuilding(x, z, spriteWidth, spriteHeight) {
         const ventureTexture = this.textureLoader.load('/assets/textures/venture.png');
@@ -237,6 +222,122 @@ export class World {
         this.scene.add(ventureSprite);
         this.buildings.push(ventureSprite);
         this.colliders.push(ventureSprite); // Collision might need adjustment based on sprite
+    }
+
+    createDataCenter(x, z, spriteWidth, spriteHeight) {
+        const dataCenterTexture = this.textureLoader.load('/assets/textures/data-center.png');
+        dataCenterTexture.magFilter = THREE.NearestFilter;
+        dataCenterTexture.minFilter = THREE.NearestFilter;
+        
+        const dataCenterGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const dataCenterMaterial = new THREE.MeshBasicMaterial({ 
+            map: dataCenterTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const dataCenterSprite = new THREE.Mesh(dataCenterGeometry, dataCenterMaterial);
+        
+        // Position the Data Center sprite flat on the ground
+        dataCenterSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        dataCenterSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        dataCenterSprite.width = spriteWidth;
+        dataCenterSprite.depth = spriteHeight;
+
+        dataCenterSprite.userData.isBuilding = true;  // Tag as building
+        dataCenterSprite.userData.buildingType = 'data-center'; // Specify building type
+        this.scene.add(dataCenterSprite);
+        this.buildings.push(dataCenterSprite);
+        this.colliders.push(dataCenterSprite); // Collision might need adjustment based on sprite
+    }
+
+    createConference(x, z, spriteWidth, spriteHeight) {
+        const conferenceTexture = this.textureLoader.load('/assets/textures/conference.png');
+        conferenceTexture.magFilter = THREE.NearestFilter;
+        conferenceTexture.minFilter = THREE.NearestFilter;
+        
+        const conferenceGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const conferenceMaterial = new THREE.MeshBasicMaterial({ 
+            map: conferenceTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const conferenceSprite = new THREE.Mesh(conferenceGeometry, conferenceMaterial);
+        
+        // Position the Conference sprite flat on the ground
+        conferenceSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        conferenceSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        conferenceSprite.width = spriteWidth;
+        conferenceSprite.depth = spriteHeight;
+
+        conferenceSprite.userData.isBuilding = true;  // Tag as building
+        conferenceSprite.userData.buildingType = 'conference'; // Specify building type
+        this.scene.add(conferenceSprite);
+        this.buildings.push(conferenceSprite);
+        this.colliders.push(conferenceSprite); // Collision might need adjustment based on sprite
+    }
+
+    createLoft(x, z, spriteWidth, spriteHeight) {
+        const loftTexture = this.textureLoader.load('/assets/textures/loft.png');
+        loftTexture.magFilter = THREE.NearestFilter;
+        loftTexture.minFilter = THREE.NearestFilter;
+        
+        const loftGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const loftMaterial = new THREE.MeshBasicMaterial({ 
+            map: loftTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const loftSprite = new THREE.Mesh(loftGeometry, loftMaterial);
+        
+        // Position the Loft sprite flat on the ground
+        loftSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        loftSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        loftSprite.width = spriteWidth;
+        loftSprite.depth = spriteHeight;
+
+        loftSprite.userData.isBuilding = true;  // Tag as building
+        loftSprite.userData.buildingType = 'loft'; // Specify building type
+        this.scene.add(loftSprite);
+        this.buildings.push(loftSprite);
+        this.colliders.push(loftSprite); // Collision might need adjustment based on sprite
+    }
+
+    createAccelerator(x, z, spriteWidth, spriteHeight) {
+        const acceleratorTexture = this.textureLoader.load('/assets/textures/accelerator.png');
+        acceleratorTexture.magFilter = THREE.NearestFilter;
+        acceleratorTexture.minFilter = THREE.NearestFilter;
+        
+        const acceleratorGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const acceleratorMaterial = new THREE.MeshBasicMaterial({ 
+            map: acceleratorTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const acceleratorSprite = new THREE.Mesh(acceleratorGeometry, acceleratorMaterial);
+        
+        // Position the Accelerator sprite flat on the ground
+        acceleratorSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        acceleratorSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        acceleratorSprite.width = spriteWidth;
+        acceleratorSprite.depth = spriteHeight;
+
+        acceleratorSprite.userData.isBuilding = true;  // Tag as building
+        acceleratorSprite.userData.buildingType = 'accelerator'; // Specify building type
+        this.scene.add(acceleratorSprite);
+        this.buildings.push(acceleratorSprite);
+        this.colliders.push(acceleratorSprite); // Collision might need adjustment based on sprite
     }
 
     createInteractiveElements() {

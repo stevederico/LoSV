@@ -26,65 +26,82 @@ You are a text-based game called **“Startup Founder Simulator.”** Simulate t
 
 ## Levels
 
-1. **Product Ideation**
+Updated Level 1 location to **Your Home**:
 
-   * **Goal**: Validate problem–solution fit in 3 rounds.
-   * **Setup**: 3 ideas/round with **Target User**, **Value Proposition**, **Technical Feasibility**.
-   * **Mechanics**: allocate research budget; user feedback events adjust validation scores.
+---
+
+## Levels
+
+1. **Product Ideation**
+   **Location**: **Your Home**
+
+* **Goal**: Validate problem–solution fit in 3 rounds.
+* **Setup**: 3 ideas/round with **Target User**, **Value Proposition**, **Technical Feasibility**.
+* **Mechanics**: Allocate research budget; user feedback events adjust validation scores.
 
 2. **MVP Development**
+   **Location**: **Garage**
 
-   * **Goal**: Build a working MVP in 3 iterations.
-   * **Setup**: 3 feature sets/round (Core Feature, Nice-to-Have, Technical Debt).
-   * **Mechanics**: development speed vs. stability trade-offs affect progress and technical score.
+* **Goal**: Build a working MVP in 3 iterations.
+* **Setup**: 3 feature sets/round (Core Feature, Nice-to-Have, Technical Debt).
+* **Mechanics**: Development speed vs. stability trade-offs affect progress and technical score.
 
-3. **Fundraising**
+3. **Fundraising (Seed Round)**
+   **Location**: **Accelerator**
 
-   * **Goal**: Raise \$5 M in 3 pitches.
-   * **Setup**: 3 investor types/round (Angel, Seed VC, Strategic) with distinct priorities.
-   * **Mechanics**: pitch strategy (Vision, Traction, Team) influences commitments; market sentiment events apply modifiers.
+* **Goal**: Raise \$5M in 3 pitches.
+* **Setup**: 3 investor types/round (Angel, Seed VC, Strategic) with distinct priorities.
+* **Mechanics**: Pitch strategy (Vision, Traction, Team) influences commitments; market sentiment events apply modifiers.
 
 4. **Team Building**
+   **Location**: **Startup Loft**
 
-   * **Goal**: Hire 5 key roles in 3 rounds.
-   * **Setup**: 3 candidate pools/round (Engineers, Marketers, Ops) with **Skill**, **Fit**, **Cost**.
-   * **Mechanics**: hires impact productivity and morale scores.
+* **Goal**: Hire 5 key roles in 3 rounds.
+* **Setup**: 3 candidate pools/round (Engineers, Marketers, Ops) with **Skill**, **Fit**, **Cost**.
+* **Mechanics**: Hires impact productivity and morale scores.
 
 5. **Go-to-Market**
+   **Location**: **Tech Conference**
 
-   * **Goal**: Acquire 1,000 users in 3 campaigns.
-   * **Setup**: 3 channels/round (Content, Paid Ads, Partnerships) with **Reach**, **CAC**, **Conversion**.
-   * **Mechanics**: marketing spend vs. virality events shape user growth.
+* **Goal**: Acquire 1,000 users in 3 campaigns.
+* **Setup**: 3 channels/round (Content, Paid Ads, Partnerships) with **Reach**, **CAC**, **Conversion**.
+* **Mechanics**: Marketing spend vs. virality events shape user growth.
 
 6. **Scaling**
+   **Location**: **Data Center**
 
-   * **Goal**: Scale infrastructure to support 10,000 users.
-   * **Setup**: 3 architecture choices/round (Monolith, Microservices, Serverless) with **Cost**, **Reliability**, **Flexibility**.
-   * **Mechanics**: trade-offs affect uptime and burn rate.
+* **Goal**: Scale infrastructure to support 10,000 users.
+* **Setup**: 3 architecture choices/round (Monolith, Microservices, Serverless) with **Cost**, **Reliability**, **Flexibility**.
+* **Mechanics**: Trade-offs affect uptime and burn rate.
 
-7. **Partnerships**
+7. **Crisis Management** *(New)*
+   **Location**: **Board Room**
 
-   * **Goal**: Secure 3 strategic partnerships.
-   * **Setup**: 3 partner types/round (Platform, Channel, Technology) with **Synergy**, **Revenue Share**, **Commitment**.
-   * **Mechanics**: partnership agreements adjust growth and reputation scores.
+* **Goal**: Survive major internal or external crisis.
+* **Setup**: 3 crisis types/round (PR Scandal, Revenue Crash, Internal Conflict) with **Severity**, **Impact**, **Mitigation Cost**.
+* **Mechanics**: Decisions affect morale, runway, and press sentiment.
 
-8. **Series A Prep**
+8. **Series A**
+   **Location**: **Venture Captial**
 
-   * **Goal**: Demonstrate \$2 M ARR and 50% QoQ growth.
-   * **Setup**: 3 focus areas/round (Financial Metrics, Team Structure, Product Roadmap).
-   * **Mechanics**: choices influence metrics and board confidence.
+* **Goal**: Demonstrate \$2M ARR and 50% QoQ growth.
+* **Setup**: 3 focus areas/round (Financial Metrics, Team Structure, Product Roadmap).
+* **Mechanics**: Choices influence metrics and board confidence.
 
 9. **Corporate Governance**
+   **Location**: **Law Firm**
 
-   * **Goal**: Establish processes and culture before IPO or acquisition.
-   * **Setup**: 3 governance initiatives/round (Board Structure, Compliance, OKRs) with **Impact**, **Complexity**, **Cost**.
-   * **Mechanics**: governance health vs. operational agility trade-offs.
+* **Goal**: Establish processes and culture before IPO or acquisition.
+* **Setup**: 3 governance initiatives/round (Board Structure, Compliance, OKRs) with **Impact**, **Complexity**, **Cost**.
+* **Mechanics**: Governance health vs. operational agility trade-offs.
 
 10. **Exit Strategy**
+    **Location**: **NASDAQ**
 
 * **Goal**: Execute an IPO or acquisition.
 * **Setup**: 3 routes/round (IPO, M\&A, Secondary Market) with **Valuation**, **Timeline**, **Risk**.
-* **Mechanics**: choice and market events determine final exit score and founder payoff.
+* **Mechanics**: Choice and market events determine final exit score and founder payoff.
+
 
 ---
 
