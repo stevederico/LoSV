@@ -15,13 +15,15 @@ export class DialogueManager {
         this.currentLineIndex = 0;
         this.isVisible = false;
         this.onDialogueCompleteCallback = null; // Callback for when dialogue finishes
-        this.lineDisplayTime = 1500; // Time in ms to display each line (50% faster than 3000ms)
-        this.dialogueTimeoutId = null; // To store the timeout ID
+        this.waitingForInput = false; // Track if we're waiting for player input
         
         // Initialize dialogue loader
         this.dialogueLoader = new DialogueLoader();
         this.currentCharacterId = null;
         this.currentDialogueId = null;
+        
+        // Set up keyboard listener for dialogue advancement
+        this.setupKeyboardListener();
         
         // Load dialogue data
         this.loadDialogueData();
@@ -29,9 +31,21 @@ export class DialogueManager {
 
     async loadDialogueData() {
         await this.dialogueLoader.loadDialogues();
-        const settings = this.dialogueLoader.getSettings();
-        this.lineDisplayTime = settings.defaultLineDisplayTime;
         console.log('DialogueManager initialized with JSON data');
+    }
+
+    setupKeyboardListener() {
+        this.keyHandler = (event) => {
+            if (this.isVisible && this.waitingForInput) {
+                // Accept space, enter, or z to advance dialogue
+                if (event.key === ' ' || event.key === 'Enter' || event.key.toLowerCase() === 'z') {
+                    event.preventDefault();
+                    this.advanceDialogue();
+                }
+            }
+        };
+        
+        document.addEventListener('keydown', this.keyHandler);
     }
 
     createDialogueUI() {
@@ -71,8 +85,17 @@ export class DialogueManager {
         this.dialogueTextElement.style.margin = '0';
         this.dialogueTextElement.style.whiteSpace = 'pre-wrap'; // Preserve line breaks in text
 
+        // Create instruction text
+        this.instructionElement = document.createElement('div');
+        this.instructionElement.style.fontSize = '12px';
+        this.instructionElement.style.color = '#aaaaaa';
+        this.instructionElement.style.marginTop = '15px';
+        this.instructionElement.style.textAlign = 'center';
+        this.instructionElement.textContent = 'Press SPACE, ENTER, or Z to continue...';
+
         this.dialogueBox.appendChild(this.dialogueNPCNameElement);
         this.dialogueBox.appendChild(this.dialogueTextElement);
+        this.dialogueBox.appendChild(this.instructionElement);
         document.body.appendChild(this.dialogueBox);
         console.log("Dialogue UI elements created dynamically with SNES-inspired styling.");
 
@@ -168,12 +191,6 @@ export class DialogueManager {
             return;
         }
 
-        // Clear any existing dialogue timeout
-        if (this.dialogueTimeoutId) {
-            clearTimeout(this.dialogueTimeoutId);
-            this.dialogueTimeoutId = null;
-        }
-
         this.currentDialogueLines = lines;
         this.currentLineIndex = 0;
         this.onDialogueCompleteCallback = onComplete || null;
@@ -181,33 +198,39 @@ export class DialogueManager {
         if (this.currentDialogueLines.length > 0) {
             this.dialogueBox.style.display = 'block';
             this.isVisible = true;
-            this._autoAdvance(); // Start auto-advancing
+            this.showCurrentLine();
         } else {
             this.hideDialogue(); // No lines to show, just hide
         }
     }
 
-    _autoAdvance() {
-        if (!this.isVisible) return; // Stop if dialogue was hidden externally
-
+    showCurrentLine() {
         if (this.currentLineIndex < this.currentDialogueLines.length) {
             this.dialogueTextElement.textContent = this.currentDialogueLines[this.currentLineIndex];
-            this.currentLineIndex++;
-            this.dialogueTimeoutId = setTimeout(() => this._autoAdvance(), this.lineDisplayTime);
+            this.waitingForInput = true;
         } else {
-            // All lines have been shown, wait for lineDisplayTime then hide
-            this.dialogueTimeoutId = setTimeout(() => this.hideDialogue(), this.lineDisplayTime);
+            this.hideDialogue();
+        }
+    }
+
+    advanceDialogue() {
+        if (!this.waitingForInput) return;
+        
+        this.waitingForInput = false;
+        this.currentLineIndex++;
+        
+        if (this.currentLineIndex < this.currentDialogueLines.length) {
+            this.showCurrentLine();
+        } else {
+            this.hideDialogue();
         }
     }
 
     hideDialogue() {
-        if (this.dialogueTimeoutId) {
-            clearTimeout(this.dialogueTimeoutId);
-            this.dialogueTimeoutId = null;
-        }
         if (!this.dialogueBox) return;
         this.dialogueBox.style.display = 'none';
         this.isVisible = false;
+        this.waitingForInput = false;
         
         // Hide NPC name when dialogue is hidden
         if (this.dialogueNPCNameElement) {
@@ -249,7 +272,15 @@ export class DialogueManager {
             ...this.dialogueLoader.getDebugInfo(),
             currentCharacter: this.currentCharacterId,
             currentDialogue: this.currentDialogueId,
-            isActive: this.isActive()
+            isActive: this.isActive(),
+            waitingForInput: this.waitingForInput
         };
+    }
+
+    // Cleanup method
+    destroy() {
+        if (this.keyHandler) {
+            document.removeEventListener('keydown', this.keyHandler);
+        }
     }
 }
