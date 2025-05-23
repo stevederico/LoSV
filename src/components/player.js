@@ -344,6 +344,231 @@ export class Player {
         this.addInteriorLighting();
     }
 
+    createGarageInterior() {
+        this.scene.background = new THREE.Color(0x555555); // Gray garage atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Concrete floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x888888);
+
+        // Add garage NPC
+        const garageNPC = this.createNPC(-2, -3, 0xff8800, // Orange NPC
+            ["Welcome to my garage!", "I love working on cars here.", "Check out my tools!"]);
+        this.scene.add(garageNPC);
+        this.buildingObstacles.push(garageNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createVentureInterior() {
+        this.scene.background = new THREE.Color(0x2a2a2a); // Dark modern atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Modern floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x444444);
+
+        // Add venture NPC
+        const ventureNPC = this.createNPC(-1, -3, 0x0088ff, // Blue NPC
+            ["Welcome to our venture capital firm!", "We invest in the future.", "Got a great startup idea?"]);
+        this.scene.add(ventureNPC);
+        this.buildingObstacles.push(ventureNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createDataCenterInterior() {
+        this.scene.background = new THREE.Color(0x001122); // Dark tech atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Tech floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x222244 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x334455);
+
+        // Add data center NPC
+        const dataNPC = this.createNPC(-1, -3, 0x00ffff, // Cyan NPC
+            ["Welcome to our data center!", "We process petabytes of data.", "The servers never sleep!"]);
+        this.scene.add(dataNPC);
+        this.buildingObstacles.push(dataNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createConferenceInterior() {
+        this.scene.background = new THREE.Color(0x3a2a1a); // Professional atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Professional floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x4a3a2a });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x5a4a3a);
+
+        // Add conference NPC
+        const confNPC = this.createNPC(-1, -3, 0x8b4513, // Brown NPC
+            ["Welcome to our conference room!", "We make important decisions here.", "Time for a board meeting!"]);
+        this.scene.add(confNPC);
+        this.buildingObstacles.push(confNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createLoftInterior() {
+        this.scene.background = new THREE.Color(0x4a4a3a); // Creative atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Creative floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x5a5a4a });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x6a6a5a);
+
+        // Add loft NPC
+        const loftNPC = this.createNPC(-1, -3, 0xff8800, // Orange NPC
+            ["Welcome to my creative loft!", "Art and innovation happen here.", "Feel the creative energy!"]);
+        this.scene.add(loftNPC);
+        this.buildingObstacles.push(loftNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createAcceleratorInterior() {
+        this.scene.background = new THREE.Color(0x1a1a3a); // Innovation atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Innovation floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2a2a4a });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a3a5a);
+
+        // Add accelerator NPC
+        const accelNPC = this.createNPC(-1, -3, 0x4169e1, // Royal blue NPC
+            ["Welcome to our startup accelerator!", "We help startups grow fast.", "Ready to scale your business?"]);
+        this.scene.add(accelNPC);
+        this.buildingObstacles.push(accelNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createLawInterior() {
+        this.scene.background = new THREE.Color(0x2a1a1a); // Legal atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Professional floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x3a2a2a });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x4a3a3a);
+
+        // Add law NPC
+        const lawNPC = this.createNPC(-1, -3, 0x191970, // Dark navy NPC
+            ["Welcome to our law office!", "Justice and legal expertise.", "How can we help you legally?"]);
+        this.scene.add(lawNPC);
+        this.buildingObstacles.push(lawNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createNasdaqInterior() {
+        this.scene.background = new THREE.Color(0x1a3a1a); // Financial atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Trading floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2a4a2a });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a5a3a);
+
+        // Add nasdaq NPC
+        const nasdaqNPC = this.createNPC(-1, -3, 0x00ff00, // Green NPC
+            ["Welcome to the trading floor!", "Markets are always moving.", "Buy low, sell high!"]);
+        this.scene.add(nasdaqNPC);
+        this.buildingObstacles.push(nasdaqNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
+    createGenericInterior() {
+        this.scene.background = new THREE.Color(0x333333); // Generic atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Generic floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x555555);
+
+        // Add generic NPC
+        const genericNPC = this.createNPC(-1, -3, 0x888888, // Gray NPC
+            ["Welcome to this building!", "This is a generic space.", "Thanks for visiting!"]);
+        this.scene.add(genericNPC);
+        this.buildingObstacles.push(genericNPC);
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
     createWalls(roomWidth, roomDepth, wallHeight, wallColor) {
         const wallMaterial = new THREE.MeshBasicMaterial({ color: wallColor });
 
@@ -431,77 +656,62 @@ export class Player {
         const fireplaceGeometry = new THREE.BoxGeometry(2, 1.5, 0.5);
         const fireplaceMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
         const fireplace = new THREE.Mesh(fireplaceGeometry, fireplaceMaterial);
-        fireplace.position.set(0, 0.75, -5.8);
-        fireplace.width = 2; 
+        fireplace.position.set(0, 0.75, -5.5);
+        fireplace.width = 2;
         fireplace.depth = 0.5;
         this.scene.add(fireplace);
         this.buildingObstacles.push(fireplace);
     }
 
     addHouseNPC() {
-        const houseNPC = this.createNPC(-1, -4, 0x00ff00, // Green NPC for house
-            ["Welcome to my cozy home!", "I love the warm atmosphere here.", "Feel free to look around!"]);
+        // Create house NPC
+        const houseNPC = this.createNPC(-5, -3, 0xff6b6b, // Light red NPC
+            ["Welcome to my home!", "Make yourself comfortable.", "This is where I live and work."]);
         this.scene.add(houseNPC);
         this.buildingObstacles.push(houseNPC);
-        this.interactiveNPCs.push(houseNPC);
     }
 
     createNPC(x, z, color, dialogue) {
-        const npcSize = 1.5;
-        
-        // Create triangle geometry for NPC
-        const npcGeometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array([
-            0, 0, npcSize / 2,      // Top vertex
-            -npcSize / 2, 0, -npcSize / 2,  // Bottom left
-            npcSize / 2, 0, -npcSize / 2    // Bottom right
-        ]);
-        npcGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        
-        // Calculate normals for proper lighting
-        npcGeometry.computeVertexNormals();
-        
-        const npcMaterial = new THREE.MeshBasicMaterial({ 
-            color: color, 
-            side: THREE.DoubleSide 
-        });
-        const npcMesh = new THREE.Mesh(npcGeometry, npcMaterial);
-        
-        npcMesh.position.set(x, 0.1, z);
-
-        npcMesh.width = npcSize;
-        npcMesh.depth = npcSize;
-        npcMesh.userData = {
+        const npcGeometry = new THREE.BoxGeometry(1, 1.5, 1);
+        const npcMaterial = new THREE.MeshBasicMaterial({ color: color });
+        const npc = new THREE.Mesh(npcGeometry, npcMaterial);
+        npc.position.set(x, 0.75, z);
+        npc.width = 1;
+        npc.depth = 1;
+        npc.userData = {
             isNPC: true,
             dialogue: dialogue
         };
-        
-        return npcMesh;
+        return npc;
     }
 
     addPlayerToRoom(roomDepth) {
-        // Position player inside the room near the door
+        // Store the room depth for exit logic
+        this.currentRoomDepth = roomDepth;
+        
+        // Position player near the door inside the room
         this.position.set(0, 0.1, roomDepth / 2 - 1);
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
     }
 
     addInteriorLighting() {
-        // Add ambient lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        // Add ambient lighting for interior
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
-        
-        // Add directional lighting
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
-        directionalLight.position.set(0, 10, 5);
-        this.scene.add(directionalLight);
+
+        // Add a point light for more dramatic lighting
+        const pointLight = new THREE.PointLight(0xffffff, 0.8, 20);
+        pointLight.position.set(0, 5, 0);
+        this.scene.add(pointLight);
+    }
+
+    // Getter methods required by Game class
+    getMesh() {
+        return this.mesh;
     }
 
     getPosition() {
         return this.position;
-    }
-
-    getMesh() {
-        return this.mesh;
     }
 }
