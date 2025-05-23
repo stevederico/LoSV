@@ -44,6 +44,15 @@ export class World {
         // Create paths with a different texture/color
         this.createPath(-5, -5, 10, 2); // Horizontal path
         this.createPath(-1, -5, 2, 10); // Vertical path
+        
+        // Create main path in front of all buildings
+        this.createPath(2, -8, 21, 3); // Long horizontal path in front of buildings (from x=2 to x=23, z=-8 to z=-5)
+        
+        // Create connecting paths to each building
+        this.createPath(4.5, -10, 2, 2); // Path to YComb building
+        this.createPath(9.5, -10, 2, 2); // Path to House
+        this.createPath(14.5, -10, 2, 2); // Path to Garage  
+        this.createPath(19.5, -10, 2, 2); // Path to Venture building
     }
 
     createPath(x, z, width, depth) {
@@ -109,7 +118,9 @@ export class World {
 
     createBuildings() {
         this.createHouse(10, -10, 3, 3); 
-        this.createGarage(15, -10, 3, 3); 
+        this.createGarage(15, -10, 3, 3);
+        this.createYCombBuilding(5, -10, 3, 3);
+        this.createVentureBuilding(20, -10, 3, 3);
     }
 
     createHouse(x, z, spriteWidth, spriteHeight) {
@@ -168,6 +179,64 @@ export class World {
         this.scene.add(garageSprite);
         this.buildings.push(garageSprite);
         this.colliders.push(garageSprite); // Collision might need adjustment based on sprite
+    }
+
+    createYCombBuilding(x, z, spriteWidth, spriteHeight) {
+        const ycombTexture = this.textureLoader.load('/assets/textures/ycomb.png');
+        ycombTexture.magFilter = THREE.NearestFilter;
+        ycombTexture.minFilter = THREE.NearestFilter;
+        
+        const ycombGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const ycombMaterial = new THREE.MeshBasicMaterial({ 
+            map: ycombTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const ycombSprite = new THREE.Mesh(ycombGeometry, ycombMaterial);
+        
+        // Position the YComb building sprite flat on the ground
+        ycombSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        ycombSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        ycombSprite.width = spriteWidth;
+        ycombSprite.depth = spriteHeight;
+
+        ycombSprite.userData.isBuilding = true;  // Tag as building
+        ycombSprite.userData.buildingType = 'ycomb'; // Specify building type
+        this.scene.add(ycombSprite);
+        this.buildings.push(ycombSprite);
+        this.colliders.push(ycombSprite); // Collision might need adjustment based on sprite
+    }
+
+    createVentureBuilding(x, z, spriteWidth, spriteHeight) {
+        const ventureTexture = this.textureLoader.load('/assets/textures/venture.png');
+        ventureTexture.magFilter = THREE.NearestFilter;
+        ventureTexture.minFilter = THREE.NearestFilter;
+        
+        const ventureGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+        const ventureMaterial = new THREE.MeshBasicMaterial({ 
+            map: ventureTexture, 
+            transparent: true, // Assuming PNG with transparency
+            side: THREE.DoubleSide 
+        });
+        const ventureSprite = new THREE.Mesh(ventureGeometry, ventureMaterial);
+        
+        // Position the Venture building sprite flat on the ground
+        ventureSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
+        ventureSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
+
+        // Define width and depth for collision detection
+        // When rotated, spriteWidth is along X, spriteHeight is along Z
+        ventureSprite.width = spriteWidth;
+        ventureSprite.depth = spriteHeight;
+
+        ventureSprite.userData.isBuilding = true;  // Tag as building
+        ventureSprite.userData.buildingType = 'venture'; // Specify building type
+        this.scene.add(ventureSprite);
+        this.buildings.push(ventureSprite);
+        this.colliders.push(ventureSprite); // Collision might need adjustment based on sprite
     }
 
     createInteractiveElements() {
