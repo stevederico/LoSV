@@ -1,8 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 ### TO-DO
-- loading screen with new image
-- start the character inside the house.
+- ~~loading.png image on the loading screen~~ (Completed)
+- ~~start the character inside the house.~~ (Completed)
 - NPC placeholder should be a triangle. 
 - make a dedicated file that manages all the dialog for each NPC. 
 - Make sure exit works perfectly on all buildings.
@@ -58,4 +58,6 @@ All notable changes to this project will be documented in this file.
   - Extended world path system to accommodate 9 total buildings.
   - Unique interior designs with thematic furniture, equipment, and atmospheric lighting for each building.
   - Interactive NPCs in each building with placeholder dialogue (3 lines each).
+- **Loading Screen:** Added loading.png image to the loading screen with proper pixel art rendering for crisp display.
+- **Scene Management:** Fixed visual clipping issue where house interior overlapped with main map when player starts in the house.
 0.0.3

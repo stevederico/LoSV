@@ -7,37 +7,36 @@ loadingScreen.style.top = '0';
 loadingScreen.style.left = '0';
 loadingScreen.style.width = '100%';
 loadingScreen.style.height = '100%';
-loadingScreen.style.backgroundColor = '#000';
-loadingScreen.style.color = '#fff';
-loadingScreen.style.display = 'flex';
-loadingScreen.style.flexDirection = 'column';
-loadingScreen.style.justifyContent = 'center';
-loadingScreen.style.alignItems = 'center';
 loadingScreen.style.zIndex = '999';
-loadingScreen.style.fontFamily = 'Arial, sans-serif';
 
-const title = document.createElement('h1');
-title.textContent = 'THE LEGEND OF SILICON VALLEY';
-title.style.marginBottom = '10px';
-title.style.color = '#e4c025';
-title.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
+// Add full screen loading image
+const loadingImage = document.createElement('img');
+loadingImage.src = '/assets/textures/loading.png';
+loadingImage.style.position = 'absolute';
+loadingImage.style.top = '0';
+loadingImage.style.left = '0';
+loadingImage.style.width = '100%';
+loadingImage.style.height = '100%';
+loadingImage.style.objectFit = 'cover';
+loadingImage.style.imageRendering = 'pixelated'; // For crisp pixel art
+loadingImage.style.imageRendering = '-moz-crisp-edges';
+loadingImage.style.imageRendering = 'crisp-edges';
 
-const subtitle = document.createElement('h2');
-subtitle.textContent = 'A Founder\'s Journey';
-subtitle.style.marginBottom = '30px';
-subtitle.style.color = '#e4c025';
-subtitle.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
-
-const loadingText = document.createElement('p');
-loadingText.textContent = 'Loading...';
+// Progress bar container
+const progressContainer = document.createElement('div');
+progressContainer.style.position = 'absolute';
+progressContainer.style.bottom = '50px';
+progressContainer.style.left = '50%';
+progressContainer.style.transform = 'translateX(-50%)';
+progressContainer.style.width = '400px';
 
 const loadingBar = document.createElement('div');
-loadingBar.style.width = '300px';
+loadingBar.style.width = '100%';
 loadingBar.style.height = '20px';
-loadingBar.style.backgroundColor = '#333';
-loadingBar.style.marginTop = '20px';
+loadingBar.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
 loadingBar.style.borderRadius = '10px';
 loadingBar.style.overflow = 'hidden';
+loadingBar.style.border = '2px solid #fff';
 
 const loadingProgress = document.createElement('div');
 loadingProgress.style.width = '0%';
@@ -46,10 +45,9 @@ loadingProgress.style.backgroundColor = '#e4c025';
 loadingProgress.style.transition = 'width 0.5s';
 loadingBar.appendChild(loadingProgress);
 
-loadingScreen.appendChild(title);
-loadingScreen.appendChild(subtitle);
-loadingScreen.appendChild(loadingText);
-loadingScreen.appendChild(loadingBar);
+progressContainer.appendChild(loadingBar);
+loadingScreen.appendChild(loadingImage);
+loadingScreen.appendChild(progressContainer);
 document.body.appendChild(loadingScreen);
 
 // Simulate loading progress
