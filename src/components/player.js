@@ -670,7 +670,7 @@ export class Player {
         macbookTexture.magFilter = THREE.NearestFilter;
         macbookTexture.minFilter = THREE.NearestFilter;
         
-        const macbookGeometry = new THREE.PlaneGeometry(0.8, 0.6);
+        const macbookGeometry = new THREE.PlaneGeometry(1.6, 1.2);
         const macbookMaterial = new THREE.MeshBasicMaterial({
             map: macbookTexture,
             transparent: true,
@@ -681,8 +681,8 @@ export class Player {
         macbookSprite.position.set(0, 0.5, -2.5); // On the table
         macbookSprite.rotation.x = -Math.PI / 2;
         
-        macbookSprite.width = 0.8;
-        macbookSprite.depth = 0.6;
+        macbookSprite.width = 1.6;
+        macbookSprite.depth = 1.2;
         macbookSprite.userData.isPickupItem = true;
         macbookSprite.userData.itemType = 'macbook';
         macbookSprite.userData.itemData = {
@@ -699,7 +699,7 @@ export class Player {
         iphoneTexture.magFilter = THREE.NearestFilter;
         iphoneTexture.minFilter = THREE.NearestFilter;
         
-        const iphoneGeometry = new THREE.PlaneGeometry(0.3, 0.5);
+        const iphoneGeometry = new THREE.PlaneGeometry(1.8, 1.0);
         const iphoneMaterial = new THREE.MeshBasicMaterial({
             map: iphoneTexture,
             transparent: true,
@@ -710,12 +710,12 @@ export class Player {
         iphoneSprite.position.set(-2.7, 0.5, 0); // Near the NPC
         iphoneSprite.rotation.x = -Math.PI / 2;
         
-        iphoneSprite.width = 0.3;
-        iphoneSprite.depth = 0.5;
+        iphoneSprite.width = 1.8;
+        iphoneSprite.depth = 1.0;
         iphoneSprite.userData.isPickupItem = true;
         iphoneSprite.userData.itemType = 'iphone';
         iphoneSprite.userData.itemData = {
-            name: 'iPhone 15 Pro',
+            name: 'iPhone',
             icon: '📱',
             description: 'Essential for staying connected with your team'
         };
