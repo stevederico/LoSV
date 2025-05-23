@@ -44,6 +44,11 @@ export class Player {
     }
 
     initializeHouseInterior() {
+        // Clear any existing scene objects first
+        while (this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+        
         // Create the house interior when the player starts
         this.createHouseInterior();
     }
