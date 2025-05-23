@@ -1,0 +1,445 @@
+{
+  "version": "1.0.0",
+  "description": "Centralized dialogue system for The Legend of Silicon Valley game",
+  "settings": {
+    "defaultLineDisplayTime": 1500,
+    "maxDialogueDistance": 7,
+    "autoAdvance": true
+  },
+  "characters": {
+    "house_npc": {
+      "id": "house_npc",
+      "name": "Founder",
+      "color": "#ff6b6b",
+      "location": "house",
+      "position": { "x": -5, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to your entrepreneurial journey!",
+            "This is Level 1: Product Ideation at Your Home.",
+            "Goal: Validate problem-solution fit in 3 rounds.",
+            "You'll evaluate 3 ideas per round with Target User, Value Proposition, and Technical Feasibility.",
+            "Allocate your research budget wisely - user feedback events will adjust validation scores.",
+            "Pick up the MacBook and iPhone to get started with your startup tools!",
+            "Ready to brainstorm your next big idea?"
+          ],
+          "repeatable": true
+        },
+        "ideation_help": {
+          "id": "ideation_help",
+          "trigger": "interaction",
+          "lines": [
+            "Remember: Focus on real problems people face.",
+            "Consider your target users carefully - who exactly needs this solution?",
+            "Think about your value proposition - what unique benefit do you provide?",
+            "Assess technical feasibility - can you actually build this?",
+            "User feedback is crucial - listen to what potential customers say.",
+            "Don't fall in love with your first idea - be ready to pivot!"
+          ],
+          "repeatable": true
+        },
+        "validation_tips": {
+          "id": "validation_tips",
+          "trigger": "interaction",
+          "lines": [
+            "Problem-solution fit comes before product-market fit.",
+            "Talk to at least 10 potential customers before building anything.",
+            "Ask 'What's the biggest challenge you face with [problem area]?'",
+            "Look for patterns in the feedback you receive.",
+            "A validated problem is worth more than a cool solution.",
+            "Your research budget is limited - spend it on the most promising ideas!"
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "garage_npc": {
+      "id": "garage_npc",
+      "name": "Mechanic",
+      "color": "#ff8800",
+      "location": "garage",
+      "position": { "x": -2, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to my garage!",
+            "I love working on cars here.",
+            "Check out my tools!"
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "venture_npc": {
+      "id": "venture_npc",
+      "name": "VC Partner",
+      "color": "#0088ff",
+      "location": "venture",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to our venture capital firm!",
+            "We invest in the future.",
+            "Got a great startup idea?"
+          ],
+          "repeatable": true
+        },
+        "pitch_request": {
+          "id": "pitch_request",
+          "trigger": "interaction",
+          "lines": [
+            "Tell me about your startup.",
+            "What's your business model?",
+            "How much funding do you need?"
+          ],
+          "repeatable": false,
+          "unlocks": ["funding_discussion"]
+        },
+        "funding_discussion": {
+          "id": "funding_discussion",
+          "trigger": "interaction",
+          "lines": [
+            "We typically invest $1M to $10M.",
+            "We look for strong teams and scalable ideas.",
+            "Come back when you have traction!"
+          ],
+          "repeatable": true,
+          "requirements": ["pitch_request"]
+        }
+      }
+    },
+    "data_center_npc": {
+      "id": "data_center_npc",
+      "name": "Data Engineer",
+      "color": "#00ffff",
+      "location": "data-center",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to our data center!",
+            "We process petabytes of data.",
+            "The servers never sleep!"
+          ],
+          "repeatable": true
+        },
+        "tech_talk": {
+          "id": "tech_talk",
+          "trigger": "interaction",
+          "lines": [
+            "Our infrastructure handles millions of requests.",
+            "We use cutting-edge cloud technology.",
+            "Data is the new oil, they say!"
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "conference_npc": {
+      "id": "conference_npc",
+      "name": "Executive",
+      "color": "#8b4513",
+      "location": "conference",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to our conference room!",
+            "We make important decisions here.",
+            "Time for a board meeting!"
+          ],
+          "repeatable": true
+        },
+        "business_strategy": {
+          "id": "business_strategy",
+          "trigger": "interaction",
+          "lines": [
+            "Our quarterly numbers look strong.",
+            "We're expanding into new markets.",
+            "Growth is our top priority."
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "loft_npc": {
+      "id": "loft_npc",
+      "name": "Creative Director",
+      "color": "#ff8800",
+      "location": "loft",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to my creative loft!",
+            "Art and innovation happen here.",
+            "Feel the creative energy!"
+          ],
+          "repeatable": true
+        },
+        "creative_process": {
+          "id": "creative_process",
+          "trigger": "interaction",
+          "lines": [
+            "Inspiration strikes at any moment.",
+            "We blend art with technology.",
+            "Every project tells a story."
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "accelerator_npc": {
+      "id": "accelerator_npc",
+      "name": "Program Director",
+      "color": "#4169e1",
+      "location": "accelerator",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to our startup accelerator!",
+            "We help startups grow fast.",
+            "Ready to scale your business?"
+          ],
+          "repeatable": true
+        },
+        "program_info": {
+          "id": "program_info",
+          "trigger": "interaction",
+          "lines": [
+            "Our 3-month program is intensive.",
+            "You'll get mentorship and funding.",
+            "Demo day is the big finale!"
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "law_npc": {
+      "id": "law_npc",
+      "name": "Attorney",
+      "color": "#191970",
+      "location": "law",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to our law office!",
+            "Justice and legal expertise.",
+            "How can we help you legally?"
+          ],
+          "repeatable": true
+        },
+        "legal_advice": {
+          "id": "legal_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Always read the fine print.",
+            "Intellectual property is crucial for startups.",
+            "We handle corporate law and contracts."
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "nasdaq_npc": {
+      "id": "nasdaq_npc",
+      "name": "Trader",
+      "color": "#00ff00",
+      "location": "nasdaq",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to the trading floor!",
+            "Markets are always moving.",
+            "Buy low, sell high!"
+          ],
+          "repeatable": true
+        },
+        "market_talk": {
+          "id": "market_talk",
+          "trigger": "interaction",
+          "lines": [
+            "Tech stocks are hot right now.",
+            "IPOs can make or break companies.",
+            "The market rewards innovation."
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "generic_npc": {
+      "id": "generic_npc",
+      "name": "Resident",
+      "color": "#888888",
+      "location": "generic",
+      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to this building!",
+            "This is a generic space.",
+            "Thanks for visiting!"
+          ],
+          "repeatable": true
+        }
+      }
+    }
+  },
+  "global_dialogues": {
+    "system_messages": {
+      "game_start": {
+        "id": "game_start",
+        "lines": [
+          "Welcome to The Legend of Silicon Valley!",
+          "Your entrepreneurial journey begins now.",
+          "Explore the Silicon Valley ecosystem."
+        ]
+      },
+      "building_entered": {
+        "id": "building_entered",
+        "lines": [
+          "You've entered a new building.",
+          "Look around and talk to people."
+        ]
+      },
+      "building_exited": {
+        "id": "building_exited",
+        "lines": [
+          "You've returned to the main world.",
+          "Continue your journey."
+        ]
+      }
+    },
+    "tutorial": {
+      "movement": {
+        "id": "movement",
+        "lines": [
+          "Use arrow keys or WASD to move.",
+          "Walk up to NPCs to start conversations.",
+          "Press + or - to zoom in and out."
+        ]
+      },
+      "interactions": {
+        "id": "interactions",
+        "lines": [
+          "Get close to NPCs to trigger dialogue.",
+          "Dialogues advance automatically.",
+          "Move away to end conversations."
+        ]
+      }
+    }
+  },
+  "dialogue_chains": {
+    "startup_journey": {
+      "id": "startup_journey",
+      "description": "Multi-NPC dialogue chain for startup progression",
+      "steps": [
+        {
+          "npc": "loft_npc",
+          "dialogue": "creative_process",
+          "unlocks": "idea_generated"
+        },
+        {
+          "npc": "accelerator_npc",
+          "dialogue": "program_info",
+          "requires": "idea_generated",
+          "unlocks": "accelerator_accepted"
+        },
+        {
+          "npc": "venture_npc",
+          "dialogue": "funding_discussion",
+          "requires": "accelerator_accepted",
+          "unlocks": "funding_secured"
+        },
+        {
+          "npc": "law_npc",
+          "dialogue": "legal_advice",
+          "requires": "funding_secured",
+          "unlocks": "legal_setup"
+        },
+        {
+          "npc": "nasdaq_npc",
+          "dialogue": "market_talk",
+          "requires": "legal_setup",
+          "unlocks": "ipo_ready"
+        }
+      ]
+    }
+  },
+  "conditional_dialogues": {
+    "player_stats": {
+      "high_dau": {
+        "condition": "dau > 1000",
+        "lines": [
+          "Wow, your user numbers are impressive!",
+          "You're really gaining traction.",
+          "Keep up the great work!"
+        ]
+      },
+      "high_mrr": {
+        "condition": "mrr > 10000",
+        "lines": [
+          "Your revenue growth is fantastic!",
+          "You're building a sustainable business.",
+          "Time to think about scaling!"
+        ]
+      },
+      "low_stats": {
+        "condition": "dau < 100 && mrr < 1000",
+        "lines": [
+          "Every startup starts somewhere.",
+          "Focus on finding product-market fit.",
+          "Don't give up, keep iterating!"
+        ]
+      }
+    }
+  },
+  "random_dialogues": {
+    "motivational": [
+      "The best time to plant a tree was 20 years ago. The second best time is now.",
+      "Innovation distinguishes between a leader and a follower.",
+      "Your limitation—it's only your imagination.",
+      "Great things never come from comfort zones.",
+      "Dream it. Wish it. Do it."
+    ],
+    "tech_quotes": [
+      "Software is eating the world.",
+      "Move fast and break things.",
+      "Stay hungry, stay foolish.",
+      "The future is already here, it's just not evenly distributed.",
+      "Any sufficiently advanced technology is indistinguishable from magic."
+    ],
+    "business_wisdom": [
+      "Revenue solves all problems.",
+      "Cash flow is the lifeblood of business.",
+      "Customer acquisition cost must be less than lifetime value.",
+      "Product-market fit is everything.",
+      "Execution is more important than ideas."
+    ]
+  }
+}

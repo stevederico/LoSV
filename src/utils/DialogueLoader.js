@@ -7,7 +7,7 @@ export class DialogueLoader {
 
     async loadDialogues() {
         try {
-            const response = await fetch('./src/data/dialogues.json');
+            const response = await fetch('/dialogues.json');
             this.dialogueData = await response.json();
             console.log('Dialogue data loaded successfully');
             return this.dialogueData;
@@ -22,10 +22,18 @@ export class DialogueLoader {
                 },
                 characters: {
                     house_npc: {
-                        name: "Home Owner",
+                        name: "Founder",
                         dialogues: {
                             greeting: {
-                                lines: ["Welcome to my home!", "Make yourself comfortable.", "This is where I live and work."],
+                                lines: [
+                                    "Welcome to your entrepreneurial journey!",
+                                    "This is Level 1: Product Ideation at Your Home.",
+                                    "Goal: Validate problem-solution fit in 3 rounds.",
+                                    "You'll evaluate 3 ideas per round with Target User, Value Proposition, and Technical Feasibility.",
+                                    "Allocate your research budget wisely - user feedback events will adjust validation scores.",
+                                    "Pick up the MacBook and iPhone to get started with your startup tools!",
+                                    "Ready to brainstorm your next big idea?"
+                                ],
                                 repeatable: true
                             }
                         }
