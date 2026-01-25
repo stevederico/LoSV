@@ -36,15 +36,39 @@ export class DialogueManager {
 
     setupKeyboardListener() {
         this.keyHandler = (event) => {
-            if (this.isVisible && this.waitingForInput) {
-                // Accept space, enter, or z to advance dialogue
-                if (event.key === ' ' || event.key === 'Enter' || event.key.toLowerCase() === 'z') {
+            if (!this.isVisible) return;
+
+            const key = event.key.toLowerCase();
+
+            // Handle choice navigation
+            if (this.waitingForChoiceConfirm) {
+                if (key === 'arrowup' || key === 'w') {
+                    event.preventDefault();
+                    this.selectedChoiceIndex = Math.max(0, this.selectedChoiceIndex - 1);
+                    this.updateChoiceHighlight();
+                } else if (key === 'arrowdown' || key === 's') {
+                    event.preventDefault();
+                    this.selectedChoiceIndex = Math.min(
+                        this.currentChoices.length - 1,
+                        this.selectedChoiceIndex + 1
+                    );
+                    this.updateChoiceHighlight();
+                } else if (key === 'enter' || event.key === ' ' || key === 'z') {
+                    event.preventDefault();
+                    this.confirmChoice();
+                }
+                return;
+            }
+
+            // Handle regular dialogue advancement
+            if (this.waitingForInput) {
+                if (event.key === ' ' || event.key === 'Enter' || key === 'z') {
                     event.preventDefault();
                     this.advanceDialogue();
                 }
             }
         };
-        
+
         document.addEventListener('keydown', this.keyHandler);
     }
 
@@ -93,9 +117,21 @@ export class DialogueManager {
         this.instructionElement.style.textAlign = 'center';
         this.instructionElement.textContent = 'Press SPACE, ENTER, or Z to continue...';
 
+        // Create choice container
+        this.choiceContainer = document.createElement('div');
+        this.choiceContainer.id = 'dialogue-choices';
+        this.choiceContainer.style.marginTop = '15px';
+        this.choiceContainer.style.display = 'none';
+
+        // Track choice state
+        this.currentChoices = [];
+        this.selectedChoiceIndex = 0;
+        this.waitingForChoiceConfirm = false;
+
         this.dialogueBox.appendChild(this.dialogueNPCNameElement);
         this.dialogueBox.appendChild(this.dialogueTextElement);
         this.dialogueBox.appendChild(this.instructionElement);
+        this.dialogueBox.appendChild(this.choiceContainer);
         document.body.appendChild(this.dialogueBox);
         console.log("Dialogue UI elements created dynamically with SNES-inspired styling.");
 
@@ -124,14 +160,50 @@ export class DialogueManager {
             this.dialogueNPCNameElement.style.display = 'block';
         }
 
-        // Set up completion callback to mark dialogue as completed
+        // Wrap callback to handle choices after dialogue
         const wrappedCallback = () => {
             this.dialogueLoader.markDialogueCompleted(characterId, dialogueId);
-            if (onComplete) onComplete();
+
+            // Check if this dialogue has choices
+            if (dialogue.choices && dialogue.choices.length > 0) {
+                this.showChoices(dialogue.choices, (choice) => {
+                    this.handleChoiceAction(characterId, choice, onComplete);
+                });
+            } else {
+                if (onComplete) onComplete();
+            }
         };
 
         this.showDialogue(dialogue.lines, wrappedCallback);
         return true;
+    }
+
+    handleChoiceAction(characterId, choice, originalCallback) {
+        switch (choice.action) {
+            case 'start_simulator':
+                // Trigger simulator for current building
+                this.hideDialogue();
+                if (this.onStartSimulator) {
+                    this.onStartSimulator();
+                }
+                break;
+
+            case 'dialogue':
+                // Navigate to another dialogue
+                if (choice.nextDialogue) {
+                    this.showCharacterDialogue(characterId, choice.nextDialogue, originalCallback);
+                }
+                break;
+
+            case 'close':
+                // Just close dialogue
+                this.hideDialogue();
+                if (originalCallback) originalCallback();
+                break;
+
+            default:
+                if (originalCallback) originalCallback();
+        }
     }
 
     // Show global dialogue (system messages, tutorial, etc.)
@@ -231,7 +303,7 @@ export class DialogueManager {
         this.dialogueBox.style.display = 'none';
         this.isVisible = false;
         this.waitingForInput = false;
-        
+
         // Hide NPC name when dialogue is hidden
         if (this.dialogueNPCNameElement) {
             this.dialogueNPCNameElement.style.display = 'none';
@@ -245,6 +317,77 @@ export class DialogueManager {
         // Clear current dialogue tracking
         this.currentCharacterId = null;
         this.currentDialogueId = null;
+    }
+
+    showChoices(choices, onChoiceSelected) {
+        this.currentChoices = choices;
+        this.selectedChoiceIndex = 0;
+        this.onChoiceCallback = onChoiceSelected;
+        this.waitingForChoiceConfirm = true;
+
+        // Hide advance instruction
+        if (this.instructionElement) {
+            this.instructionElement.style.display = 'none';
+        }
+
+        // Build choice list
+        this.choiceContainer.innerHTML = '';
+        choices.forEach((choice, index) => {
+            const choiceElement = document.createElement('div');
+            choiceElement.style.padding = '8px';
+            choiceElement.style.marginBottom = '5px';
+            choiceElement.style.cursor = 'pointer';
+            choiceElement.style.borderRadius = '4px';
+            choiceElement.dataset.choiceIndex = index;
+
+            // Add arrow for selected choice
+            const arrow = document.createElement('span');
+            arrow.textContent = index === 0 ? '▶ ' : '  ';
+            arrow.style.color = '#ffff00';
+
+            const text = document.createElement('span');
+            text.textContent = choice.text;
+
+            choiceElement.appendChild(arrow);
+            choiceElement.appendChild(text);
+            this.choiceContainer.appendChild(choiceElement);
+        });
+
+        this.choiceContainer.style.display = 'block';
+        this.updateChoiceHighlight();
+    }
+
+    updateChoiceHighlight() {
+        const choices = this.choiceContainer.querySelectorAll('div');
+        choices.forEach((elem, index) => {
+            const arrow = elem.querySelector('span');
+            arrow.textContent = index === this.selectedChoiceIndex ? '▶ ' : '  ';
+            elem.style.backgroundColor = index === this.selectedChoiceIndex ?
+                'rgba(255, 255, 255, 0.2)' : 'transparent';
+        });
+    }
+
+    hideChoices() {
+        if (this.choiceContainer) {
+            this.choiceContainer.style.display = 'none';
+            this.choiceContainer.innerHTML = '';
+        }
+        this.currentChoices = [];
+        this.waitingForChoiceConfirm = false;
+
+        // Show advance instruction again
+        if (this.instructionElement) {
+            this.instructionElement.style.display = 'block';
+        }
+    }
+
+    confirmChoice() {
+        const selectedChoice = this.currentChoices[this.selectedChoiceIndex];
+        this.hideChoices();
+
+        if (this.onChoiceCallback) {
+            this.onChoiceCallback(selectedChoice, this.selectedChoiceIndex);
+        }
     }
 
     isActive() {

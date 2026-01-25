@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 ### TO-DO
 
+0.1.0
+
+Add board room building
+  Add board room NPC
+  Add dialogue choice system
+  Add simulator integration callbacks
+
 
 
 ### Changes

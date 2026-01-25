@@ -248,6 +248,8 @@ export class Player {
             this.createVentureInterior();
         } else if (buildingType === 'data-center') {
             this.createDataCenterInterior();
+        } else if (buildingType === 'board-room') {
+            this.createBoardRoomInterior();
         } else if (buildingType === 'conference') {
             this.createConferenceInterior();
         } else if (buildingType === 'loft') {
@@ -536,6 +538,28 @@ export class Player {
         this.addInteriorLighting();
     }
 
+    createBoardRoomInterior() {
+        this.scene.background = new THREE.Color(0x3a2a1a); // Executive atmosphere
+        const roomWidth = 16;
+        const roomDepth = 12;
+        const wallHeight = 3;
+
+        // Mahogany floor
+        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x4a2511 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        this.scene.add(floor);
+
+        this.createWalls(roomWidth, roomDepth, wallHeight, 0x5a3521);
+
+        // Add board room NPC
+        this.addBoardRoomNPC();
+
+        this.addPlayerToRoom(roomDepth);
+        this.addInteriorLighting();
+    }
+
     createGenericInterior() {
         this.scene.background = new THREE.Color(0x333333); // Generic atmosphere
         const roomWidth = 16;
@@ -659,11 +683,19 @@ export class Player {
         const houseNPC = this.createNPC(-5, -3, 0xff6b6b, 'house_npc');
         this.scene.add(houseNPC);
         this.buildingObstacles.push(houseNPC);
-        
+
         // Add MacBook and iPhone items
         this.addHouseItems();
     }
-    
+
+    addBoardRoomNPC() {
+        // Create board room NPC
+        const boardRoomNPC = this.createNPC(0, 2, 0x8b4513, 'board_room_npc');
+        this.scene.add(boardRoomNPC);
+        this.buildingObstacles.push(boardRoomNPC);
+        this.interactiveNPCs.push(boardRoomNPC);
+    }
+
     addHouseItems() {
         // Create MacBook
         const macbookTexture = new THREE.TextureLoader().load('/assets/textures/macbook.png');

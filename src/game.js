@@ -255,15 +255,20 @@ export class Game {
         // 2. Set up the building interior and start simulator if applicable
         const buildingType = building.userData.buildingType;
         this.player.buildingObstacles = []; // Clear previous building obstacles
-        
+
         // Check if this building has a simulator level
         const simulatorLevel = this.startupSimulator.getLevelForBuilding(buildingType);
-        
+
         if (simulatorLevel) {
-            // Start the simulator for this building
-            this.startSimulatorLevel(simulatorLevel);
+            // Set up callback for when dialogue triggers simulator
+            // DO NOT auto-start - let dialogue choices control this
+            this.dialogueManager.onStartSimulator = () => {
+                this.startSimulatorLevel(simulatorLevel);
+            };
+        } else {
+            this.dialogueManager.onStartSimulator = null;
         }
-        
+
         // Set up building-specific interiors
         switch (buildingType) {
             case 'house':
@@ -289,6 +294,10 @@ export class Game {
             case 'data-center':
                 this.renderer.setClearColor(0x666699); // Blue-grey for data center
                 this.setupDataCenterInterior();
+                break;
+            case 'board-room':
+                this.renderer.setClearColor(0x664400); // Executive brown
+                this.setupBoardRoomInterior();
                 break;
             case 'venture':
                 this.renderer.setClearColor(0x999966); // Gold-grey for venture
@@ -621,17 +630,17 @@ export class Game {
         // Add trading terminals
         const terminalGeometry = new THREE.BoxGeometry(1, 1.2, 0.8);
         const terminalMaterial = new THREE.MeshStandardMaterial({ color: 0x000080 });
-        
+
         for (let i = 0; i < 4; i++) {
             const terminal = new THREE.Mesh(terminalGeometry, terminalMaterial);
             terminal.position.set(-3 + i * 2, 0.6, -2);
             this.scene.add(terminal);
             this.player.buildingObstacles.push(terminal);
         }
-        
+
         // Add stock ticker display
         const tickerGeometry = new THREE.BoxGeometry(6, 1, 0.2);
-        const tickerMaterial = new THREE.MeshStandardMaterial({ 
+        const tickerMaterial = new THREE.MeshStandardMaterial({
             color: 0x000000,
             emissive: 0x00ff00,
             emissiveIntensity: 0.3
@@ -640,5 +649,36 @@ export class Game {
         ticker.position.set(0, 2.5, -3.5);
         this.scene.add(ticker);
         this.player.buildingObstacles.push(ticker);
+    }
+
+    setupBoardRoomInterior() {
+        // Large conference table
+        const tableGeometry = new THREE.BoxGeometry(4, 0.5, 2);
+        const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x4a2511 });
+        const table = new THREE.Mesh(tableGeometry, tableMaterial);
+        table.position.set(0, 0.25, -2);
+        this.scene.add(table);
+        this.player.buildingObstacles.push(table);
+
+        // Executive chairs (8 around table)
+        const chairGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+        const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+
+        const chairPositions = [
+            [-1.5, 0, -3], [1.5, 0, -3],  // Top
+            [-1.5, 0, -1], [1.5, 0, -1],  // Bottom
+            [-2.5, 0, -2], [2.5, 0, -2],  // Sides
+            [-1, 0, -2], [1, 0, -2]       // Middle
+        ];
+
+        chairPositions.forEach(pos => {
+            const chair = new THREE.Mesh(chairGeometry, chairMaterial);
+            chair.position.set(pos[0], 0.5, pos[1]);
+            this.scene.add(chair);
+            this.player.buildingObstacles.push(chair);
+        });
+
+        // Initialize interactive elements array
+        this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
     }
 }

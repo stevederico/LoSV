@@ -55,6 +55,7 @@ export class World {
         this.createPath(-2.5, -10, 2, 2); // Path to Loft
         this.createPath(2.5, -10, 2, 2); // Path to Conference
         this.createPath(7.5, -10, 2, 2); // Path to Data Center
+        this.createPath(10.5, -10, 2, 2); // Path to Board Room
         this.createPath(12.5, -10, 2, 2); // Path to Venture building
         this.createPath(17.5, -10, 2, 2); // Path to Law building
         this.createPath(22.5, -10, 2, 2); // Path to Nasdaq building
@@ -122,12 +123,13 @@ export class World {
     }
 
     createBuildings() {
-        this.createHouse(-17, -10, 3, 3); 
+        this.createHouse(-17, -10, 3, 3);
         this.createGarage(-12, -10, 3, 3);
         this.createAccelerator(-7, -10, 3, 3);
         this.createLoft(-2, -10, 3, 3);
         this.createConference(3, -10, 3, 3);
         this.createDataCenter(8, -10, 3, 3);
+        this.createBoardRoom(11, -10, 3, 3);
         this.createVentureBuilding(13, -10, 3, 3);
         this.createLawBuilding(18, -10, 3, 3);
         this.createNasdaqBuilding(23, -10, 3, 3);
@@ -371,15 +373,15 @@ export class World {
         const nasdaqTexture = this.textureLoader.load('/assets/textures/nasdaq.png');
         nasdaqTexture.magFilter = THREE.NearestFilter;
         nasdaqTexture.minFilter = THREE.NearestFilter;
-        
+
         const nasdaqGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
-        const nasdaqMaterial = new THREE.MeshBasicMaterial({ 
-            map: nasdaqTexture, 
+        const nasdaqMaterial = new THREE.MeshBasicMaterial({
+            map: nasdaqTexture,
             transparent: true, // Assuming PNG with transparency
-            side: THREE.DoubleSide 
+            side: THREE.DoubleSide
         });
         const nasdaqSprite = new THREE.Mesh(nasdaqGeometry, nasdaqMaterial);
-        
+
         // Position the Nasdaq building sprite flat on the ground
         nasdaqSprite.position.set(x, 0.1, z); // x, z are center, y is slightly above ground
         nasdaqSprite.rotation.x = -Math.PI / 2; // Rotate to be flat on XZ plane
@@ -394,6 +396,43 @@ export class World {
         this.scene.add(nasdaqSprite);
         this.buildings.push(nasdaqSprite);
         this.colliders.push(nasdaqSprite); // Collision might need adjustment based on sprite
+    }
+
+    createBoardRoom(x, z, spriteWidth, spriteHeight) {
+        // 1. Load texture with NearestFilter
+        const boardRoomTexture = this.textureLoader.load('/assets/textures/board-room.png');
+        boardRoomTexture.magFilter = THREE.NearestFilter;
+        boardRoomTexture.minFilter = THREE.NearestFilter;
+
+        // 2. Create geometry
+        const boardRoomGeometry = new THREE.PlaneGeometry(spriteWidth, spriteHeight);
+
+        // 3. Create material
+        const boardRoomMaterial = new THREE.MeshBasicMaterial({
+            map: boardRoomTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+
+        // 4. Create mesh
+        const boardRoomSprite = new THREE.Mesh(boardRoomGeometry, boardRoomMaterial);
+
+        // 5. Position (flat on ground)
+        boardRoomSprite.position.set(x, 0.1, z);
+        boardRoomSprite.rotation.x = -Math.PI / 2;
+
+        // 6. Set collision data
+        boardRoomSprite.width = spriteWidth;
+        boardRoomSprite.depth = spriteHeight;
+
+        // 7. Tag metadata
+        boardRoomSprite.userData.isBuilding = true;
+        boardRoomSprite.userData.buildingType = 'board-room';
+
+        // 8. Add to scene
+        this.scene.add(boardRoomSprite);
+        this.buildings.push(boardRoomSprite);
+        this.colliders.push(boardRoomSprite);
     }
 
     createInteractiveElements() {

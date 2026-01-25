@@ -21,12 +21,24 @@
             "Welcome to your entrepreneurial journey!",
             "This is Level 1: Product Ideation at Your Home.",
             "Goal: Validate problem-solution fit in 3 rounds.",
-            "You'll evaluate 3 ideas per round with Target User, Value Proposition, and Technical Feasibility.",
-            "Allocate your research budget wisely - user feedback events will adjust validation scores.",
-            "Pick up the MacBook and iPhone to get started with your startup tools!",
             "Ready to brainstorm your next big idea?"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 1: Product Ideation",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tell me more about product ideation",
+              "action": "dialogue",
+              "nextDialogue": "ideation_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
         },
         "ideation_help": {
           "id": "ideation_help",
@@ -39,7 +51,18 @@
             "User feedback is crucial - listen to what potential customers say.",
             "Don't fall in love with your first idea - be ready to pivot!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "I'm ready to start!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
         },
         "validation_tips": {
           "id": "validation_tips",
@@ -285,6 +308,37 @@
             "Tech stocks are hot right now.",
             "IPOs can make or break companies.",
             "The market rewards innovation."
+          ],
+          "repeatable": true
+        }
+      }
+    },
+    "board_room_npc": {
+      "id": "board_room_npc",
+      "name": "Board Member",
+      "color": "#8b4513",
+      "location": "board-room",
+      "position": { "x": 0, "y": 0.75, "z": 2 },
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to the Board Room.",
+            "This is Level 7: Crisis Management.",
+            "Every startup faces critical moments that test its resilience.",
+            "How you handle these crises will determine your survival."
+          ],
+          "repeatable": true
+        },
+        "crisis_guidance": {
+          "id": "crisis_guidance",
+          "trigger": "interaction",
+          "lines": [
+            "When crisis hits, stay calm and think strategically.",
+            "Communicate transparently with your team and stakeholders.",
+            "Act decisively but don't panic.",
+            "Learn from each crisis to build a stronger company."
           ],
           "repeatable": true
         }
