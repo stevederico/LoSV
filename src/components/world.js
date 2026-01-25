@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 
 export class World {
-    constructor(scene) {
+    constructor(scene, progressionManager = null) {
         this.scene = scene;
         this.terrain = [];
         this.interactiveElements = [];
         this.buildings = [];
+        this.buildingLocks = new Map(); // Store lock overlays
         this.colliders = [];
         this.worldSize = 50; // Size of the world in units
         this.tileSize = 1; // Size of each tile
         this.textureLoader = new THREE.TextureLoader(); // Added texture loader
+        this.progressionManager = progressionManager;
         this.init();
     }
 
@@ -581,9 +583,78 @@ export class World {
         // this.interactiveElements.forEach((element, index) => {
         //     // Make gems float and rotate (now checking userData tag)
         //     if (element.userData.isGem) { // Commented out gem animation
-        //         element.rotation.z += 0.02; 
-        //         element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05; 
+        //         element.rotation.z += 0.02;
+        //         element.position.y = 0.1 + Math.sin(Date.now() * 0.003 + index) * 0.05;
         //     }
         // });
+    }
+
+    addLockOverlay(building) {
+        if (!building || this.buildingLocks.has(building)) return;
+
+        // Create padlock icon
+        const lockTexture = this.textureLoader.load('/assets/textures/ui/padlock.png');
+        lockTexture.magFilter = THREE.NearestFilter;
+        lockTexture.minFilter = THREE.NearestFilter;
+
+        const lockGeometry = new THREE.PlaneGeometry(1, 1);
+        const lockMaterial = new THREE.MeshBasicMaterial({
+            map: lockTexture,
+            transparent: true,
+            opacity: 0.9,
+            side: THREE.DoubleSide
+        });
+        const lockSprite = new THREE.Mesh(lockGeometry, lockMaterial);
+
+        // Position above building
+        lockSprite.position.set(
+            building.position.x,
+            0.2, // Slightly higher than building
+            building.position.z
+        );
+        lockSprite.rotation.x = -Math.PI / 2;
+
+        // Apply grayscale to building material
+        if (building.material) {
+            building.material.color.setHex(0x888888);
+            building.material.opacity = 0.6;
+            building.material.transparent = true;
+        }
+
+        this.scene.add(lockSprite);
+        this.buildingLocks.set(building, lockSprite);
+    }
+
+    removeLockOverlay(building) {
+        const lockSprite = this.buildingLocks.get(building);
+        if (lockSprite) {
+            this.scene.remove(lockSprite);
+            this.buildingLocks.delete(building);
+
+            // Restore building color
+            if (building.material) {
+                building.material.color.setHex(0xffffff);
+                building.material.opacity = 1.0;
+            }
+        }
+    }
+
+    updateBuildingStates() {
+        if (!this.progressionManager) return;
+
+        this.buildings.forEach(building => {
+            const buildingType = building.userData.buildingType;
+            if (buildingType) {
+                if (this.progressionManager.isLocked(buildingType)) {
+                    this.addLockOverlay(building);
+                } else {
+                    this.removeLockOverlay(building);
+                }
+            }
+        });
+    }
+
+    getBuildingByType(buildingType) {
+        return this.buildings.find(b => b.userData.buildingType === buildingType);
     }
 }
