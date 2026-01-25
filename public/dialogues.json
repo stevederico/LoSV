@@ -9,10 +9,11 @@
   "characters": {
     "house_npc": {
       "id": "house_npc",
-      "name": "Founder",
-      "color": "#ff6b6b",
+      "name": "Sam the Visionary",
+      "color": "#8B4513",
       "location": "house",
-      "position": { "x": -5, "y": 0.75, "z": -3 },
+      "position": { "x": -5, "y": 0.1, "z": -3 },
+      "spritePath": "/assets/textures/npc/sam-visionary.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
@@ -63,38 +64,186 @@
               "nextDialogue": "greeting"
             }
           ]
-        },
-        "validation_tips": {
-          "id": "validation_tips",
-          "trigger": "interaction",
-          "lines": [
-            "Problem-solution fit comes before product-market fit.",
-            "Talk to at least 10 potential customers before building anything.",
-            "Ask 'What's the biggest challenge you face with [problem area]?'",
-            "Look for patterns in the feedback you receive.",
-            "A validated problem is worth more than a cool solution.",
-            "Your research budget is limited - spend it on the most promising ideas!"
-          ],
-          "repeatable": true
         }
       }
     },
-    "garage_npc": {
-      "id": "garage_npc",
-      "name": "Mechanic",
-      "color": "#ff8800",
-      "location": "garage",
-      "position": { "x": -2, "y": 0.75, "z": -3 },
+    "sam": {
+      "id": "sam",
+      "name": "Sam the Visionary",
+      "color": "#8B4513",
+      "location": "house",
+      "position": { "x": -5, "y": 0.1, "z": -3 },
+      "spritePath": "/assets/textures/npc/sam-visionary.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to my garage!",
-            "I love working on cars here.",
-            "Check out my tools!"
+            "Welcome to your entrepreneurial journey!",
+            "This is Level 1: Product Ideation at Your Home.",
+            "Goal: Validate problem-solution fit in 3 rounds.",
+            "Ready to brainstorm your next big idea?"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 1: Product Ideation",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tell me more about product ideation",
+              "action": "dialogue",
+              "nextDialogue": "ideation_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "ideation_help": {
+          "id": "ideation_help",
+          "trigger": "interaction",
+          "lines": [
+            "Remember: Focus on real problems people face.",
+            "Consider your target users carefully - who exactly needs this solution?",
+            "Think about your value proposition - what unique benefit do you provide?",
+            "Assess technical feasibility - can you actually build this?",
+            "User feedback is crucial - listen to what potential customers say.",
+            "Don't fall in love with your first idea - be ready to pivot!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "I'm ready to start!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
+        }
+      }
+    },
+    "garage_npc": {
+      "id": "garage_npc",
+      "name": "Alex the Builder",
+      "color": "#2C3E50",
+      "location": "garage",
+      "position": { "x": -4, "y": 0.1, "z": -2 },
+      "spritePath": "/assets/textures/npc/alex-builder.png",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Hey! Welcome to my garage - where ideas become reality.",
+            "This is Level 2: MVP Development.",
+            "Goal: Ship a minimum viable product in 3 sprints.",
+            "Time to turn your validated idea into working software!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 2: MVP Development",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tell me about building an MVP",
+              "action": "dialogue",
+              "nextDialogue": "mvp_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "mvp_help": {
+          "id": "mvp_help",
+          "trigger": "interaction",
+          "lines": [
+            "MVP means Minimum Viable Product - the simplest version that solves the core problem.",
+            "Don't build features nobody asked for. Focus on the essential value proposition.",
+            "Ship fast, gather feedback, iterate. Perfect is the enemy of done.",
+            "Pick the right tech stack - familiar beats trendy when you're moving fast.",
+            "Technical debt is okay early on, but document it so you know where it is.",
+            "Your first users will forgive bugs if the core value is there!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's build this thing!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
+        }
+      }
+    },
+    "alex": {
+      "id": "alex",
+      "name": "Alex the Builder",
+      "color": "#2C3E50",
+      "location": "garage",
+      "position": { "x": -4, "y": 0.1, "z": -2 },
+      "spritePath": "/assets/textures/npc/alex-builder.png",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Hey! Welcome to my garage - where ideas become reality.",
+            "This is Level 2: MVP Development.",
+            "Goal: Ship a minimum viable product in 3 sprints.",
+            "Time to turn your validated idea into working software!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 2: MVP Development",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tell me about building an MVP",
+              "action": "dialogue",
+              "nextDialogue": "mvp_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "mvp_help": {
+          "id": "mvp_help",
+          "trigger": "interaction",
+          "lines": [
+            "MVP means Minimum Viable Product - the simplest version that solves the core problem.",
+            "Don't build features nobody asked for. Focus on the essential value proposition.",
+            "Ship fast, gather feedback, iterate. Perfect is the enemy of done.",
+            "Pick the right tech stack - familiar beats trendy when you're moving fast.",
+            "Technical debt is okay early on, but document it so you know where it is.",
+            "Your first users will forgive bugs if the core value is there!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's build this thing!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
         }
       }
     },
@@ -170,88 +319,361 @@
     },
     "conference_npc": {
       "id": "conference_npc",
-      "name": "Executive",
-      "color": "#8b4513",
+      "name": "Morgan the Marketer",
+      "color": "#16A085",
       "location": "conference",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "position": { "x": 0, "y": 0.1, "z": 2 },
+      "spritePath": "/assets/textures/npc/morgan-marketer.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to our conference room!",
-            "We make important decisions here.",
-            "Time for a board meeting!"
+            "Welcome to the big leagues! I'm Morgan, your growth strategist.",
+            "This is Level 5: Go-to-Market Strategy.",
+            "Goal: Scale from thousands to millions of users.",
+            "It's time to turn your product into a movement!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 5: Go-to-Market",
+              "action": "start_simulator"
+            },
+            {
+              "text": "How do I scale growth?",
+              "action": "dialogue",
+              "nextDialogue": "growth_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
         },
-        "business_strategy": {
-          "id": "business_strategy",
+        "growth_help": {
+          "id": "growth_help",
           "trigger": "interaction",
           "lines": [
-            "Our quarterly numbers look strong.",
-            "We're expanding into new markets.",
-            "Growth is our top priority."
+            "Growth is a science, not magic. Test channels systematically.",
+            "Know your unit economics: CAC, LTV, payback period, retention cohorts.",
+            "The best growth channel is the one your competitors aren't using.",
+            "Viral loops compound - a 1.1x viral coefficient beats 10% weekly growth.",
+            "Product-led growth works when your product sells itself.",
+            "Scale what works, kill what doesn't. Fast!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's grow this thing!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
+        }
+      }
+    },
+    "morgan": {
+      "id": "morgan",
+      "name": "Morgan the Marketer",
+      "color": "#16A085",
+      "location": "conference",
+      "position": { "x": 0, "y": 0.1, "z": 2 },
+      "spritePath": "/assets/textures/npc/morgan-marketer.png",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to the big leagues! I'm Morgan, your growth strategist.",
+            "This is Level 5: Go-to-Market Strategy.",
+            "Goal: Scale from thousands to millions of users.",
+            "It's time to turn your product into a movement!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 5: Go-to-Market",
+              "action": "start_simulator"
+            },
+            {
+              "text": "How do I scale growth?",
+              "action": "dialogue",
+              "nextDialogue": "growth_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "growth_help": {
+          "id": "growth_help",
+          "trigger": "interaction",
+          "lines": [
+            "Growth is a science, not magic. Test channels systematically.",
+            "Know your unit economics: CAC, LTV, payback period, retention cohorts.",
+            "The best growth channel is the one your competitors aren't using.",
+            "Viral loops compound - a 1.1x viral coefficient beats 10% weekly growth.",
+            "Product-led growth works when your product sells itself.",
+            "Scale what works, kill what doesn't. Fast!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's grow this thing!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
         }
       }
     },
     "loft_npc": {
       "id": "loft_npc",
-      "name": "Creative Director",
-      "color": "#ff8800",
+      "name": "Casey the Creative",
+      "color": "#E74C3C",
       "location": "loft",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "position": { "x": -3, "y": 0.1, "z": 0 },
+      "spritePath": "/assets/textures/npc/casey-creative.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to my creative loft!",
-            "Art and innovation happen here.",
-            "Feel the creative energy!"
+            "Hey there! Welcome to the loft where culture meets code.",
+            "This is Level 4: Team Building.",
+            "Goal: Assemble and retain your dream team.",
+            "A startup is only as strong as the people behind it!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 4: Team Building",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tips on building a team?",
+              "action": "dialogue",
+              "nextDialogue": "team_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
         },
-        "creative_process": {
-          "id": "creative_process",
+        "team_help": {
+          "id": "team_help",
           "trigger": "interaction",
           "lines": [
-            "Inspiration strikes at any moment.",
-            "We blend art with technology.",
-            "Every project tells a story."
+            "Hire for culture fit AND skills. Both matter equally.",
+            "Your first 10 hires define your company culture forever.",
+            "Equity is currency when you can't pay market salaries.",
+            "Don't hire too fast - every bad hire costs months of progress.",
+            "Great people want to work with other great people. Bar raises itself.",
+            "Culture isn't ping pong tables - it's how you treat people when things go wrong!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's build this team!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
+        }
+      }
+    },
+    "casey": {
+      "id": "casey",
+      "name": "Casey the Creative",
+      "color": "#E74C3C",
+      "location": "loft",
+      "position": { "x": -3, "y": 0.1, "z": 0 },
+      "spritePath": "/assets/textures/npc/casey-creative.png",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Hey there! Welcome to the loft where culture meets code.",
+            "This is Level 4: Team Building.",
+            "Goal: Assemble and retain your dream team.",
+            "A startup is only as strong as the people behind it!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 4: Team Building",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Tips on building a team?",
+              "action": "dialogue",
+              "nextDialogue": "team_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "team_help": {
+          "id": "team_help",
+          "trigger": "interaction",
+          "lines": [
+            "Hire for culture fit AND skills. Both matter equally.",
+            "Your first 10 hires define your company culture forever.",
+            "Equity is currency when you can't pay market salaries.",
+            "Don't hire too fast - every bad hire costs months of progress.",
+            "Great people want to work with other great people. Bar raises itself.",
+            "Culture isn't ping pong tables - it's how you treat people when things go wrong!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's build this team!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
         }
       }
     },
     "accelerator_npc": {
       "id": "accelerator_npc",
-      "name": "Program Director",
-      "color": "#4169e1",
+      "name": "Jordan the Connector",
+      "color": "#34495E",
       "location": "accelerator",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+      "position": { "x": 0, "y": 0.1, "z": -2 },
+      "spritePath": "/assets/textures/npc/jordan-connector.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to our startup accelerator!",
-            "We help startups grow fast.",
-            "Ready to scale your business?"
+            "Welcome to the accelerator! I'm Jordan, your program director.",
+            "This is Level 3: Fundraising.",
+            "Goal: Raise your seed round by convincing investors.",
+            "It's time to turn traction into capital!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 3: Fundraising",
+              "action": "start_simulator"
+            },
+            {
+              "text": "How do I raise money?",
+              "action": "dialogue",
+              "nextDialogue": "fundraising_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
         },
-        "program_info": {
-          "id": "program_info",
+        "fundraising_help": {
+          "id": "fundraising_help",
           "trigger": "interaction",
           "lines": [
-            "Our 3-month program is intensive.",
-            "You'll get mentorship and funding.",
-            "Demo day is the big finale!"
+            "Fundraising is about telling a compelling story backed by data.",
+            "Know your metrics cold: MRR, DAU, growth rate, unit economics.",
+            "VCs invest in teams first, markets second, products third.",
+            "Have a clear use of funds - what milestones will this money unlock?",
+            "Don't give away too much equity too early. 15-20% for seed is typical.",
+            "The best fundraise is when you don't desperately need the money!"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's pitch some VCs!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
+        }
+      }
+    },
+    "jordan": {
+      "id": "jordan",
+      "name": "Jordan the Connector",
+      "color": "#34495E",
+      "location": "accelerator",
+      "position": { "x": 0, "y": 0.1, "z": -2 },
+      "spritePath": "/assets/textures/npc/jordan-connector.png",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to the accelerator! I'm Jordan, your program director.",
+            "This is Level 3: Fundraising.",
+            "Goal: Raise your seed round by convincing investors.",
+            "It's time to turn traction into capital!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Start Level 3: Fundraising",
+              "action": "start_simulator"
+            },
+            {
+              "text": "How do I raise money?",
+              "action": "dialogue",
+              "nextDialogue": "fundraising_help"
+            },
+            {
+              "text": "I'll come back later",
+              "action": "close"
+            }
+          ]
+        },
+        "fundraising_help": {
+          "id": "fundraising_help",
+          "trigger": "interaction",
+          "lines": [
+            "Fundraising is about telling a compelling story backed by data.",
+            "Know your metrics cold: MRR, DAU, growth rate, unit economics.",
+            "VCs invest in teams first, markets second, products third.",
+            "Have a clear use of funds - what milestones will this money unlock?",
+            "Don't give away too much equity too early. 15-20% for seed is typical.",
+            "The best fundraise is when you don't desperately need the money!"
+          ],
+          "repeatable": true,
+          "choices": [
+            {
+              "text": "Let's pitch some VCs!",
+              "action": "start_simulator"
+            },
+            {
+              "text": "Back to main menu",
+              "action": "dialogue",
+              "nextDialogue": "greeting"
+            }
+          ]
         }
       }
     },

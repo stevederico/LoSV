@@ -8,6 +8,7 @@ import { DialogueManager } from './components/DialogueManager.js'; // Import Dia
 import { StartupSimulator } from './components/StartupSimulator.js';
 import { SimulatorDialogue } from './components/SimulatorDialogue.js';
 import { Inventory } from './components/Inventory.js';
+import { ProgressionManager } from './components/ProgressionManager.js';
 import { loadAssets, setupKeyboardControls } from './utils/helpers.js';
 
 export class Game {
@@ -33,14 +34,17 @@ export class Game {
         
         // Initialize Inventory
         this.inventory = new Inventory();
-        
+
+        // Initialize Progression Manager
+        this.progressionManager = new ProgressionManager();
+
         // Track picked up items per building (disabled for testing)
         this.pickedUpItems = {
             house: []
         };
-        
-        // Create game world
-        this.world = new World(this.scene);
+
+        // Create game world with progression manager
+        this.world = new World(this.scene, this.progressionManager);
         
         // Set up camera after world is created
         this.camera = new Camera(this.scene, this.renderer);
@@ -58,9 +62,12 @@ export class Game {
 
         this.setupLights();
         this.setupUI(); // Add this line
-        
+
+        // Update building lock states based on progression
+        this.world.updateBuildingStates();
+
         this.assetsLoaded = false;
-        
+
         this.loadAssets();
         this.startGameLoop();
         
@@ -81,44 +88,50 @@ export class Game {
             this.lifeHeartsContainer = document.getElementById('life-hearts');
             this.dauElement = document.querySelector('#dau-display span:last-child');
             this.mrrElement = document.querySelector('#mrr-display span:last-child');
-            
-            // Initialize UI
-            this.updateRupees(0); // Initial rupee count
-            this.updateLife(3);   // Initial life count
-            this.updateDAU(0);    // Initial DAU count
-            this.updateMRR(0);    // Initial MRR count
+
+            // Initialize UI with progression manager values
+            const stats = this.progressionManager.currentStats;
+            this.updateFunding(stats.funding);
+            this.updateRunway(stats.runway);
+            this.updateDAU(stats.dau);
+            this.updateMRR(stats.mrr);
         }, 100);
     }
 
-    updateRupees(count) {
+    updateFunding(amount) {
         if (this.rupeesElement) {
-            this.rupeesElement.textContent = String(count).padStart(3, '0');
+            // Format funding (e.g., $2.5M, $500k, $0)
+            let displayText;
+            if (amount >= 1000000) {
+                displayText = `$${(amount / 1000000).toFixed(1)}M`;
+            } else if (amount >= 1000) {
+                displayText = `$${(amount / 1000).toFixed(0)}k`;
+            } else {
+                displayText = `$${amount}`;
+            }
+            this.rupeesElement.textContent = displayText;
         } else {
-            // Try to find the element again
             this.rupeesElement = document.querySelector('#rupees span');
             if (this.rupeesElement) {
-                this.rupeesElement.textContent = String(count).padStart(3, '0');
+                this.updateFunding(amount);
             }
         }
     }
 
-    updateLife(lifeCount) {
+    updateRunway(months) {
         if (this.lifeHeartsContainer) {
-            this.lifeHeartsContainer.innerHTML = ''; // Clear existing hearts
-            for (let i = 0; i < lifeCount; i++) {
+            this.lifeHeartsContainer.innerHTML = '';
+            const maxHearts = 12; // Maximum runway is 12 months
+
+            for (let i = 0; i < maxHearts; i++) {
                 const heartElement = document.createElement('div');
-                heartElement.className = 'heart-icon-placeholder';
-                heartElement.style.width = '25px';
-                heartElement.style.height = '25px';
-                heartElement.style.backgroundColor = 'red';
-                heartElement.style.marginLeft = '5px';
+                heartElement.className = i < months ? 'heart' : 'heart empty';
                 this.lifeHeartsContainer.appendChild(heartElement);
             }
         } else {
-            // Try to find the element again
             this.lifeHeartsContainer = document.getElementById('life-hearts');
             if (this.lifeHeartsContainer) {
-                this.updateLife(lifeCount); // Call again with found container
+                this.updateRunway(months);
             }
         }
     }
@@ -232,6 +245,19 @@ export class Game {
 
     handleEnterBuilding(building) {
         console.log("Game: Handling enter building:", building.userData.buildingType);
+
+        const buildingType = building.userData.buildingType;
+
+        // Check if building is locked
+        if (this.progressionManager.isLocked(buildingType)) {
+            const requirementsText = this.progressionManager.getRequirementsText(buildingType);
+            this.dialogueManager.showMessage(
+                `🔒 ${this.progressionManager.formatBuildingName(buildingType)} - LOCKED`,
+                requirementsText
+            );
+            return; // Don't enter the building
+        }
+
         this.player.isInBuilding = true;
         this.player.currentBuilding = building;
 
@@ -253,7 +279,6 @@ export class Game {
         this.enemies.enemies = []; // Clear the list
 
         // 2. Set up the building interior and start simulator if applicable
-        const buildingType = building.userData.buildingType;
         this.player.buildingObstacles = []; // Clear previous building obstacles
 
         // Check if this building has a simulator level
@@ -433,7 +458,43 @@ export class Game {
                 document.addEventListener('keydown', handleContinue);
             }, 1000);
         } else {
-            // Level complete - hide simulator after a delay
+            // Level complete - update progression
+            const finalScore = result.score || 0;
+            const currentBuilding = this.player.currentBuilding?.userData.buildingType;
+
+            if (currentBuilding) {
+                // Mark level as complete in progression
+                this.progressionManager.completeLevel(currentBuilding, finalScore);
+
+                // Update stats from simulator
+                const stats = this.startupSimulator.getPlayerStats();
+                this.progressionManager.updateStats({
+                    dau: stats.dau,
+                    mrr: stats.mrr,
+                    funding: stats.funding || 0,
+                    teamSize: stats.teamSize || 1
+                });
+
+                // Update building visuals
+                this.world.updateBuildingStates();
+
+                // Show unlock notification if next building was unlocked
+                const buildingOrder = ['house', 'garage', 'accelerator', 'loft', 'conference'];
+                const currentIndex = buildingOrder.indexOf(currentBuilding);
+                if (currentIndex >= 0 && currentIndex < buildingOrder.length - 1) {
+                    const nextBuilding = buildingOrder[currentIndex + 1];
+                    if (!this.progressionManager.isLocked(nextBuilding)) {
+                        setTimeout(() => {
+                            this.dialogueManager.showMessage(
+                                '✨ NEW BUILDING UNLOCKED!',
+                                `${this.progressionManager.formatBuildingName(nextBuilding)} is now accessible!`
+                            );
+                        }, 5500);
+                    }
+                }
+            }
+
+            // Hide simulator after a delay
             setTimeout(() => {
                 this.simulatorDialogue.hide();
             }, 5000);

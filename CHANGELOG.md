@@ -13,6 +13,24 @@ Add board room building
 
 ### Changes
 
+## [0.3.0] - 2026-01-24
+
+### Added
+  Progression system implementation
+  Building unlock mechanics
+  Lock/unlock visual states
+  Character sprite system
+  NPC sprite replacements
+  Item collection system
+  Building interior enhancements
+  Furniture placement system
+  HUD display creation
+  Runway heart system
+  Stat tracking integration
+  Dialogue tree updates
+  Easter eggs implementation
+  Complete documentation file
+
 - Added `CHANGELOG.md` to track project changes.
 - **Overall Style:** Initiated conversion of the game from a 3D aesthetic to a 2D SNES-style (e.g., "The Legend of Zelda: A Link to the Past").
 - **Rendering:** Game elements (terrain, house, trees, player, items) now rendered as 2D sprites on `THREE.PlaneGeometry` instead of 3D geometries.
