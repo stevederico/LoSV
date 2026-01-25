@@ -1,0 +1,18 @@
+<svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sam the Visionary - Brown hoodie -->
+  <rect width="48" height="48" fill="transparent"/>
+  <!-- Head -->
+  <circle cx="24" cy="14" r="7" fill="#FFD4A3"/>
+  <!-- Messy hair -->
+  <ellipse cx="24" cy="10" rx="8" ry="4" fill="#4A3728"/>
+  <!-- Hoodie body -->
+  <rect x="14" y="20" width="20" height="18" fill="#8B4513" rx="2"/>
+  <!-- Hood accent -->
+  <rect x="16" y="22" width="16" height="3" fill="#D2691E"/>
+  <!-- Coffee mug (held) -->
+  <rect x="32" y="26" width="6" height="6" fill="#D2691E" rx="1"/>
+  <rect x="33" y="27" width="4" height="4" fill="#654321"/>
+  <!-- Legs -->
+  <rect x="16" y="38" width="6" height="10" fill="#2C3E50"/>
+  <rect x="26" y="38" width="6" height="10" fill="#2C3E50"/>
+</svg>
