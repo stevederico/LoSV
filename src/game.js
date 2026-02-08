@@ -4,11 +4,13 @@ import { World } from './components/world.js';
 import { Camera } from './components/camera.js';
 import { Controls } from './components/controls.js';
 import { Enemies } from './components/enemies.js';
-import { DialogueManager } from './components/DialogueManager.js'; // Import DialogueManager
+import { DialogueManager } from './components/DialogueManager.js';
 import { StartupSimulator } from './components/StartupSimulator.js';
 import { SimulatorDialogue } from './components/SimulatorDialogue.js';
 import { Inventory } from './components/Inventory.js';
 import { ProgressionManager } from './components/ProgressionManager.js';
+import { PauseMenu } from './components/PauseMenu.js';
+import { audioManager } from './utils/AudioManager.js';
 import { loadAssets, setupKeyboardControls } from './utils/helpers.js';
 
 export class Game {
@@ -66,10 +68,20 @@ export class Game {
         // Update building lock states based on progression
         this.world.updateBuildingStates();
 
+        // Initialize audio manager
+        this.audioManager = audioManager;
+
+        // Initialize pause menu (with reference to audio manager)
+        this.pauseMenu = new PauseMenu(this);
+        this.gamePaused = false;
+
         this.assetsLoaded = false;
 
         this.loadAssets();
         this.startGameLoop();
+
+        // Initialize audio on first user interaction
+        this.initAudioOnInteraction();
         
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
@@ -185,8 +197,55 @@ export class Game {
         animate();
     }
 
+    /**
+     * Initializes audio on the first user interaction (browser requirement).
+     */
+    initAudioOnInteraction() {
+        const initAudio = async () => {
+            if (!this.audioManager.initialized) {
+                await this.audioManager.init();
+                // Start background music
+                this.audioManager.playMusic('main');
+            }
+            // Remove listeners after initialization
+            document.removeEventListener('click', initAudio);
+            document.removeEventListener('keydown', initAudio);
+        };
+
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('keydown', initAudio, { once: true });
+    }
+
+    /**
+     * Plays a sound effect through the audio manager.
+     * @param {string} sfxName - Name of the sound effect
+     */
+    playSFX(sfxName) {
+        if (this.audioManager && this.audioManager.initialized) {
+            this.audioManager.playSFX(sfxName);
+        }
+    }
+
+    /**
+     * Pauses the game loop.
+     */
+    pauseGame() {
+        this.gamePaused = true;
+    }
+
+    /**
+     * Resumes the game loop.
+     */
+    resumeGame() {
+        this.gamePaused = false;
+    }
+
     update() {
         if (!this.assetsLoaded) return;
+        if (this.gamePaused) return;
+
+        // Check for game over
+        this.checkGameOver();
 
         // Handle dialogue advancement/interaction first
         // The DialogueManager itself doesn't need an update() call here,
@@ -202,12 +261,12 @@ export class Game {
         } else {
             this.controls.update(this.world.getObstacles());
         }
-        
+
         // Update enemies only if not in a building and dialogue is not active
         if (!this.player.isInBuilding && !this.dialogueManager.isActive()) {
             this.enemies.update(this.player.getPosition());
         }
-        
+
         // Update world for any animations or environmental changes (if not in building and dialogue not active)
         if (!this.player.isInBuilding && !this.dialogueManager.isActive()) {
             this.world.update();
@@ -255,7 +314,16 @@ export class Game {
                 `🔒 ${this.progressionManager.formatBuildingName(buildingType)} - LOCKED`,
                 requirementsText
             );
+            this.playSFX('error');
             return; // Don't enter the building
+        }
+
+        // Play door open sound
+        this.playSFX('doorOpen');
+
+        // Switch to interior ambient music
+        if (this.audioManager && this.audioManager.initialized) {
+            this.audioManager.playMusic('interior', true, 0.5);
         }
 
         this.player.isInBuilding = true;
@@ -360,7 +428,15 @@ export class Game {
 
     handleExitBuilding() {
         console.log("Game: Handling exit building.");
-        
+
+        // Play door close sound
+        this.playSFX('doorClose');
+
+        // Switch back to main theme music
+        if (this.audioManager && this.audioManager.initialized) {
+            this.audioManager.playMusic('main', true, 0.5);
+        }
+
         // Clean up building-specific items
         if (this.player.buildingInteractiveElements) {
             this.player.buildingInteractiveElements.forEach(item => {
@@ -478,18 +554,28 @@ export class Game {
                 // Update building visuals
                 this.world.updateBuildingStates();
 
-                // Show unlock notification if next building was unlocked
-                const buildingOrder = ['house', 'garage', 'accelerator', 'loft', 'conference'];
-                const currentIndex = buildingOrder.indexOf(currentBuilding);
-                if (currentIndex >= 0 && currentIndex < buildingOrder.length - 1) {
-                    const nextBuilding = buildingOrder[currentIndex + 1];
-                    if (!this.progressionManager.isLocked(nextBuilding)) {
-                        setTimeout(() => {
-                            this.dialogueManager.showMessage(
-                                '✨ NEW BUILDING UNLOCKED!',
-                                `${this.progressionManager.formatBuildingName(nextBuilding)} is now accessible!`
-                            );
-                        }, 5500);
+                // Check for victory (completed NASDAQ level)
+                if (currentBuilding === 'nasdaq') {
+                    setTimeout(() => {
+                        this.showVictoryScreen(stats);
+                    }, 5500);
+                } else {
+                    // Show unlock notification if next building was unlocked
+                    const buildingOrder = [
+                        'house', 'garage', 'accelerator', 'loft', 'conference',
+                        'data-center', 'board-room', 'venture', 'law', 'nasdaq'
+                    ];
+                    const currentIndex = buildingOrder.indexOf(currentBuilding);
+                    if (currentIndex >= 0 && currentIndex < buildingOrder.length - 1) {
+                        const nextBuilding = buildingOrder[currentIndex + 1];
+                        if (!this.progressionManager.isLocked(nextBuilding)) {
+                            setTimeout(() => {
+                                this.dialogueManager.showMessage(
+                                    '✨ NEW BUILDING UNLOCKED!',
+                                    `${this.progressionManager.formatBuildingName(nextBuilding)} is now accessible!`
+                                );
+                            }, 5500);
+                        }
                     }
                 }
             }
@@ -741,5 +827,180 @@ export class Game {
 
         // Initialize interactive elements array
         this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
+    }
+
+    /**
+     * Displays the victory screen when the player completes level 10 (NASDAQ).
+     * @param {Object} stats - Final player stats to display
+     */
+    showVictoryScreen(stats) {
+        // Play victory music
+        if (this.audioManager && this.audioManager.initialized) {
+            this.audioManager.playMusic('victory', false, 0.3);
+        }
+
+        // Create victory overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'victory-screen';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: #e8e8e8;
+            font-family: 'Press Start 2P', monospace;
+            animation: fadeIn 1s ease-in;
+        `;
+
+        const formatMoney = (amount) => {
+            if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+            if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
+            return `$${amount}`;
+        };
+
+        overlay.innerHTML = `
+            <style>
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+                @keyframes confetti { 0% { transform: translateY(-100vh) rotate(0deg); } 100% { transform: translateY(100vh) rotate(720deg); } }
+                .confetti { position: absolute; width: 10px; height: 10px; animation: confetti 3s linear infinite; }
+                .victory-title { font-size: 48px; color: #ffd700; text-shadow: 0 0 20px #ffd700; margin-bottom: 20px; animation: pulse 2s infinite; }
+                .victory-subtitle { font-size: 18px; color: #4ade80; margin-bottom: 40px; }
+                .stats-container { background: rgba(255,255,255,0.1); padding: 30px 50px; border-radius: 10px; margin-bottom: 40px; }
+                .stat-row { display: flex; justify-content: space-between; margin: 15px 0; font-size: 14px; }
+                .stat-label { color: #888; }
+                .stat-value { color: #4ade80; }
+                .victory-btn { background: #4ade80; color: #1a1a2e; border: none; padding: 15px 40px; font-size: 16px; font-family: inherit; cursor: pointer; border-radius: 5px; margin: 10px; transition: all 0.3s; }
+                .victory-btn:hover { background: #22c55e; transform: scale(1.05); }
+            </style>
+            <div class="victory-title">CONGRATULATIONS!</div>
+            <div class="victory-subtitle">You've taken your startup from idea to IPO!</div>
+            <div class="stats-container">
+                <div class="stat-row"><span class="stat-label">Final Funding:</span><span class="stat-value">${formatMoney(stats.funding || 0)}</span></div>
+                <div class="stat-row"><span class="stat-label">Monthly Revenue:</span><span class="stat-value">${formatMoney(stats.mrr || 0)}</span></div>
+                <div class="stat-row"><span class="stat-label">Daily Active Users:</span><span class="stat-value">${(stats.dau || 0).toLocaleString()}</span></div>
+                <div class="stat-row"><span class="stat-label">Team Size:</span><span class="stat-value">${stats.teamSize || 1} people</span></div>
+            </div>
+            <div>
+                <button class="victory-btn" id="play-again-btn">Play Again</button>
+                <button class="victory-btn" id="main-menu-btn">Main Menu</button>
+            </div>
+        `;
+
+        // Add confetti
+        const colors = ['#ffd700', '#4ade80', '#60a5fa', '#f472b6', '#fb923c'];
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+            overlay.appendChild(confetti);
+        }
+
+        document.body.appendChild(overlay);
+
+        // Button handlers
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            overlay.remove();
+            this.progressionManager.resetProgress();
+            location.reload();
+        });
+
+        document.getElementById('main-menu-btn').addEventListener('click', () => {
+            overlay.remove();
+            location.reload();
+        });
+    }
+
+    /**
+     * Displays the game over screen when runway reaches 0.
+     */
+    showGameOverScreen() {
+        if (this.gameOverShown) return;
+        this.gameOverShown = true;
+
+        // Play game over music
+        if (this.audioManager && this.audioManager.initialized) {
+            this.audioManager.playMusic('gameover', false, 0.3);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'game-over-screen';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: #e8e8e8;
+            font-family: 'Press Start 2P', monospace;
+            animation: fadeIn 0.5s ease-in;
+        `;
+
+        const stats = this.progressionManager.currentStats;
+        const completedLevels = this.progressionManager.completedLevels.length;
+
+        overlay.innerHTML = `
+            <style>
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+                .game-over-title { font-size: 48px; color: #ef4444; text-shadow: 0 0 20px #ef4444; margin-bottom: 20px; animation: shake 0.5s; }
+                .game-over-subtitle { font-size: 16px; color: #888; margin-bottom: 40px; text-align: center; max-width: 400px; }
+                .stats-container { background: rgba(255,255,255,0.1); padding: 30px 50px; border-radius: 10px; margin-bottom: 40px; }
+                .stat-row { display: flex; justify-content: space-between; margin: 15px 0; font-size: 14px; gap: 40px; }
+                .stat-label { color: #888; }
+                .stat-value { color: #ef4444; }
+                .game-over-btn { background: #ef4444; color: #fff; border: none; padding: 15px 40px; font-size: 16px; font-family: inherit; cursor: pointer; border-radius: 5px; margin: 10px; transition: all 0.3s; }
+                .game-over-btn:hover { background: #dc2626; transform: scale(1.05); }
+            </style>
+            <div class="game-over-title">GAME OVER</div>
+            <div class="game-over-subtitle">Your startup ran out of runway. The dream is over... for now.</div>
+            <div class="stats-container">
+                <div class="stat-row"><span class="stat-label">Levels Completed:</span><span class="stat-value">${completedLevels} / 10</span></div>
+                <div class="stat-row"><span class="stat-label">Final DAU:</span><span class="stat-value">${(stats.dau || 0).toLocaleString()}</span></div>
+                <div class="stat-row"><span class="stat-label">Final MRR:</span><span class="stat-value">$${(stats.mrr || 0).toLocaleString()}</span></div>
+            </div>
+            <div>
+                <button class="game-over-btn" id="try-again-btn">Try Again</button>
+                <button class="game-over-btn" id="main-menu-btn-go">Main Menu</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        document.getElementById('try-again-btn').addEventListener('click', () => {
+            overlay.remove();
+            this.progressionManager.resetProgress();
+            location.reload();
+        });
+
+        document.getElementById('main-menu-btn-go').addEventListener('click', () => {
+            overlay.remove();
+            location.reload();
+        });
+    }
+
+    /**
+     * Checks if game over conditions are met.
+     */
+    checkGameOver() {
+        if (this.progressionManager.isGameOver()) {
+            this.showGameOverScreen();
+        }
     }
 }

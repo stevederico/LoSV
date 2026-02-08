@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { NES_PALETTE, ROOM_THEMES, hexToRgba } from '../utils/NESPalette.js';
+import { spriteGenerator } from '../utils/SpriteGenerator.js';
 
 export class Player {
     constructor(scene, camera, onExitBuildingCallback) {
@@ -44,11 +46,9 @@ export class Player {
     }
 
     initializeHouseInterior() {
-        // Clear any existing scene objects first
-        while (this.scene.children.length > 0) {
-            this.scene.remove(this.scene.children[0]);
-        }
-        
+        // Clear any existing scene objects first with proper disposal
+        this.clearScene();
+
         // Create the house interior when the player starts
         this.createHouseInterior();
     }
@@ -232,10 +232,8 @@ export class Player {
         this.buildingObstacles = [];
         this.interactiveNPCs = []; // For NPCs that can be interacted with
 
-        // Clear current scene
-        while (this.scene.children.length > 0) {
-            this.scene.remove(this.scene.children[0]);
-        }
+        // Clear current scene with proper disposal
+        this.clearScene();
 
         // Create building-specific interior based on building type
         const buildingType = building.userData.buildingType;
@@ -272,10 +270,8 @@ export class Player {
         console.log("Player: Attempting to exit building...");
         this.isInBuilding = false;
 
-        // Clear interior scene objects
-        while (this.scene.children.length > 0) {
-            this.scene.remove(this.scene.children[0]);
-        }
+        // Clear interior scene objects with proper disposal
+        this.clearScene();
         this.buildingObstacles = []; // Clear interior obstacles
 
         // Call the callback to Game.js to handle main world restoration
@@ -310,81 +306,82 @@ export class Player {
     }
 
     createHouseInterior() {
-        // Set house-specific background (warm home atmosphere)
-        this.scene.background = new THREE.Color(0x4a3728); // Warm dark brown
+        const theme = ROOM_THEMES.house;
+        this.scene.background = new THREE.Color(theme.background);
 
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Create house floor with wooden texture
-        const woodFloorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const woodFloorMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 }); // Saddle brown
-        const woodFloor = new THREE.Mesh(woodFloorGeometry, woodFloorMaterial);
-        woodFloor.rotation.x = -Math.PI / 2;
-        this.scene.add(woodFloor);
+        // Create textured wood floor
+        const floorTexture = spriteGenerator.generateWoodFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
+        this.scene.add(floor);
 
-        // Add a cozy carpet in the center
-        const carpetWidth = roomWidth * 0.6;
-        const carpetDepth = roomDepth * 0.8;
-        const carpetGeometry = new THREE.PlaneGeometry(carpetWidth, carpetDepth);
-        const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 }); // Dark red carpet
-        const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
-        carpet.rotation.x = -Math.PI / 2;
-        carpet.position.y = 0.01;
-        this.scene.add(carpet);
+        // Add decorative rug in center
+        const rug = this.createRug(8, 6, 0, 0);
+        this.scene.add(rug);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0xa0522d); // Sienna brown walls
+        // Create textured walls
+        const wallTexture = spriteGenerator.generateWoodPanelWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
 
-        // Add house furniture
+        // Add house furniture with sprites
         this.addHouseFurniture();
 
         // Add house NPC
         this.addHouseNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFE4C4, 0.7); // Warm bisque light
     }
 
     createGarageInterior() {
-        this.scene.background = new THREE.Color(0x555555); // Gray garage atmosphere
+        const theme = ROOM_THEMES.garage;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Concrete floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Concrete floor with oil stains
+        const floorTexture = spriteGenerator.generateConcreteFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x888888);
+        // Brick walls
+        const wallTexture = spriteGenerator.generateBrickWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
 
-        // Add garage furniture
+        // Add garage furniture with sprites
         this.addGarageFurniture();
 
         // Add garage NPC and items
         this.addGarageNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xCCCCCC, 0.8); // Cool industrial light
     }
 
     createVentureInterior() {
-        this.scene.background = new THREE.Color(0x2a2a2a); // Dark modern atmosphere
+        const theme = ROOM_THEMES.venture;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Modern floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Modern marble-like floor
+        const floorTexture = spriteGenerator.generateMarbleFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x444444);
+        // Modern walls
+        const wallTexture = spriteGenerator.generateOfficeWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
+
+        // Add venture furniture
+        this.addVentureFurniture();
 
         // Add venture NPC
         const ventureNPC = this.createNPC(-1, -3, 0x0088ff, 'venture_npc');
@@ -392,122 +389,241 @@ export class Player {
         this.buildingObstacles.push(ventureNPC);
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xE6E6FA, 0.8); // Cool lavender light
+    }
+
+    addVentureFurniture() {
+        // Executive desk
+        const deskTexture = spriteGenerator.generateDesk();
+        const desk = this.createFurnitureSprite(deskTexture, 2.5, 1.5, 0, 0.1, -3);
+        this.addShadow(2.5, 1.5, 0, -3);
+        this.scene.add(desk);
+        this.buildingObstacles.push(desk);
+
+        // Visitor chairs
+        const chairTexture = spriteGenerator.generateChair();
+        const chair1 = this.createFurnitureSprite(chairTexture, 1, 1, -1.5, 0.08, -1);
+        const chair2 = this.createFurnitureSprite(chairTexture, 1, 1, 1.5, 0.08, -1);
+        this.scene.add(chair1);
+        this.scene.add(chair2);
+        this.buildingObstacles.push(chair1);
+        this.buildingObstacles.push(chair2);
+
+        // Couch for waiting area
+        const couchTexture = spriteGenerator.generateCouch();
+        const couch = this.createFurnitureSprite(couchTexture, 3, 1.5, 4, 0.1, 3);
+        this.scene.add(couch);
+        this.buildingObstacles.push(couch);
+
+        // Coffee table
+        const coffeeTable = this.createFurnitureSprite(deskTexture, 1.5, 0.8, 4, 0.08, 1.5);
+        this.scene.add(coffeeTable);
+
+        // Plants
+        const plantTexture = spriteGenerator.generatePlant();
+        this.scene.add(this.createFurnitureSprite(plantTexture, 0.8, 0.8, -6, 0.1, -4));
+        this.scene.add(this.createFurnitureSprite(plantTexture, 0.8, 0.8, 6, 0.1, -4));
+
+        // Wall art
+        const pictureTexture = spriteGenerator.generatePictureFrame();
+        const art = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.5, 1.5),
+            new THREE.MeshBasicMaterial({ map: pictureTexture })
+        );
+        art.position.set(-7.9, 1.8, -2);
+        art.rotation.y = Math.PI / 2;
+        this.scene.add(art);
     }
 
     createDataCenterInterior() {
-        this.scene.background = new THREE.Color(0x001122); // Dark tech atmosphere
+        const theme = ROOM_THEMES.dataCenter;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Tech floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x222244 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Tech floor (dark tiles)
+        const floorTexture = spriteGenerator.generateOfficeTileFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x334455);
+        // Dark tech walls
+        this.createWalls(roomWidth, roomDepth, wallHeight, NES_PALETTE.BLUE_DARK);
+
+        // Add data center furniture
+        this.addDataCenterFurniture();
 
         // Add data center NPC
-        const dataNPC = this.createNPC(-1, -3, 0x00ffff, 'data_center_npc');
+        const dataNPC = this.createNPC(-1, 2, 0x00ffff, 'data_center_npc');
         this.scene.add(dataNPC);
         this.buildingObstacles.push(dataNPC);
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0x00FFFF, 0.4); // Cyan tech glow
+    }
+
+    addDataCenterFurniture() {
+        // Server racks in rows
+        const serverTexture = spriteGenerator.generateServerRack();
+
+        // Left row
+        for (let z = -4; z <= 2; z += 2) {
+            const server = this.createFurnitureSprite(serverTexture, 1.2, 1.2, -5, 0.1, z);
+            this.scene.add(server);
+            this.buildingObstacles.push(server);
+        }
+
+        // Right row
+        for (let z = -4; z <= 2; z += 2) {
+            const server = this.createFurnitureSprite(serverTexture, 1.2, 1.2, 5, 0.1, z);
+            this.scene.add(server);
+            this.buildingObstacles.push(server);
+        }
+
+        // Center monitoring desk
+        const deskTexture = spriteGenerator.generateDesk();
+        const desk = this.createFurnitureSprite(deskTexture, 2.5, 1.5, 0, 0.1, -2);
+        this.addShadow(2.5, 1.5, 0, -2);
+        this.scene.add(desk);
+        this.buildingObstacles.push(desk);
+
+        // LED glows
+        const colors = [0x00FF00, 0x00FFFF, 0xFF6B35];
+        for (let i = 0; i < 3; i++) {
+            const glow = new THREE.PointLight(colors[i], 0.3, 3);
+            glow.position.set(-5, 0.5, -4 + i * 3);
+            this.scene.add(glow);
+
+            const glow2 = new THREE.PointLight(colors[i], 0.3, 3);
+            glow2.position.set(5, 0.5, -4 + i * 3);
+            this.scene.add(glow2);
+        }
+
+        // Floor cable management (visual)
+        const cableCanvas = document.createElement('canvas');
+        cableCanvas.width = 32;
+        cableCanvas.height = 64;
+        const cctx = cableCanvas.getContext('2d');
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        cctx.fillRect(14, 0, 4, 64);
+        // Cable colors
+        cctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+        cctx.fillRect(12, 0, 2, 64);
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MED);
+        cctx.fillRect(18, 0, 2, 64);
+        const cableTexture = new THREE.CanvasTexture(cableCanvas);
+        cableTexture.magFilter = THREE.NearestFilter;
+
+        const cableTray = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 10),
+            new THREE.MeshBasicMaterial({ map: cableTexture, transparent: true })
+        );
+        cableTray.rotation.x = -Math.PI / 2;
+        cableTray.position.set(0, 0.01, -1);
+        this.scene.add(cableTray);
     }
 
     createConferenceInterior() {
-        this.scene.background = new THREE.Color(0x3a2a1a); // Professional atmosphere
+        const theme = ROOM_THEMES.conference;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Professional floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x4a3a2a });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Professional wood floor
+        const floorTexture = spriteGenerator.generateWoodFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x5a4a3a);
+        // Wood panel walls
+        const wallTexture = spriteGenerator.generateWoodPanelWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
 
-        // Add conference furniture
+        // Add conference furniture with sprites
         this.addConferenceFurniture();
 
         // Add conference NPC and items
         this.addConferenceNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFFAF0, 0.8); // Warm professional light
     }
 
     createLoftInterior() {
-        this.scene.background = new THREE.Color(0x4a4a3a); // Creative atmosphere
+        const theme = ROOM_THEMES.loft;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Creative floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x5a5a4a });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Light wood floor
+        const floorTexture = spriteGenerator.generateWoodFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x6a6a5a);
+        // Cream walls
+        const wallTexture = spriteGenerator.generateOfficeWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
 
-        // Add loft furniture
+        // Add loft furniture with sprites
         this.addLoftFurniture();
 
         // Add loft NPC and items
         this.addLoftNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFF8DC, 0.8); // Warm creative light
     }
 
     createAcceleratorInterior() {
-        this.scene.background = new THREE.Color(0x1a1a3a); // Innovation atmosphere
+        const theme = ROOM_THEMES.accelerator;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Innovation floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2a2a4a });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Modern office tile floor
+        const floorTexture = spriteGenerator.generateOfficeTileFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a3a5a);
+        // Office walls
+        const wallTexture = spriteGenerator.generateOfficeWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
 
-        // Add accelerator furniture
+        // Add accelerator furniture with sprites
         this.addAcceleratorFurniture();
 
         // Add accelerator NPC and items
         this.addAcceleratorNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xF0F8FF, 0.9); // Cool white office light
     }
 
     createLawInterior() {
-        this.scene.background = new THREE.Color(0x2a1a1a); // Legal atmosphere
+        const theme = ROOM_THEMES.law;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Professional floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x3a2a2a });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Dark wood floor
+        const floorTexture = spriteGenerator.generateWoodFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x4a3a3a);
+        // Wood panel walls
+        const wallTexture = spriteGenerator.generateWoodPanelWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
+
+        // Add law furniture
+        this.addLawFurniture();
 
         // Add law NPC
         const lawNPC = this.createNPC(-1, -3, 0x191970, 'law_npc');
@@ -515,77 +631,517 @@ export class Player {
         this.buildingObstacles.push(lawNPC);
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFF8DC, 0.7); // Warm cornsilk light
+    }
+
+    addLawFurniture() {
+        // Large desk
+        const deskTexture = spriteGenerator.generateDiningTable();
+        const desk = this.createFurnitureSprite(deskTexture, 3, 1.8, 0, 0.12, -3);
+        this.addShadow(3, 1.8, 0, -3);
+        this.scene.add(desk);
+        this.buildingObstacles.push(desk);
+
+        // Visitor chairs
+        const chairTexture = spriteGenerator.generateChair();
+        const chair1 = this.createFurnitureSprite(chairTexture, 1, 1, -1.5, 0.08, -1);
+        const chair2 = this.createFurnitureSprite(chairTexture, 1, 1, 1.5, 0.08, -1);
+        this.scene.add(chair1);
+        this.scene.add(chair2);
+        this.buildingObstacles.push(chair1);
+        this.buildingObstacles.push(chair2);
+
+        // Bookshelf (legal books)
+        const bookshelfTexture = spriteGenerator.generateBookshelf();
+        const bookshelf1 = this.createFurnitureSprite(bookshelfTexture, 0.8, 2.5, -7, 0.1, -2);
+        const bookshelf2 = this.createFurnitureSprite(bookshelfTexture, 0.8, 2.5, -7, 0.1, 0);
+        const bookshelf3 = this.createFurnitureSprite(bookshelfTexture, 0.8, 2.5, -7, 0.1, 2);
+        this.scene.add(bookshelf1);
+        this.scene.add(bookshelf2);
+        this.scene.add(bookshelf3);
+        this.buildingObstacles.push(bookshelf1);
+        this.buildingObstacles.push(bookshelf2);
+        this.buildingObstacles.push(bookshelf3);
+
+        // Rug
+        const rug = this.createRug(6, 4, 0, 0);
+        this.scene.add(rug);
+
+        // Diploma/certificate on wall
+        const certCanvas = document.createElement('canvas');
+        certCanvas.width = 32;
+        certCanvas.height = 24;
+        const cctx = certCanvas.getContext('2d');
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+        cctx.fillRect(0, 0, 32, 24);
+        cctx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
+        cctx.fillRect(2, 2, 28, 20);
+        cctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_DARK);
+        cctx.font = '4px serif';
+        cctx.fillText('HARVARD', 6, 10);
+        cctx.fillText('LAW', 10, 16);
+        const certTexture = new THREE.CanvasTexture(certCanvas);
+
+        const cert = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.2, 0.9),
+            new THREE.MeshBasicMaterial({ map: certTexture })
+        );
+        cert.position.set(7.9, 1.8, -2);
+        cert.rotation.y = -Math.PI / 2;
+        this.scene.add(cert);
+
+        // Lamp
+        const lampTexture = spriteGenerator.generateLamp();
+        const lamp = this.createFurnitureSprite(lampTexture, 0.5, 0.5, 2, 0.1, -4);
+        this.scene.add(lamp);
     }
 
     createNasdaqInterior() {
-        this.scene.background = new THREE.Color(0x1a3a1a); // Financial atmosphere
+        const theme = ROOM_THEMES.nasdaq;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Trading floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2a4a2a });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Green financial floor
+        const floorTexture = spriteGenerator.generateGreenTileFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x3a5a3a);
+        // Modern walls
+        const wallTexture = spriteGenerator.generateOfficeWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
+
+        // Add nasdaq furniture
+        this.addNasdaqFurniture();
 
         // Add nasdaq NPC
-        const nasdaqNPC = this.createNPC(-1, -3, 0x00ff00, 'nasdaq_npc');
+        const nasdaqNPC = this.createNPC(-1, 2, 0x00ff00, 'nasdaq_npc');
         this.scene.add(nasdaqNPC);
         this.buildingObstacles.push(nasdaqNPC);
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0x90EE90, 0.5); // Green financial glow
+    }
+
+    addNasdaqFurniture() {
+        // Trading desks with monitors
+        const deskTexture = spriteGenerator.generateDesk();
+
+        for (let i = 0; i < 4; i++) {
+            const x = -4 + (i % 2) * 8;
+            const z = -3 + Math.floor(i / 2) * 4;
+            const desk = this.createFurnitureSprite(deskTexture, 2, 1.2, x, 0.1, z);
+            this.addShadow(2, 1.2, x, z);
+            this.scene.add(desk);
+            this.buildingObstacles.push(desk);
+        }
+
+        // Stock ticker display on back wall
+        const tickerCanvas = document.createElement('canvas');
+        tickerCanvas.width = 128;
+        tickerCanvas.height = 32;
+        const tctx = tickerCanvas.getContext('2d');
+        tctx.fillStyle = hexToRgba(NES_PALETTE.BLACK);
+        tctx.fillRect(0, 0, 128, 32);
+        // Stock data
+        tctx.font = '10px monospace';
+        tctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+        tctx.fillText('AAPL +2.5%', 4, 12);
+        tctx.fillStyle = hexToRgba(NES_PALETTE.RED_LIGHT);
+        tctx.fillText('TSLA -1.2%', 68, 12);
+        tctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+        tctx.fillText('MSFT +0.8%', 4, 26);
+        tctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+        tctx.fillText('NVDA +4.1%', 68, 26);
+        const tickerTexture = new THREE.CanvasTexture(tickerCanvas);
+
+        const ticker = new THREE.Mesh(
+            new THREE.PlaneGeometry(6, 1.5),
+            new THREE.MeshBasicMaterial({ map: tickerTexture })
+        );
+        ticker.position.set(0, 2.2, -5.9);
+        this.scene.add(ticker);
+
+        // Green LED glow
+        const tickerGlow = new THREE.PointLight(0x00FF00, 0.4, 5);
+        tickerGlow.position.set(0, 2, -5);
+        this.scene.add(tickerGlow);
+
+        // Bell display (IPO bell)
+        const bellCanvas = document.createElement('canvas');
+        bellCanvas.width = 24;
+        bellCanvas.height = 32;
+        const bctx = bellCanvas.getContext('2d');
+        // Stand
+        bctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+        bctx.fillRect(10, 20, 4, 12);
+        // Bell
+        bctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+        bctx.beginPath();
+        bctx.arc(12, 12, 10, 0, Math.PI, false);
+        bctx.fill();
+        bctx.fillRect(2, 12, 20, 8);
+        // Highlight
+        bctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_YELLOW, 0.5);
+        bctx.beginPath();
+        bctx.arc(8, 10, 4, 0, Math.PI * 2);
+        bctx.fill();
+        const bellTexture = new THREE.CanvasTexture(bellCanvas);
+        bellTexture.magFilter = THREE.NearestFilter;
+
+        const bell = this.createFurnitureSprite(bellTexture, 1.2, 1.5, 0, 0.1, -4.5);
+        this.scene.add(bell);
+        this.buildingObstacles.push(bell);
+
+        // Plants
+        const plantTexture = spriteGenerator.generatePlant();
+        this.scene.add(this.createFurnitureSprite(plantTexture, 0.8, 0.8, -6.5, 0.1, 4));
+        this.scene.add(this.createFurnitureSprite(plantTexture, 0.8, 0.8, 6.5, 0.1, 4));
     }
 
     createBoardRoomInterior() {
-        this.scene.background = new THREE.Color(0x3a2a1a); // Executive atmosphere
+        const theme = ROOM_THEMES.boardRoom;
+        this.scene.background = new THREE.Color(theme.background);
+
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Mahogany floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x4a2511 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Rich mahogany floor
+        const floorTexture = spriteGenerator.generateWoodFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x5a3521);
+        // Executive wood panel walls
+        const wallTexture = spriteGenerator.generateWoodPanelWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
+
+        // Add board room furniture
+        this.addBoardRoomFurniture();
 
         // Add board room NPC
         this.addBoardRoomNPC();
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFD700, 0.5); // Gold executive glow
+    }
+
+    addBoardRoomFurniture() {
+        // Large executive conference table
+        const tableTexture = spriteGenerator.generateDiningTable();
+        const table = this.createFurnitureSprite(tableTexture, 8, 3, 0, 0.12, 0);
+        this.addShadow(8, 3, 0, 0);
+        this.scene.add(table);
+        this.buildingObstacles.push(table);
+
+        // Executive leather chairs
+        const chairTexture = spriteGenerator.generateChair();
+        const chairPositions = [
+            [-3, -2], [-1.5, -2], [0, -2], [1.5, -2], [3, -2],
+            [-3, 2], [-1.5, 2], [0, 2], [1.5, 2], [3, 2],
+            [-4.5, 0], [4.5, 0] // Head chairs
+        ];
+
+        chairPositions.forEach(([x, z]) => {
+            const chair = this.createFurnitureSprite(chairTexture, 1, 1, x, 0.08, z);
+            this.scene.add(chair);
+            this.buildingObstacles.push(chair);
+        });
+
+        // Persian rug under table
+        const rug = this.createRug(10, 5, 0, 0);
+        rug.position.y = 0.01;
+        this.scene.add(rug);
+
+        // Credenza/sideboard
+        const credenzaCanvas = document.createElement('canvas');
+        credenzaCanvas.width = 64;
+        credenzaCanvas.height = 24;
+        const cctx = credenzaCanvas.getContext('2d');
+        cctx.fillStyle = hexToRgba(NES_PALETTE.MAHOGANY);
+        cctx.fillRect(0, 0, 64, 24);
+        cctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+        cctx.fillRect(2, 2, 60, 2);
+        // Cabinet doors
+        cctx.fillStyle = hexToRgba(NES_PALETTE.LEATHER_MED);
+        cctx.fillRect(4, 6, 26, 14);
+        cctx.fillRect(34, 6, 26, 14);
+        // Handles
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+        cctx.fillRect(28, 12, 4, 2);
+        cctx.fillRect(32, 12, 4, 2);
+        const credenzaTexture = new THREE.CanvasTexture(credenzaCanvas);
+        credenzaTexture.magFilter = THREE.NearestFilter;
+
+        const credenza = this.createFurnitureSprite(credenzaTexture, 4, 1, 0, 0.1, -5);
+        this.scene.add(credenza);
+        this.buildingObstacles.push(credenza);
+
+        // Portrait on back wall
+        const portraitCanvas = document.createElement('canvas');
+        portraitCanvas.width = 32;
+        portraitCanvas.height = 40;
+        const pctx = portraitCanvas.getContext('2d');
+        // Gold frame
+        pctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+        pctx.fillRect(0, 0, 32, 40);
+        // Inner
+        pctx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
+        pctx.fillRect(3, 3, 26, 34);
+        // Figure silhouette
+        pctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        pctx.beginPath();
+        pctx.arc(16, 14, 6, 0, Math.PI * 2);
+        pctx.fill();
+        pctx.fillRect(10, 22, 12, 14);
+        const portraitTexture = new THREE.CanvasTexture(portraitCanvas);
+
+        const portrait = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.2, 1.5),
+            new THREE.MeshBasicMaterial({ map: portraitTexture })
+        );
+        portrait.position.set(0, 1.8, -5.9);
+        this.scene.add(portrait);
+
+        // Chandelier effect (multiple point lights)
+        for (let x = -2; x <= 2; x += 2) {
+            const light = new THREE.PointLight(0xFFD700, 0.2, 5);
+            light.position.set(x, 2.5, 0);
+            this.scene.add(light);
+        }
     }
 
     createGenericInterior() {
-        this.scene.background = new THREE.Color(0x333333); // Generic atmosphere
+        this.scene.background = new THREE.Color(0x333333);
         const roomWidth = 16;
         const roomDepth = 12;
         const wallHeight = 3;
 
-        // Generic floor
-        const floorGeometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
+        // Office tile floor
+        const floorTexture = spriteGenerator.generateOfficeTileFloor();
+        const floor = this.createTexturedFloor(floorTexture, roomWidth, roomDepth, 2);
         this.scene.add(floor);
 
-        this.createWalls(roomWidth, roomDepth, wallHeight, 0x555555);
+        // Office walls
+        const wallTexture = spriteGenerator.generateOfficeWall();
+        this.createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture);
+
+        // Basic furniture
+        const deskTexture = spriteGenerator.generateDesk();
+        const desk = this.createFurnitureSprite(deskTexture, 2, 1.2, 0, 0.1, -3);
+        this.addShadow(2, 1.2, 0, -3);
+        this.scene.add(desk);
+        this.buildingObstacles.push(desk);
+
+        const chairTexture = spriteGenerator.generateChair();
+        const chair = this.createFurnitureSprite(chairTexture, 0.8, 0.8, 0, 0.08, -1.5);
+        this.scene.add(chair);
+        this.buildingObstacles.push(chair);
 
         // Add generic NPC
-        const genericNPC = this.createNPC(-1, -3, 0x888888, 'generic_npc');
+        const genericNPC = this.createNPC(-1, 2, 0x888888, 'generic_npc');
         this.scene.add(genericNPC);
         this.buildingObstacles.push(genericNPC);
 
         this.addPlayerToRoom(roomDepth);
-        this.addInteriorLighting();
+        this.addInteriorLighting(0xFFFFFF, 0.7);
+    }
+
+    // ========== SPRITE-BASED RENDERING HELPERS ==========
+
+    /**
+     * Creates a sprite-based furniture piece using generated textures.
+     * @param {THREE.Texture} texture - The texture to apply
+     * @param {number} width - Width in world units
+     * @param {number} height - Height in world units (becomes depth when laid flat)
+     * @param {number} x - X position
+     * @param {number} y - Y position (height above ground)
+     * @param {number} z - Z position
+     * @returns {THREE.Mesh} The furniture sprite mesh
+     */
+    createFurnitureSprite(texture, width, height, x, y, z) {
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+
+        const sprite = new THREE.Mesh(geometry, material);
+        sprite.rotation.x = -Math.PI / 2; // Lay flat on ground
+        sprite.position.set(x, y, z);
+        sprite.userData = { width, depth: height };
+
+        return sprite;
+    }
+
+    /**
+     * Creates a textured floor with tiled pattern.
+     * @param {THREE.Texture} texture - The floor texture
+     * @param {number} roomWidth - Width of the room
+     * @param {number} roomDepth - Depth of the room
+     * @param {number} tileSize - Size of each tile (for repeat calculation)
+     * @returns {THREE.Mesh} The floor mesh
+     */
+    createTexturedFloor(texture, roomWidth, roomDepth, tileSize = 2) {
+        const clonedTexture = texture.clone();
+        clonedTexture.wrapS = THREE.RepeatWrapping;
+        clonedTexture.wrapT = THREE.RepeatWrapping;
+        clonedTexture.repeat.set(roomWidth / tileSize, roomDepth / tileSize);
+        clonedTexture.needsUpdate = true;
+
+        const geometry = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const material = new THREE.MeshBasicMaterial({ map: clonedTexture });
+        const floor = new THREE.Mesh(geometry, material);
+        floor.rotation.x = -Math.PI / 2;
+
+        return floor;
+    }
+
+    /**
+     * Creates a decorative rug on the floor.
+     * @param {number} width - Rug width
+     * @param {number} depth - Rug depth
+     * @param {number} x - X position
+     * @param {number} z - Z position
+     * @returns {THREE.Mesh} The rug mesh
+     */
+    createRug(width, depth, x, z) {
+        const texture = spriteGenerator.generateRug();
+        const geometry = new THREE.PlaneGeometry(width, depth);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true
+        });
+        const rug = new THREE.Mesh(geometry, material);
+        rug.rotation.x = -Math.PI / 2;
+        rug.position.set(x, 0.02, z);
+        return rug;
+    }
+
+    /**
+     * Creates a textured wall segment.
+     * @param {THREE.Texture} texture - The wall texture
+     * @param {number} width - Wall width
+     * @param {number} height - Wall height
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} z - Z position
+     * @param {number} rotationY - Rotation around Y axis
+     * @returns {THREE.Mesh} The wall mesh
+     */
+    createTexturedWall(texture, width, height, x, y, z, rotationY = 0) {
+        const clonedTexture = texture.clone();
+        clonedTexture.wrapS = THREE.RepeatWrapping;
+        clonedTexture.wrapT = THREE.RepeatWrapping;
+        clonedTexture.repeat.set(width / 2, height / 2);
+        clonedTexture.needsUpdate = true;
+
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const material = new THREE.MeshBasicMaterial({
+            map: clonedTexture,
+            side: THREE.DoubleSide
+        });
+        const wall = new THREE.Mesh(geometry, material);
+        wall.position.set(x, y, z);
+        wall.rotation.y = rotationY;
+
+        return wall;
+    }
+
+    /**
+     * Creates walls with textures instead of solid colors.
+     * @param {number} roomWidth - Room width
+     * @param {number} roomDepth - Room depth
+     * @param {number} wallHeight - Wall height
+     * @param {THREE.Texture} wallTexture - Texture for walls
+     */
+    createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture) {
+        // Back wall
+        const backWall = this.createTexturedWall(
+            wallTexture, roomWidth, wallHeight,
+            0, wallHeight / 2, -roomDepth / 2, 0
+        );
+        backWall.width = roomWidth;
+        backWall.depth = 0.2;
+        this.scene.add(backWall);
+        this.buildingObstacles.push(backWall);
+
+        // Side walls
+        const leftWall = this.createTexturedWall(
+            wallTexture, roomDepth, wallHeight,
+            -roomWidth / 2, wallHeight / 2, 0, Math.PI / 2
+        );
+        leftWall.width = 0.2;
+        leftWall.depth = roomDepth;
+        this.scene.add(leftWall);
+        this.buildingObstacles.push(leftWall);
+
+        const rightWall = this.createTexturedWall(
+            wallTexture, roomDepth, wallHeight,
+            roomWidth / 2, wallHeight / 2, 0, -Math.PI / 2
+        );
+        rightWall.width = 0.2;
+        rightWall.depth = roomDepth;
+        this.scene.add(rightWall);
+        this.buildingObstacles.push(rightWall);
+
+        // Front walls with doorway (keep as solid color for collision)
+        const frontWallPartWidth = (roomWidth / 2) - 1.5;
+        const doorMaterial = new THREE.MeshBasicMaterial({ color: NES_PALETTE.WOOD_DARK });
+
+        const frontWallLeft = new THREE.Mesh(
+            new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2),
+            doorMaterial
+        );
+        frontWallLeft.position.set(-(frontWallPartWidth / 2) - 1.5, wallHeight / 2, roomDepth / 2);
+        frontWallLeft.width = frontWallPartWidth;
+        frontWallLeft.depth = 0.2;
+        this.scene.add(frontWallLeft);
+        this.buildingObstacles.push(frontWallLeft);
+
+        const frontWallRight = new THREE.Mesh(
+            new THREE.BoxGeometry(frontWallPartWidth, wallHeight, 0.2),
+            doorMaterial
+        );
+        frontWallRight.position.set((frontWallPartWidth / 2) + 1.5, wallHeight / 2, roomDepth / 2);
+        frontWallRight.width = frontWallPartWidth;
+        frontWallRight.depth = 0.2;
+        this.scene.add(frontWallRight);
+        this.buildingObstacles.push(frontWallRight);
+    }
+
+    /**
+     * Adds a shadow sprite under furniture.
+     * @param {number} width - Shadow width
+     * @param {number} depth - Shadow depth
+     * @param {number} x - X position
+     * @param {number} z - Z position
+     */
+    addShadow(width, depth, x, z) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const geometry = new THREE.PlaneGeometry(width * 1.2, depth * 1.2);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true
+        });
+        const shadow = new THREE.Mesh(geometry, material);
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.set(x + 0.1, 0.005, z + 0.1);
+        this.scene.add(shadow);
     }
 
     createWalls(roomWidth, roomDepth, wallHeight, wallColor) {
@@ -633,288 +1189,535 @@ export class Player {
     }
 
     addHouseFurniture() {
-        // Dining table
-        const tableGeometry = new THREE.BoxGeometry(3, 0.6, 1.5);
-        const tableMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Dark brown
-        const table = new THREE.Mesh(tableGeometry, tableMaterial);
-        table.position.set(-3, 0.3, -2);
-        table.width = 3; 
-        table.depth = 1.5;
+        // Dining table (sprite-based)
+        const tableTexture = spriteGenerator.generateDiningTable();
+        const table = this.createFurnitureSprite(tableTexture, 3, 1.5, -3, 0.15, -2);
+        this.addShadow(3, 1.5, -3, -2);
         this.scene.add(table);
         this.buildingObstacles.push(table);
 
         // Chairs around table
-        const chairGeometry = new THREE.BoxGeometry(0.8, 1.2, 0.8);
-        const chairMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
-        
-        const chair1 = new THREE.Mesh(chairGeometry, chairMaterial);
-        chair1.position.set(-3, 0.6, -3.2);
-        chair1.width = 0.8; 
-        chair1.depth = 0.8;
+        const chairTexture = spriteGenerator.generateChair();
+
+        const chair1 = this.createFurnitureSprite(chairTexture, 1, 1, -3, 0.1, -3.2);
         this.scene.add(chair1);
         this.buildingObstacles.push(chair1);
 
-        const chair2 = new THREE.Mesh(chairGeometry, chairMaterial);
-        chair2.position.set(-3, 0.6, -0.8);
-        chair2.width = 0.8; 
-        chair2.depth = 0.8;
+        const chair2 = this.createFurnitureSprite(chairTexture, 1, 1, -3, 0.1, -0.8);
         this.scene.add(chair2);
         this.buildingObstacles.push(chair2);
 
-        // Bookshelf
-        const bookshelfGeometry = new THREE.BoxGeometry(0.4, 2.5, 3);
-        const bookshelfMaterial = new THREE.MeshBasicMaterial({ color: 0x2f1b14 });
-        const bookshelf = new THREE.Mesh(bookshelfGeometry, bookshelfMaterial);
-        bookshelf.position.set(7, 1.25, -3);
-        bookshelf.width = 0.4; 
-        bookshelf.depth = 3;
+        // Bookshelf (sprite on wall)
+        const bookshelfTexture = spriteGenerator.generateBookshelf();
+        const bookshelf = this.createFurnitureSprite(bookshelfTexture, 0.8, 2, 7, 0.1, -3);
         this.scene.add(bookshelf);
         this.buildingObstacles.push(bookshelf);
 
-        // Fireplace
-        const fireplaceGeometry = new THREE.BoxGeometry(2, 1.5, 0.5);
-        const fireplaceMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
-        const fireplace = new THREE.Mesh(fireplaceGeometry, fireplaceMaterial);
-        fireplace.position.set(0, 0.75, -5.5);
-        fireplace.width = 2;
-        fireplace.depth = 0.5;
+        // Fireplace (sprite-based)
+        const fireplaceTexture = spriteGenerator.generateFireplace();
+        const fireplace = this.createFurnitureSprite(fireplaceTexture, 2.5, 1.2, 0, 0.1, -5.2);
         this.scene.add(fireplace);
         this.buildingObstacles.push(fireplace);
 
-        // Couch
-        const couchGeometry = new THREE.BoxGeometry(2, 0.6, 1);
-        const couchMaterial = new THREE.MeshBasicMaterial({ color: 0x5a3a2a }); // Dark brown
-        const couch = new THREE.Mesh(couchGeometry, couchMaterial);
-        couch.position.set(3, 0.3, 3);
-        couch.width = 2;
-        couch.depth = 1;
+        // Add warm glow near fireplace
+        const fireGlow = new THREE.PointLight(0xFF6B35, 0.5, 5);
+        fireGlow.position.set(0, 0.5, -5);
+        this.scene.add(fireGlow);
+
+        // Couch (sprite-based)
+        const couchTexture = spriteGenerator.generateCouch();
+        const couch = this.createFurnitureSprite(couchTexture, 3, 1.5, 3, 0.1, 3);
+        this.addShadow(3, 1.5, 3, 3);
         this.scene.add(couch);
         this.buildingObstacles.push(couch);
 
         // Coffee table
-        const coffeeTableGeometry = new THREE.BoxGeometry(1, 0.3, 0.5);
-        const coffeeTableMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 });
-        const coffeeTable = new THREE.Mesh(coffeeTableGeometry, coffeeTableMaterial);
-        coffeeTable.position.set(3, 0.15, 1.5);
-        coffeeTable.width = 1;
-        coffeeTable.depth = 0.5;
+        const coffeeTableTexture = spriteGenerator.generateDesk();
+        const coffeeTable = this.createFurnitureSprite(coffeeTableTexture, 1.5, 0.8, 3, 0.08, 1.5);
         this.scene.add(coffeeTable);
         this.buildingObstacles.push(coffeeTable);
 
-        // Whiteboard on wall
-        const whiteboardGeometry = new THREE.PlaneGeometry(2, 1.5);
-        const whiteboardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const whiteboard = new THREE.Mesh(whiteboardGeometry, whiteboardMaterial);
-        whiteboard.position.set(-6, 1.5, -5);
-        whiteboard.rotation.y = Math.PI / 2; // Face into the room
-        this.scene.add(whiteboard);
+        // Picture frames on wall
+        const pictureTexture = spriteGenerator.generatePictureFrame();
+        const picture1 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1),
+            new THREE.MeshBasicMaterial({ map: pictureTexture, transparent: true })
+        );
+        picture1.position.set(-7.9, 1.8, -2);
+        picture1.rotation.y = Math.PI / 2;
+        this.scene.add(picture1);
 
-        // Houseplant in corner
-        const plantGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.8, 8);
-        const plantMaterial = new THREE.MeshBasicMaterial({ color: 0x2d5016 }); // Dark green
-        const plant = new THREE.Mesh(plantGeometry, plantMaterial);
-        plant.position.set(-6.5, 0.4, 5);
+        const picture2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1),
+            new THREE.MeshBasicMaterial({ map: pictureTexture, transparent: true })
+        );
+        picture2.position.set(-7.9, 1.8, 0);
+        picture2.rotation.y = Math.PI / 2;
+        this.scene.add(picture2);
+
+        // Window on side wall
+        const windowTexture = spriteGenerator.generateWindow();
+        const windowMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.5, 1.5),
+            new THREE.MeshBasicMaterial({ map: windowTexture, transparent: true })
+        );
+        windowMesh.position.set(7.9, 1.5, 0);
+        windowMesh.rotation.y = -Math.PI / 2;
+        this.scene.add(windowMesh);
+
+        // Lamp in corner
+        const lampTexture = spriteGenerator.generateLamp();
+        const lamp = this.createFurnitureSprite(lampTexture, 0.5, 0.5, 5.5, 0.1, -4);
+        this.scene.add(lamp);
+
+        // Houseplant in corner (sprite-based)
+        const plantTexture = spriteGenerator.generatePlant();
+        const plant = this.createFurnitureSprite(plantTexture, 1, 1, -6.5, 0.1, 4.5);
         this.scene.add(plant);
         this.buildingObstacles.push(plant);
     }
 
     addGarageFurniture() {
-        // Workbench at back wall
-        const workbenchGeometry = new THREE.BoxGeometry(3, 0.8, 1.5);
-        const workbenchMaterial = new THREE.MeshBasicMaterial({ color: 0x666666 }); // Gray
-        const workbench = new THREE.Mesh(workbenchGeometry, workbenchMaterial);
-        workbench.position.set(0, 0.4, -5);
-        workbench.width = 3;
-        workbench.depth = 1.5;
+        // Workbench at back wall (sprite-based)
+        const workbenchTexture = spriteGenerator.generateWorkbench();
+        const workbench = this.createFurnitureSprite(workbenchTexture, 4, 2, 0, 0.1, -5);
+        this.addShadow(4, 2, 0, -5);
         this.scene.add(workbench);
         this.buildingObstacles.push(workbench);
 
-        // Toolbox on workbench
-        const toolboxGeometry = new THREE.BoxGeometry(0.8, 0.4, 0.6);
-        const toolboxMaterial = new THREE.MeshBasicMaterial({ color: 0xcc0000 }); // Red
-        const toolbox = new THREE.Mesh(toolboxGeometry, toolboxMaterial);
-        toolbox.position.set(-1, 0.8, -5);
-        toolbox.width = 0.8;
-        toolbox.depth = 0.6;
-        this.scene.add(toolbox);
-        this.buildingObstacles.push(toolbox);
-
-        // Car (visual only, non-collidable)
-        const carGeometry = new THREE.BoxGeometry(4, 1.2, 2);
-        const carMaterial = new THREE.MeshBasicMaterial({ color: 0x3a5f8a }); // Blue car
-        const car = new THREE.Mesh(carGeometry, carMaterial);
-        car.position.set(-3, 0.6, 0);
+        // Car (sprite-based, non-collidable visual)
+        const carTexture = spriteGenerator.generateCar();
+        const car = this.createFurnitureSprite(carTexture, 5, 2.5, -3, 0.15, 0);
+        this.addShadow(5, 2.5, -3, 0);
         this.scene.add(car);
         // Not added to obstacles - visual only
 
-        // Server rack prototype
-        const serverGeometry = new THREE.BoxGeometry(0.8, 1.8, 0.8);
-        const serverMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1a1a }); // Black
-        const server = new THREE.Mesh(serverGeometry, serverMaterial);
-        server.position.set(5, 0.9, -3);
-        server.width = 0.8;
-        server.depth = 0.8;
+        // Server rack prototype (sprite-based)
+        const serverTexture = spriteGenerator.generateServerRack();
+        const server = this.createFurnitureSprite(serverTexture, 1, 1, 5, 0.1, -3);
         this.scene.add(server);
         this.buildingObstacles.push(server);
 
-        // Pegboard on wall
-        const pegboardGeometry = new THREE.PlaneGeometry(2.5, 2);
-        const pegboardMaterial = new THREE.MeshBasicMaterial({ color: 0x8b7355 }); // Brown
-        const pegboard = new THREE.Mesh(pegboardGeometry, pegboardMaterial);
-        pegboard.position.set(7, 1.5, 0);
+        // Second server rack
+        const server2 = this.createFurnitureSprite(serverTexture, 1, 1, 6.2, 0.1, -3);
+        this.scene.add(server2);
+        this.buildingObstacles.push(server2);
+
+        // LED glow for servers
+        const serverGlow = new THREE.PointLight(0x00FF00, 0.3, 3);
+        serverGlow.position.set(5.5, 0.5, -3);
+        this.scene.add(serverGlow);
+
+        // Whiteboard/pegboard on wall
+        const whiteboardTexture = spriteGenerator.generateWhiteboard();
+        const pegboard = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.5, 1.5),
+            new THREE.MeshBasicMaterial({ map: whiteboardTexture })
+        );
+        pegboard.position.set(7.9, 1.5, 0);
         pegboard.rotation.y = -Math.PI / 2;
         this.scene.add(pegboard);
+
+        // Toolbox (small red sprite)
+        const toolboxCanvas = document.createElement('canvas');
+        toolboxCanvas.width = 16;
+        toolboxCanvas.height = 16;
+        const tctx = toolboxCanvas.getContext('2d');
+        tctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
+        tctx.fillRect(0, 0, 16, 16);
+        tctx.fillStyle = hexToRgba(NES_PALETTE.RED_DARK);
+        tctx.fillRect(0, 0, 16, 2);
+        tctx.fillRect(6, 0, 4, 4);
+        const toolboxTexture = new THREE.CanvasTexture(toolboxCanvas);
+        toolboxTexture.magFilter = THREE.NearestFilter;
+
+        const toolbox = this.createFurnitureSprite(toolboxTexture, 0.8, 0.6, 1.5, 0.2, -5);
+        this.scene.add(toolbox);
+
+        // Garage door texture on back wall
+        const garageDoorCanvas = document.createElement('canvas');
+        garageDoorCanvas.width = 64;
+        garageDoorCanvas.height = 48;
+        const gctx = garageDoorCanvas.getContext('2d');
+        gctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+        gctx.fillRect(0, 0, 64, 48);
+        // Horizontal panel lines
+        for (let y = 0; y < 48; y += 12) {
+            gctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            gctx.fillRect(0, y, 64, 2);
+        }
+        // Window panels at top
+        gctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_SKY, 0.6);
+        for (let x = 8; x < 56; x += 16) {
+            gctx.fillRect(x, 4, 12, 8);
+        }
+        const garageDoorTexture = new THREE.CanvasTexture(garageDoorCanvas);
+        garageDoorTexture.magFilter = THREE.NearestFilter;
+
+        const garageDoor = new THREE.Mesh(
+            new THREE.PlaneGeometry(4, 2.5),
+            new THREE.MeshBasicMaterial({ map: garageDoorTexture })
+        );
+        garageDoor.position.set(-5, 1.4, -5.9);
+        this.scene.add(garageDoor);
+
+        // Fluorescent light fixture
+        const lightFixture = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 0.1, 0.3),
+            new THREE.MeshBasicMaterial({ color: NES_PALETTE.WHITE })
+        );
+        lightFixture.position.set(0, 2.9, 0);
+        this.scene.add(lightFixture);
     }
 
     addAcceleratorFurniture() {
-        // Hot desks in rows
+        // Hot desks in rows (sprite-based)
+        const deskTexture = spriteGenerator.generateDesk();
         for (let i = 0; i < 6; i++) {
-            const deskGeometry = new THREE.BoxGeometry(1.2, 0.6, 0.8);
-            const deskMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 }); // Brown
-            const desk = new THREE.Mesh(deskGeometry, deskMaterial);
             const row = Math.floor(i / 3);
             const col = i % 3;
-            desk.position.set(-3 + col * 2.5, 0.3, -2 + row * 2.5);
-            desk.width = 1.2;
-            desk.depth = 0.8;
+            const deskX = -3 + col * 2.5;
+            const deskZ = -2 + row * 2.5;
+
+            const desk = this.createFurnitureSprite(deskTexture, 1.5, 1, deskX, 0.1, deskZ);
+            this.addShadow(1.5, 1, deskX, deskZ);
             this.scene.add(desk);
             this.buildingObstacles.push(desk);
         }
 
-        // Whiteboard wall
-        const whiteboardGeometry = new THREE.PlaneGeometry(4, 2.5);
-        const whiteboardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const whiteboard = new THREE.Mesh(whiteboardGeometry, whiteboardMaterial);
-        whiteboard.position.set(0, 1.5, -5.5);
+        // Large whiteboard on back wall
+        const whiteboardTexture = spriteGenerator.generateWhiteboard();
+        const whiteboard = new THREE.Mesh(
+            new THREE.PlaneGeometry(4, 2.5),
+            new THREE.MeshBasicMaterial({ map: whiteboardTexture })
+        );
+        whiteboard.position.set(0, 1.5, -5.9);
         this.scene.add(whiteboard);
 
-        // Beanbag chairs
-        const beanbagGeometry = new THREE.SphereGeometry(0.6, 8, 6);
-        const beanbag1Material = new THREE.MeshBasicMaterial({ color: 0xff6b6b }); // Red
-        const beanbag1 = new THREE.Mesh(beanbagGeometry, beanbag1Material);
-        beanbag1.position.set(-5, 0.3, 4);
+        // Beanbag chairs (sprite-based)
+        const beanbagTexture = spriteGenerator.generateBeanbag();
+        const beanbag1 = this.createFurnitureSprite(beanbagTexture, 1.2, 1.2, -5, 0.1, 4);
         this.scene.add(beanbag1);
         this.buildingObstacles.push(beanbag1);
 
-        const beanbag2Material = new THREE.MeshBasicMaterial({ color: 0x4169e1 }); // Blue
-        const beanbag2 = new THREE.Mesh(beanbagGeometry, beanbag2Material);
-        beanbag2.position.set(-3.5, 0.3, 4.5);
+        // Blue beanbag (custom color)
+        const blueBeanbagCanvas = document.createElement('canvas');
+        blueBeanbagCanvas.width = 24;
+        blueBeanbagCanvas.height = 24;
+        const bbctx = blueBeanbagCanvas.getContext('2d');
+        // Shadow
+        bbctx.fillStyle = 'rgba(0,0,0,0.3)';
+        bbctx.beginPath();
+        bbctx.arc(14, 14, 10, 0, Math.PI * 2);
+        bbctx.fill();
+        // Body
+        bbctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+        bbctx.beginPath();
+        bbctx.arc(12, 12, 10, 0, Math.PI * 2);
+        bbctx.fill();
+        // Highlight
+        bbctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_LIGHT, 0.5);
+        bbctx.beginPath();
+        bbctx.ellipse(10, 10, 5, 4, -0.5, 0, Math.PI * 2);
+        bbctx.fill();
+        const blueBeanbagTexture = new THREE.CanvasTexture(blueBeanbagCanvas);
+        blueBeanbagTexture.magFilter = THREE.NearestFilter;
+
+        const beanbag2 = this.createFurnitureSprite(blueBeanbagTexture, 1.2, 1.2, -3.5, 0.1, 4.5);
         this.scene.add(beanbag2);
         this.buildingObstacles.push(beanbag2);
 
         // Water cooler
-        const coolerGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 8);
-        const coolerMaterial = new THREE.MeshBasicMaterial({ color: 0x4a90e2 }); // Blue
-        const cooler = new THREE.Mesh(coolerGeometry, coolerMaterial);
-        cooler.position.set(6, 0.5, 4);
+        const coolerCanvas = document.createElement('canvas');
+        coolerCanvas.width = 16;
+        coolerCanvas.height = 24;
+        const cctx = coolerCanvas.getContext('2d');
+        // Base
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+        cctx.fillRect(2, 12, 12, 12);
+        // Bottle
+        cctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_LIGHT, 0.7);
+        cctx.fillRect(4, 0, 8, 14);
+        cctx.fillStyle = hexToRgba(NES_PALETTE.WHITE, 0.3);
+        cctx.fillRect(5, 2, 2, 6);
+        const coolerTexture = new THREE.CanvasTexture(coolerCanvas);
+        coolerTexture.magFilter = THREE.NearestFilter;
+
+        const cooler = this.createFurnitureSprite(coolerTexture, 0.8, 1, 6, 0.1, 4);
         this.scene.add(cooler);
         this.buildingObstacles.push(cooler);
 
-        // Startup posters on walls
-        const posterGeometry = new THREE.PlaneGeometry(1.5, 1);
-        const poster1Material = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Gold
-        const poster1 = new THREE.Mesh(posterGeometry, poster1Material);
-        poster1.position.set(-7, 1.5, 0);
+        // Startup posters on walls (YC style)
+        const posterCanvas = document.createElement('canvas');
+        posterCanvas.width = 32;
+        posterCanvas.height = 24;
+        const pctx = posterCanvas.getContext('2d');
+        // Orange YC-style poster
+        pctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_ORANGE);
+        pctx.fillRect(0, 0, 32, 24);
+        pctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+        pctx.font = 'bold 12px sans-serif';
+        pctx.fillText('YC', 8, 16);
+        const posterTexture = new THREE.CanvasTexture(posterCanvas);
+
+        const poster1 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.5, 1),
+            new THREE.MeshBasicMaterial({ map: posterTexture })
+        );
+        poster1.position.set(-7.9, 1.8, 0);
         poster1.rotation.y = Math.PI / 2;
         this.scene.add(poster1);
 
-        const poster2Material = new THREE.MeshBasicMaterial({ color: 0xff6b6b }); // Red
-        const poster2 = new THREE.Mesh(posterGeometry, poster2Material);
-        poster2.position.set(7, 1.5, 2);
+        // Motivational poster
+        const motivePosterCanvas = document.createElement('canvas');
+        motivePosterCanvas.width = 32;
+        motivePosterCanvas.height = 24;
+        const mctx = motivePosterCanvas.getContext('2d');
+        mctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+        mctx.fillRect(0, 0, 32, 24);
+        mctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+        mctx.font = '6px sans-serif';
+        mctx.fillText('SHIP IT', 4, 14);
+        const motiveTexture = new THREE.CanvasTexture(motivePosterCanvas);
+
+        const poster2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.5, 1),
+            new THREE.MeshBasicMaterial({ map: motiveTexture })
+        );
+        poster2.position.set(7.9, 1.8, 2);
         poster2.rotation.y = -Math.PI / 2;
         this.scene.add(poster2);
+
+        // Plants for atmosphere
+        const plantTexture = spriteGenerator.generatePlant();
+        const plant1 = this.createFurnitureSprite(plantTexture, 0.8, 0.8, 6.5, 0.1, -4);
+        this.scene.add(plant1);
+
+        const plant2 = this.createFurnitureSprite(plantTexture, 0.8, 0.8, -6.5, 0.1, -4);
+        this.scene.add(plant2);
     }
 
     addLoftFurniture() {
-        // Drafting table (angled)
-        const draftTableGeometry = new THREE.BoxGeometry(1.5, 0.1, 1);
-        const draftTableMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
-        const draftTable = new THREE.Mesh(draftTableGeometry, draftTableMaterial);
-        draftTable.position.set(-4, 0.8, -2);
-        draftTable.rotation.x = -Math.PI / 6; // Angle it
+        // Drafting table (sprite-based)
+        const deskTexture = spriteGenerator.generateDesk();
+        const draftTable = this.createFurnitureSprite(deskTexture, 2, 1.2, -4, 0.1, -2);
+        this.addShadow(2, 1.2, -4, -2);
         this.scene.add(draftTable);
+        this.buildingObstacles.push(draftTable);
 
-        // Art easel
-        const easelGeometry = new THREE.BoxGeometry(0.1, 1.8, 0.1);
-        const easelMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 }); // Brown wood
-        const easel = new THREE.Mesh(easelGeometry, easelMaterial);
-        easel.position.set(4, 0.9, -1);
+        // Art easel (custom sprite)
+        const easelCanvas = document.createElement('canvas');
+        easelCanvas.width = 24;
+        easelCanvas.height = 32;
+        const ectx = easelCanvas.getContext('2d');
+        // Easel legs
+        ectx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
+        ectx.fillRect(4, 16, 3, 16);
+        ectx.fillRect(17, 16, 3, 16);
+        ectx.fillRect(10, 20, 4, 12);
+        // Canvas
+        ectx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
+        ectx.fillRect(2, 0, 20, 18);
+        // Frame
+        ectx.strokeStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+        ectx.lineWidth = 2;
+        ectx.strokeRect(2, 0, 20, 18);
+        // Art scribbles
+        ectx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+        ectx.fillRect(6, 4, 5, 5);
+        ectx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
+        ectx.beginPath();
+        ectx.arc(15, 10, 4, 0, Math.PI * 2);
+        ectx.fill();
+        const easelTexture = new THREE.CanvasTexture(easelCanvas);
+        easelTexture.magFilter = THREE.NearestFilter;
+
+        const easel = this.createFurnitureSprite(easelTexture, 1.2, 1.5, 4, 0.1, -1);
         this.scene.add(easel);
         this.buildingObstacles.push(easel);
 
-        // Couch (sectional L-shape)
-        const couchPart1Geometry = new THREE.BoxGeometry(3, 0.6, 1);
-        const couchMaterial = new THREE.MeshBasicMaterial({ color: 0x4169e1 }); // Blue
-        const couchPart1 = new THREE.Mesh(couchPart1Geometry, couchMaterial);
-        couchPart1.position.set(0, 0.3, 4);
+        // Blue couch (L-shape) - sprite based, moved away from entrance
+        const couchTexture = spriteGenerator.generateCouch();
+        const couchPart1 = this.createFurnitureSprite(couchTexture, 3.5, 1.5, 0, 0.1, 1);
+        this.addShadow(3.5, 1.5, 0, 1);
         this.scene.add(couchPart1);
         this.buildingObstacles.push(couchPart1);
 
-        const couchPart2Geometry = new THREE.BoxGeometry(1, 0.6, 2);
-        const couchPart2 = new THREE.Mesh(couchPart2Geometry, couchMaterial);
-        couchPart2.position.set(-2, 0.3, 3);
+        // L-extension
+        const couchPart2 = this.createFurnitureSprite(couchTexture, 1.2, 2, -2.5, 0.1, 0);
+        couchPart2.rotation.z = Math.PI / 2;
         this.scene.add(couchPart2);
         this.buildingObstacles.push(couchPart2);
 
         // Kitchen island
-        const islandGeometry = new THREE.BoxGeometry(2, 0.8, 1.2);
-        const islandMaterial = new THREE.MeshBasicMaterial({ color: 0x708090 }); // Gray
-        const island = new THREE.Mesh(islandGeometry, islandMaterial);
-        island.position.set(-5, 0.4, 2);
+        const islandCanvas = document.createElement('canvas');
+        islandCanvas.width = 48;
+        islandCanvas.height = 32;
+        const ictx = islandCanvas.getContext('2d');
+        // Shadow
+        ictx.fillStyle = 'rgba(0,0,0,0.3)';
+        ictx.fillRect(4, 4, 44, 28);
+        // Counter
+        ictx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+        ictx.fillRect(0, 0, 44, 28);
+        // Top surface
+        ictx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+        ictx.fillRect(2, 2, 40, 24);
+        // Cabinet lines
+        ictx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        ictx.fillRect(20, 4, 2, 20);
+        const islandTexture = new THREE.CanvasTexture(islandCanvas);
+        islandTexture.magFilter = THREE.NearestFilter;
+
+        const island = this.createFurnitureSprite(islandTexture, 2.5, 1.5, -5, 0.1, 2);
+        this.addShadow(2.5, 1.5, -5, 2);
         this.scene.add(island);
         this.buildingObstacles.push(island);
 
         // Bar stools around island
-        const stoolGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 8);
-        const stoolMaterial = new THREE.MeshBasicMaterial({ color: 0x2f4f4f });
-        for (let i = 0; i < 4; i++) {
-            const stool = new THREE.Mesh(stoolGeometry, stoolMaterial);
-            stool.position.set(-5 + (i % 2) * 1.5, 0.4, 1 + Math.floor(i / 2) * 0.8);
+        const stoolCanvas = document.createElement('canvas');
+        stoolCanvas.width = 16;
+        stoolCanvas.height = 16;
+        const sctx = stoolCanvas.getContext('2d');
+        sctx.fillStyle = 'rgba(0,0,0,0.3)';
+        sctx.beginPath();
+        sctx.arc(9, 9, 6, 0, Math.PI * 2);
+        sctx.fill();
+        sctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        sctx.beginPath();
+        sctx.arc(8, 8, 6, 0, Math.PI * 2);
+        sctx.fill();
+        sctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL, 0.5);
+        sctx.beginPath();
+        sctx.arc(6, 6, 3, 0, Math.PI * 2);
+        sctx.fill();
+        const stoolTexture = new THREE.CanvasTexture(stoolCanvas);
+        stoolTexture.magFilter = THREE.NearestFilter;
+
+        const stoolPositions = [[-5.8, 0.8], [-4.2, 0.8], [-5.8, 3.2], [-4.2, 3.2]];
+        stoolPositions.forEach(([x, z]) => {
+            const stool = this.createFurnitureSprite(stoolTexture, 0.6, 0.6, x, 0.08, z);
             this.scene.add(stool);
             this.buildingObstacles.push(stool);
-        }
+        });
+
+        // Window
+        const windowTexture = spriteGenerator.generateWindow();
+        const windowMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 2),
+            new THREE.MeshBasicMaterial({ map: windowTexture })
+        );
+        windowMesh.position.set(7.9, 1.5, -2);
+        windowMesh.rotation.y = -Math.PI / 2;
+        this.scene.add(windowMesh);
+
+        // Plants
+        const plantTexture = spriteGenerator.generatePlant();
+        const plant = this.createFurnitureSprite(plantTexture, 0.8, 0.8, 6, 0.1, -4);
+        this.scene.add(plant);
     }
 
     addConferenceFurniture() {
-        // Conference table already exists in game.js setupConferenceInterior
-        // Executive chairs around table
-        const chairGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.6);
-        const chairMaterial = new THREE.MeshBasicMaterial({ color: 0x2f4f4f }); // Dark gray
+        // Long conference table (sprite-based)
+        const tableTexture = spriteGenerator.generateDiningTable();
+        const confTable = this.createFurnitureSprite(tableTexture, 6, 2, 0, 0.12, 0);
+        this.addShadow(6, 2, 0, 0);
+        this.scene.add(confTable);
+        this.buildingObstacles.push(confTable);
 
+        // Executive chairs around table (sprite-based)
+        const chairTexture = spriteGenerator.generateChair();
         const chairPositions = [
-            [-2, 0.4, -1], [-1, 0.4, -1], [0, 0.4, -1], [1, 0.4, -1], [2, 0.4, -1],
-            [-2, 0.4, 1], [-1, 0.4, 1], [0, 0.4, 1]
+            [-2.5, -1.5], [-1, -1.5], [0.5, -1.5], [2, -1.5],
+            [-2.5, 1.5], [-1, 1.5], [0.5, 1.5], [2, 1.5]
         ];
 
-        chairPositions.forEach(pos => {
-            const chair = new THREE.Mesh(chairGeometry, chairMaterial);
-            chair.position.set(...pos);
+        chairPositions.forEach(([x, z]) => {
+            const chair = this.createFurnitureSprite(chairTexture, 0.8, 0.8, x, 0.08, z);
             this.scene.add(chair);
             this.buildingObstacles.push(chair);
         });
 
         // Projector screen on wall
-        const screenGeometry = new THREE.PlaneGeometry(4, 2.5);
-        const screenMaterial = new THREE.MeshBasicMaterial({ color: 0xf0f0f0 }); // Light gray
-        const screen = new THREE.Mesh(screenGeometry, screenMaterial);
-        screen.position.set(0, 1.5, -5.5);
+        const screenCanvas = document.createElement('canvas');
+        screenCanvas.width = 64;
+        screenCanvas.height = 48;
+        const sctx = screenCanvas.getContext('2d');
+        // Screen white
+        sctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+        sctx.fillRect(0, 0, 64, 48);
+        // Frame
+        sctx.strokeStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        sctx.lineWidth = 2;
+        sctx.strokeRect(1, 1, 62, 46);
+        // Presentation content
+        sctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+        sctx.font = '8px sans-serif';
+        sctx.fillText('Q4 PLAN', 10, 15);
+        // Chart
+        sctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MED);
+        sctx.fillRect(10, 20, 8, 20);
+        sctx.fillRect(22, 25, 8, 15);
+        sctx.fillRect(34, 18, 8, 22);
+        sctx.fillRect(46, 22, 8, 18);
+        const screenTexture = new THREE.CanvasTexture(screenCanvas);
+
+        const screen = new THREE.Mesh(
+            new THREE.PlaneGeometry(4, 2.5),
+            new THREE.MeshBasicMaterial({ map: screenTexture })
+        );
+        screen.position.set(0, 1.5, -5.9);
         this.scene.add(screen);
 
         // Podium at front
-        const podiumGeometry = new THREE.BoxGeometry(0.8, 1.2, 0.6);
-        const podiumMaterial = new THREE.MeshBasicMaterial({ color: 0x654321 }); // Brown
-        const podium = new THREE.Mesh(podiumGeometry, podiumMaterial);
-        podium.position.set(0, 0.6, -4);
+        const podiumCanvas = document.createElement('canvas');
+        podiumCanvas.width = 24;
+        podiumCanvas.height = 32;
+        const pctx = podiumCanvas.getContext('2d');
+        pctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+        pctx.fillRect(2, 0, 20, 32);
+        pctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
+        pctx.fillRect(4, 2, 16, 28);
+        // Logo placeholder
+        pctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+        pctx.fillRect(8, 12, 8, 8);
+        const podiumTexture = new THREE.CanvasTexture(podiumCanvas);
+        podiumTexture.magFilter = THREE.NearestFilter;
+
+        const podium = this.createFurnitureSprite(podiumTexture, 1, 1.2, 0, 0.1, -4);
         this.scene.add(podium);
         this.buildingObstacles.push(podium);
 
         // Coffee station
-        const coffeeStationGeometry = new THREE.BoxGeometry(1.5, 0.8, 0.6);
-        const coffeeStationMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
-        const coffeeStation = new THREE.Mesh(coffeeStationGeometry, coffeeStationMaterial);
-        coffeeStation.position.set(6, 0.4, 4);
+        const coffeeCanvas = document.createElement('canvas');
+        coffeeCanvas.width = 32;
+        coffeeCanvas.height = 24;
+        const cctx = coffeeCanvas.getContext('2d');
+        cctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
+        cctx.fillRect(0, 0, 32, 24);
+        // Coffee maker
+        cctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+        cctx.fillRect(4, 4, 10, 12);
+        // Cups
+        cctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+        cctx.fillRect(18, 8, 4, 6);
+        cctx.fillRect(24, 8, 4, 6);
+        const coffeeTexture = new THREE.CanvasTexture(coffeeCanvas);
+        coffeeTexture.magFilter = THREE.NearestFilter;
+
+        const coffeeStation = this.createFurnitureSprite(coffeeTexture, 1.5, 1, 6, 0.1, 4);
         this.scene.add(coffeeStation);
         this.buildingObstacles.push(coffeeStation);
+
+        // Picture frames
+        const pictureTexture = spriteGenerator.generatePictureFrame();
+        const picture = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.2, 1.2),
+            new THREE.MeshBasicMaterial({ map: pictureTexture })
+        );
+        picture.position.set(-7.9, 1.8, 0);
+        picture.rotation.y = Math.PI / 2;
+        this.scene.add(picture);
     }
 
     addHouseNPC() {
@@ -1507,15 +2310,115 @@ export class Player {
         this.scene.add(this.mesh);
     }
 
-    addInteriorLighting() {
-        // Add ambient lighting for interior
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    /**
+     * Adds atmospheric interior lighting.
+     * @param {number} color - Light color (hex)
+     * @param {number} intensity - Light intensity (0-1)
+     */
+    addInteriorLighting(color = 0xffffff, intensity = 0.6) {
+        // Add ambient lighting for interior with room-specific color
+        const ambientLight = new THREE.AmbientLight(color, intensity);
         this.scene.add(ambientLight);
 
         // Add a point light for more dramatic lighting
-        const pointLight = new THREE.PointLight(0xffffff, 0.8, 20);
+        const pointLight = new THREE.PointLight(0xffffff, 0.6, 20);
         pointLight.position.set(0, 5, 0);
         this.scene.add(pointLight);
+
+        // Add subtle secondary lights at corners for depth
+        const cornerIntensity = intensity * 0.3;
+        const corners = [[-6, 2, -4], [6, 2, -4], [-6, 2, 4], [6, 2, 4]];
+        corners.forEach(([x, y, z]) => {
+            const cornerLight = new THREE.PointLight(color, cornerIntensity, 8);
+            cornerLight.position.set(x, y, z);
+            this.scene.add(cornerLight);
+        });
+    }
+
+    /**
+     * Disposes of a Three.js object and its children, freeing GPU memory.
+     * @param {THREE.Object3D} object - The object to dispose
+     */
+    disposeObject(object) {
+        if (!object) return;
+
+        // Recursively dispose children first
+        if (object.children && object.children.length > 0) {
+            // Clone children array since we're modifying it
+            const children = [...object.children];
+            children.forEach(child => this.disposeObject(child));
+        }
+
+        // Dispose geometry
+        if (object.geometry) {
+            object.geometry.dispose();
+        }
+
+        // Dispose material(s)
+        if (object.material) {
+            if (Array.isArray(object.material)) {
+                object.material.forEach(material => this.disposeMaterial(material));
+            } else {
+                this.disposeMaterial(object.material);
+            }
+        }
+    }
+
+    /**
+     * Disposes of a material and its textures.
+     * @param {THREE.Material} material - The material to dispose
+     */
+    disposeMaterial(material) {
+        if (!material) return;
+
+        // Dispose all texture properties
+        const textureProperties = [
+            'map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap',
+            'envMap', 'alphaMap', 'aoMap', 'displacementMap',
+            'emissiveMap', 'gradientMap', 'metalnessMap', 'roughnessMap'
+        ];
+
+        textureProperties.forEach(prop => {
+            if (material[prop]) {
+                material[prop].dispose();
+            }
+        });
+
+        material.dispose();
+    }
+
+    /**
+     * Clears the scene and properly disposes all objects to prevent memory leaks.
+     */
+    clearScene() {
+        // Clone children array since we're modifying it during iteration
+        const children = [...this.scene.children];
+
+        children.forEach(child => {
+            // Don't dispose the player mesh - we keep it
+            if (child !== this.mesh) {
+                this.disposeObject(child);
+                this.scene.remove(child);
+            }
+        });
+    }
+
+    /**
+     * Cleans up resources when the Player is being destroyed.
+     * Call this before removing the Player instance.
+     */
+    dispose() {
+        // Dispose player textures
+        Object.values(this.textures).forEach(texture => {
+            if (texture) texture.dispose();
+        });
+
+        // Dispose player mesh
+        this.disposeObject(this.mesh);
+
+        // Clear arrays
+        this.buildingObstacles = [];
+        this.interactiveNPCs = [];
     }
 
     // Getter methods required by Game class

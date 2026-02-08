@@ -8,7 +8,12 @@ export class ProgressionManager {
       'garage': { unlocked: false, completed: false, score: 0 },
       'accelerator': { unlocked: false, completed: false, score: 0 },
       'loft': { unlocked: false, completed: false, score: 0 },
-      'conference': { unlocked: false, completed: false, score: 0 }
+      'conference': { unlocked: false, completed: false, score: 0 },
+      'data-center': { unlocked: false, completed: false, score: 0 },
+      'board-room': { unlocked: false, completed: false, score: 0 },
+      'venture': { unlocked: false, completed: false, score: 0 },
+      'law': { unlocked: false, completed: false, score: 0 },
+      'nasdaq': { unlocked: false, completed: false, score: 0 }
     };
 
     this.currentStats = {
@@ -20,7 +25,10 @@ export class ProgressionManager {
       runway: 12  // 12 months starting runway
     };
 
-    this.buildingOrder = ['house', 'garage', 'accelerator', 'loft', 'conference'];
+    this.buildingOrder = [
+      'house', 'garage', 'accelerator', 'loft', 'conference',
+      'data-center', 'board-room', 'venture', 'law', 'nasdaq'
+    ];
     this.levelRequirements = {
       'house': { levelNumber: 1, requiredLevel: null, stats: {} },
       'garage': {
@@ -42,6 +50,31 @@ export class ProgressionManager {
         levelNumber: 5,
         requiredLevel: 'loft',
         stats: { minScore: 80, teamSize: 5 }
+      },
+      'data-center': {
+        levelNumber: 6,
+        requiredLevel: 'conference',
+        stats: { minScore: 75, dau: 1000 }
+      },
+      'board-room': {
+        levelNumber: 7,
+        requiredLevel: 'data-center',
+        stats: { minScore: 80 }
+      },
+      'venture': {
+        levelNumber: 8,
+        requiredLevel: 'board-room',
+        stats: { minScore: 75, mrr: 100000 }
+      },
+      'law': {
+        levelNumber: 9,
+        requiredLevel: 'venture',
+        stats: { minScore: 80, funding: 10000000 }
+      },
+      'nasdaq': {
+        levelNumber: 10,
+        requiredLevel: 'law',
+        stats: { minScore: 85, mrr: 500000, teamSize: 20 }
       }
     };
 
@@ -155,8 +188,13 @@ export class ProgressionManager {
       'house': 'House',
       'garage': 'Garage',
       'accelerator': 'Accelerator',
-      'loft': 'Loft',
-      'conference': 'Conference Hall'
+      'loft': 'Startup Loft',
+      'conference': 'Tech Conference',
+      'data-center': 'Data Center',
+      'board-room': 'Board Room',
+      'venture': 'Venture Capital',
+      'law': 'Law Firm',
+      'nasdaq': 'NASDAQ'
     };
     return names[buildingType] || buildingType;
   }
@@ -208,7 +246,12 @@ export class ProgressionManager {
       'garage': { unlocked: false, completed: false, score: 0 },
       'accelerator': { unlocked: false, completed: false, score: 0 },
       'loft': { unlocked: false, completed: false, score: 0 },
-      'conference': { unlocked: false, completed: false, score: 0 }
+      'conference': { unlocked: false, completed: false, score: 0 },
+      'data-center': { unlocked: false, completed: false, score: 0 },
+      'board-room': { unlocked: false, completed: false, score: 0 },
+      'venture': { unlocked: false, completed: false, score: 0 },
+      'law': { unlocked: false, completed: false, score: 0 },
+      'nasdaq': { unlocked: false, completed: false, score: 0 }
     };
     this.currentStats = {
       dau: 0,
