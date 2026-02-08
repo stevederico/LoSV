@@ -7,7 +7,19 @@ export class DialogueLoader {
 
     async loadDialogues() {
         try {
-            const response = await fetch('/dialogues.json');
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+            const response = await fetch('/dialogues.json', {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             this.dialogueData = await response.json();
             console.log('Dialogue data loaded successfully');
             return this.dialogueData;

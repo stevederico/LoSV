@@ -13,6 +13,29 @@ Add board room building
 
 ### Changes
 
+## [0.4.0] - 2026-02-08
+
+  Add NES-style overworld redesign
+  Add multi-zone terrain system
+  Add procedural texture generators
+  Add cobblestone town square
+  Add marble Nasdaq plaza
+  Add water bay collision
+  Add sand beach transition
+  Add organic path network
+  Add building district layout
+  Add tree decorations
+  Add bush decorations
+  Add fountain decoration
+  Add bench decorations
+  Add lamppost decorations
+  Add signpost decoration
+  Add dock decoration
+  Add flower decorations
+  Add rock decorations
+  Fix HUD objective position
+  Fix movement during dialogue
+
 ## [0.3.0] - 2026-01-24
 
 ### Added

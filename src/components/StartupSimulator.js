@@ -1201,7 +1201,10 @@ export class StartupSimulator {
         };
     }
     
-    // Get building type to level mapping
+    /**
+     * Maps building types to their corresponding simulator levels.
+     * @returns {Object} Map of building type to level number
+     */
     getBuildingLevelMap() {
         return {
             'house': 1,
@@ -1210,7 +1213,7 @@ export class StartupSimulator {
             'loft': 4,
             'conference': 5,
             'data-center': 6,
-            'boardroom': 7,  // New building needed
+            'board-room': 7,
             'venture': 8,
             'law': 9,
             'nasdaq': 10
