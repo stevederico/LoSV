@@ -3,7 +3,14 @@ import { NES_PALETTE, ROOM_THEMES, hexToRgba } from '../utils/NESPalette.js';
 import { spriteGenerator } from '../utils/SpriteGenerator.js';
 
 export class Player {
-    constructor(scene, camera, onExitBuildingCallback) {
+    /**
+     * Creates a new Player instance.
+     * @param {THREE.Scene} scene - The Three.js scene
+     * @param {Camera} camera - The game camera
+     * @param {Function} onExitBuildingCallback - Callback when player exits a building
+     * @param {Function} onEnterBuildingCallback - Callback when player enters a building
+     */
+    constructor(scene, camera, onExitBuildingCallback, onEnterBuildingCallback) {
         this.scene = scene;
         this.camera = camera;
         this.speed = 0.2; // Increased speed for better movement
@@ -33,7 +40,9 @@ export class Player {
         this.isInBuilding = true; // Start inside the house
         this.buildingObstacles = [];
         this.interactiveNPCs = []; // For NPCs that can be interacted with
+        this.nearbyNPC = null; // Track NPC player is close to for interaction
         this.onExitBuildingCallback = onExitBuildingCallback;
+        this.onEnterBuildingCallback = onEnterBuildingCallback;
         this.lastEnteredBuildingData = {
             position: new THREE.Vector3(-17, 0.1, -10),
             width: 3,
@@ -141,6 +150,9 @@ export class Player {
 
         const currentObstacles = this.isInBuilding ? this.buildingObstacles : worldObstacles;
 
+        // Reset nearbyNPC at start of collision loop
+        this.nearbyNPC = null;
+
         for (const obstacle of currentObstacles) {
             const obsWidth = obstacle.width || (obstacle.userData && obstacle.userData.width);
             const obsDepth = obstacle.depth || (obstacle.userData && obstacle.userData.depth);
@@ -163,18 +175,17 @@ export class Player {
                 playerBounds.minZ < obstacleBounds.maxZ) {
                 collision = true;
                 if (!this.isInBuilding && obstacle.userData && obstacle.userData.isBuilding) {
-                    this.enterBuilding(obstacle);
-                    return;
-                }
-                // Check for NPC interaction using new JSON system
-                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.characterId) {
-                    // Only start new dialogue if not already talking or talking to someone else
-                    if (this.game && this.game.dialogueManager && (!this.game.dialogueManager.isActive() || this.currentSpeaker !== obstacle)) {
-                        this.currentSpeaker = obstacle; // Set current speaker
-                        this.game.dialogueManager.showCharacterDialogue(obstacle.userData.characterId, 'greeting', () => {
-                            this.currentSpeaker = null; // Clear speaker when dialogue naturally ends or is hidden
-                        });
+                    // Only allow entry from the south (bottom) side of the building
+                    const obsDepthVal = obsDepth || 0;
+                    const buildingSouthEdge = obstacle.position.z + obsDepthVal / 2;
+                    if (moveVector.z < 0 && this.position.z >= buildingSouthEdge) {
+                        this.enterBuilding(obstacle);
+                        return;
                     }
+                }
+                // Track nearby NPC for action-button interaction (don't auto-trigger dialogue)
+                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.characterId) {
+                    this.nearbyNPC = obstacle;
                 }
                 break;
             }
@@ -264,6 +275,11 @@ export class Player {
         }
 
         console.log('Entered building:', buildingType);
+
+        // Notify game that building was entered (for UI updates like building name display)
+        if (this.onEnterBuildingCallback) {
+            this.onEnterBuildingCallback(building);
+        }
     }
 
     exitBuilding() {
@@ -285,11 +301,13 @@ export class Player {
             // Ensure buildingDepth is a number, use a default if not
             const buildingDepth = typeof this.lastEnteredBuildingData.depth === 'number' ? this.lastEnteredBuildingData.depth : 4;
 
+            // Use larger offset (1.5) to ensure player clears the building and doesn't
+            // immediately collide with nearby structures
             this.position.set(
                 buildingPos.x,
                 0.1, // Player Y position for flat sprite in main world
-                // Position just in front of the building's original Z-face
-                buildingPos.z + (buildingDepth / 2) + 0.6
+                // Position well in front of the building's original Z-face
+                buildingPos.z + (buildingDepth / 2) + 1.5
             );
         } else {
             // Fallback position if something went wrong
@@ -303,6 +321,28 @@ export class Player {
         // 3. Re-adding the player's mesh to the scene (this.scene.add(this.mesh)).
         // 4. Setting up main world lights.
         console.log('Player: Exited building. Callback invoked to restore main world.');
+    }
+
+    /**
+     * Attempts to interact with a nearby NPC when action button is pressed.
+     * @returns {boolean} True if interaction started, false otherwise
+     */
+    interactWithNearbyNPC() {
+        if (!this.nearbyNPC || !this.isInBuilding) return false;
+
+        const npc = this.nearbyNPC;
+        if (npc.userData && npc.userData.characterId) {
+            if (this.game && this.game.dialogueManager && !this.game.dialogueManager.isActive()) {
+                this.currentSpeaker = npc;
+                this.game.dialogueManager.showCharacterDialogue(
+                    npc.userData.characterId,
+                    'greeting',
+                    () => { this.currentSpeaker = null; }
+                );
+                return true;
+            }
+        }
+        return false;
     }
 
     createHouseInterior() {

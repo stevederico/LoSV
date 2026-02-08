@@ -40,6 +40,14 @@ export class DialogueManager {
 
             const key = event.key.toLowerCase();
 
+            // Handle Escape to close dialogue
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                this.hideChoices();
+                this.hideDialogue();
+                return;
+            }
+
             // Handle choice navigation
             if (this.waitingForChoiceConfirm) {
                 if (key === 'arrowup' || key === 'w') {

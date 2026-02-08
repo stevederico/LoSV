@@ -51,8 +51,13 @@ export class Game {
         // Set up camera after world is created
         this.camera = new Camera(this.scene, this.renderer);
         
-        // Create player after camera is set up, passing the exit callback
-        this.player = new Player(this.scene, this.camera, this.handleExitBuilding.bind(this));
+        // Create player after camera is set up, passing both exit and enter callbacks
+        this.player = new Player(
+            this.scene,
+            this.camera,
+            this.handleExitBuilding.bind(this),
+            this.handleEnterBuilding.bind(this)
+        );
         this.player.game = this; // Give player a reference to the game instance for dialogue
         this.scene.add(this.player.getMesh());
         
@@ -423,11 +428,60 @@ export class Game {
         interiorLight.position.set(0, 3, 0); // Example position
         this.scene.add(interiorLight);
 
+        // Show building name at top of screen
+        this.showBuildingName(buildingType);
+
         console.log("Game: Entered building interior.");
+    }
+
+    /**
+     * Shows the building name at the top of the screen.
+     * @param {string} buildingType - The building type identifier
+     */
+    showBuildingName(buildingType) {
+        const nameElement = document.getElementById('building-name');
+        if (nameElement) {
+            nameElement.textContent = this.formatBuildingName(buildingType);
+            nameElement.style.display = 'block';
+        }
+    }
+
+    /**
+     * Hides the building name display.
+     */
+    hideBuildingName() {
+        const nameElement = document.getElementById('building-name');
+        if (nameElement) {
+            nameElement.style.display = 'none';
+        }
+    }
+
+    /**
+     * Formats a building type ID into a human-readable name.
+     * @param {string} buildingType - The building type identifier
+     * @returns {string} The formatted building name
+     */
+    formatBuildingName(buildingType) {
+        const names = {
+            'house': 'Home',
+            'garage': 'Garage',
+            'accelerator': 'Accelerator',
+            'loft': 'Startup Loft',
+            'conference': 'Conference Room',
+            'data-center': 'Data Center',
+            'board-room': 'Board Room',
+            'venture': 'VC Office',
+            'law': 'Law Firm',
+            'nasdaq': 'NASDAQ'
+        };
+        return names[buildingType] || buildingType;
     }
 
     handleExitBuilding() {
         console.log("Game: Handling exit building.");
+
+        // Hide building name display
+        this.hideBuildingName();
 
         // Play door close sound
         this.playSFX('doorClose');

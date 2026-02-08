@@ -275,10 +275,17 @@ export class Controls {
     checkBuildingInteraction() {
         // Check if player is trying to interact with something in a building
         if (this.keys[' '] || this.keys['z'] || this.keys['Enter']) {
-            if (this.actionCooldown <= 0 && this.player.interactiveNPCs) {
-                const playerPos = this.player.getPosition();
-                
+            if (this.actionCooldown <= 0) {
+                // Try NPC interaction first (requires pressing action button near NPC)
+                if (this.player.interactWithNearbyNPC()) {
+                    this.actionCooldown = this.actionCooldownTime;
+                    return;
+                }
+
                 // Check for nearby interactive elements in building (including items)
+                if (!this.player.interactiveNPCs) return;
+                const playerPos = this.player.getPosition();
+
                 for (const element of this.player.interactiveNPCs) {
                     const distance = playerPos.distanceTo(element.position);
                     if (distance < 1.5) {
