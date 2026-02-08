@@ -13,6 +13,16 @@ Add board room building
 
 ### Changes
 
+## [0.5.0] - 2026-02-08
+
+  Add building name display
+  Add action-button NPC interaction
+  Add south-side building entry
+  Add escape closes dialogue
+  Add enter building callback
+  Fix exit building offset
+  Fix NPC auto-trigger on collision
+
 ## [0.4.0] - 2026-02-08
 
   Add NES-style overworld redesign
