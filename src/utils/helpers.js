@@ -1,16 +1,23 @@
 import * as THREE from 'three';
+import { textureManager } from './TextureManager.js';
 
-// Asset loading functions
+/**
+ * Loads a texture with error handling.
+ * @param {string} url - Texture URL
+ * @returns {Promise<THREE.Texture>} Promise resolving to the loaded texture
+ */
 export function loadTexture(url) {
-    return new Promise((resolve, reject) => {
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load(url, resolve, undefined, reject);
-    });
+    return textureManager.loadAsync(url);
 }
 
+/**
+ * Loads a 3D model (placeholder - GLTFLoader not typically available).
+ * @param {string} url - Model URL
+ * @returns {Promise} Promise resolving to the loaded model
+ */
 export function loadModel(url) {
     return new Promise((resolve, reject) => {
-        // We'll use the GLTFLoader if available
+        // GLTFLoader requires additional import
         try {
             const loader = new THREE.GLTFLoader();
             loader.load(url, resolve, undefined, reject);
@@ -21,18 +28,71 @@ export function loadModel(url) {
     });
 }
 
-// Function to load all game assets
-export function loadAssets() {
-    return new Promise(async (resolve) => {
-        // In a real game, you'd load actual assets
-        console.log("Loading assets...");
-        
-        // Simulate asset loading time
-        await new Promise(r => setTimeout(r, 500));
-        
-        console.log("Assets loaded!");
-        resolve();
-    });
+/**
+ * Preloads all game textures with progress tracking.
+ * @param {Function} onProgress - Optional progress callback (loaded, total, percent)
+ * @returns {Promise<void>} Promise resolving when all assets are loaded
+ */
+export async function loadAssets(onProgress) {
+    console.log("Loading assets...");
+
+    // List of critical textures to preload
+    const textureUrls = [
+        // Terrain
+        '/assets/textures/grass-tile.png',
+        '/assets/textures/path-tile.png',
+
+        // Player sprites
+        '/assets/textures/player-down-sprite.png',
+        '/assets/textures/player-up-sprite.png',
+        '/assets/textures/player-left-sprite.png',
+        '/assets/textures/player-right-sprite.png',
+
+        // Building sprites
+        '/assets/textures/house-sprite.png',
+        '/assets/textures/garage.png',
+        '/assets/textures/accelerator.png',
+        '/assets/textures/loft.png',
+        '/assets/textures/conference.png',
+        '/assets/textures/data-center.png',
+        '/assets/textures/board-room.png',
+        '/assets/textures/venture.png',
+        '/assets/textures/law.png',
+        '/assets/textures/nasdaq.png',
+
+        // Items
+        '/assets/textures/macbook.png',
+        '/assets/textures/iphone.png',
+
+        // NPC sprites
+        '/assets/textures/npc/sam-visionary.png',
+        '/assets/textures/npc/alex-builder.png',
+        '/assets/textures/npc/jordan-connector.png',
+        '/assets/textures/npc/casey-creative.png',
+        '/assets/textures/npc/morgan-marketer.png',
+
+        // UI
+        '/assets/textures/ui/padlock.png'
+    ];
+
+    try {
+        await textureManager.preload(textureUrls, (loaded, total) => {
+            const percent = Math.round((loaded / total) * 100);
+            if (onProgress) {
+                onProgress(loaded, total, percent);
+            }
+        });
+
+        const stats = textureManager.getStats();
+        console.log(`Assets loaded! (${stats.loaded} textures, ${stats.errors} errors)`);
+
+        if (stats.errors > 0) {
+            console.warn(`Some textures failed to load and are using fallback colors.`);
+        }
+    } catch (error) {
+        console.error("Error during asset preload:", error);
+        // Continue anyway - fallback textures will be used
+    }
 }
 
 // Create a sprite with texture

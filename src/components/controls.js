@@ -9,36 +9,100 @@ export class Controls {
         this.keys = {};
         this.actionCooldown = 0;
         this.actionCooldownTime = 20; // Frames to wait between actions
+
+        // Store bound event handlers for cleanup
+        this.boundKeyDown = null;
+        this.boundKeyUp = null;
+        this.touchArea = null;
+
         this.init();
     }
 
-    init() {
-        // Set up keyboard event listeners
-        window.addEventListener('keydown', (event) => {
-            event.preventDefault();
-            this.keys[event.key] = true;
-        });
+    /**
+     * Checks if any UI dialogue or simulator is currently active.
+     * @returns {boolean} True if dialogue/simulator is active
+     */
+    isUIActive() {
+        const game = this.player.game;
+        if (!game) return false;
 
-        window.addEventListener('keyup', (event) => {
+        // Check if regular dialogue is visible
+        if (game.dialogueManager && game.dialogueManager.isVisible) {
+            return true;
+        }
+
+        // Check if simulator dialogue is visible
+        if (game.simulatorDialogue && game.simulatorDialogue.waitingForChoice) {
+            return true;
+        }
+
+        // Check if simulator box is displayed
+        if (game.simulatorDialogue && game.simulatorDialogue.simulatorBox &&
+            game.simulatorDialogue.simulatorBox.style.display !== 'none') {
+            return true;
+        }
+
+        return false;
+    }
+
+    init() {
+        // Create bound event handlers for proper removal later
+        this.boundKeyDown = (event) => {
+            // Only prevent default and track keys if UI is not active
+            if (!this.isUIActive()) {
+                event.preventDefault();
+            }
+            this.keys[event.key] = true;
+        };
+
+        this.boundKeyUp = (event) => {
             this.keys[event.key] = false;
-        });
-        
+        };
+
+        // Set up keyboard event listeners
+        window.addEventListener('keydown', this.boundKeyDown);
+        window.addEventListener('keyup', this.boundKeyUp);
+
         // Touch controls for mobile
         this.setupTouchControls();
+    }
+
+    /**
+     * Removes all event listeners and cleans up touch controls.
+     * Call this before destroying the Controls instance.
+     */
+    dispose() {
+        // Remove keyboard listeners
+        if (this.boundKeyDown) {
+            window.removeEventListener('keydown', this.boundKeyDown);
+        }
+        if (this.boundKeyUp) {
+            window.removeEventListener('keyup', this.boundKeyUp);
+        }
+
+        // Remove touch control element
+        if (this.touchArea && this.touchArea.parentNode) {
+            this.touchArea.parentNode.removeChild(this.touchArea);
+        }
+
+        this.keys = {};
     }
     
     setupTouchControls() {
         // Virtual directional pad
-        const touchArea = document.createElement('div');
-        touchArea.style.position = 'absolute';
-        touchArea.style.bottom = '20px';
-        touchArea.style.left = '20px';
-        touchArea.style.width = '150px';
-        touchArea.style.height = '150px';
-        touchArea.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-        touchArea.style.borderRadius = '75px';
-        touchArea.style.display = 'none'; // Hidden on desktop
-        document.body.appendChild(touchArea);
+        this.touchArea = document.createElement('div');
+        this.touchArea.style.position = 'absolute';
+        this.touchArea.style.bottom = '20px';
+        this.touchArea.style.left = '20px';
+        this.touchArea.style.width = '150px';
+        this.touchArea.style.height = '150px';
+        this.touchArea.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        this.touchArea.style.borderRadius = '75px';
+        this.touchArea.style.display = 'none'; // Hidden on desktop
+        document.body.appendChild(this.touchArea);
+
+        // Alias for use in event handlers
+        const touchArea = this.touchArea;
         
         // Only show virtual controls on touch devices
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -110,13 +174,18 @@ export class Controls {
                         // Check if it's a pickup item
                         if (element.userData.isPickupItem) {
                             console.log(`Picking up ${element.userData.itemType}!`);
-                            
+
                             // Add to inventory if game has inventory system
                             if (this.player.game && this.player.game.inventory) {
                                 const itemData = element.userData.itemData;
                                 const added = this.player.game.inventory.addItem(itemData);
-                                
+
                                 if (added) {
+                                    // Play pickup sound
+                                    if (this.player.game.playSFX) {
+                                        this.player.game.playSFX('pickup');
+                                    }
+
                                     // Remove from scene
                                     if (element.parent) {
                                         element.parent.remove(element);
@@ -163,9 +232,18 @@ export class Controls {
     }
 
     update(obstacles) {
+        // Skip movement processing if dialogue/simulator UI is active
+        if (this.isUIActive()) {
+            // Still update camera but don't process movement
+            if (this.camera) {
+                this.camera.update(this.player.getPosition());
+            }
+            return;
+        }
+
         // Create a direction vector to store movement input
         const moveDirection = { x: 0, z: 0 };
-        
+
         // Process keyboard input - one direction at a time like in Zelda: ALTTP
         // Only one direction takes priority
         if (this.keys['ArrowUp'] || this.keys['w']) {
@@ -177,17 +255,17 @@ export class Controls {
         } else if (this.keys['ArrowRight'] || this.keys['d']) {
             moveDirection.x = 1;
         }
-        
+
         // Handle action button with cooldown
         this.checkInteraction();
-        
+
         if (this.actionCooldown > 0) {
             this.actionCooldown--;
         }
-        
+
         // Update player based on combined inputs
         this.player.update(this.keys, obstacles || []);
-        
+
         // Update camera to follow player
         if (this.camera) {
             this.camera.update(this.player.getPosition());
@@ -212,23 +290,28 @@ export class Controls {
                         // Check if it's a pickup item
                         if (element.userData.isPickupItem) {
                             console.log(`Picking up ${element.userData.itemType}!`);
-                            
+
                             // Add to inventory if game has inventory system
                             if (this.player.game && this.player.game.inventory) {
                                 const itemData = element.userData.itemData;
                                 const added = this.player.game.inventory.addItem(itemData);
-                                
+
                                 if (added) {
+                                    // Play pickup sound
+                                    if (this.player.game.playSFX) {
+                                        this.player.game.playSFX('pickup');
+                                    }
+
                                     // Mark item as picked up
                                     if (element.userData.buildingType && element.userData.itemType) {
                                         const building = element.userData.buildingType;
                                         const itemType = element.userData.itemType;
-                                        
+
                                         if (this.player.game.pickedUpItems[building]) {
                                             this.player.game.pickedUpItems[building].push(itemType);
                                         }
                                     }
-                                    
+
                                     // Remove from scene
                                     if (element.parent) {
                                         element.parent.remove(element);
