@@ -1,4 +1,6 @@
+<img width="1023" height="1027" alt="screenshot" src="https://github.com/user-attachments/assets/dd4165b4-bfb3-4bb7-9248-91d540d1a02b" />
 # Zelda Tribute Game
+
 
 This project is a tribute to the classic game "The Legend of Zelda: A Link to the Past" using Three.js. The game features a top-down perspective, allowing players to explore a vibrant world filled with challenges, enemies, and treasures.
 
