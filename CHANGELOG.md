@@ -13,6 +13,12 @@ Add board room building
 
 ### Changes
 
+## [0.7.0] - 2026-03-19
+
+  Add project docs
+  Add boardroom texture generator
+  Add todo file
+
 ## [0.6.0] - 2026-03-19
 
   Add .gitignore
