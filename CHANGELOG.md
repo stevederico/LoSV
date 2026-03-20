@@ -13,6 +13,16 @@ Add board room building
 
 ### Changes
 
+## [0.6.0] - 2026-03-19
+
+  Add .gitignore
+  Add OG meta tags
+  Add favicon link
+  Update README
+  Update package.json author
+  Remove stale files
+  Make repo public
+
 ## [0.5.0] - 2026-02-08
 
   Add building name display
