@@ -13,6 +13,10 @@ Add board room building
 
 ### Changes
 
+## [0.8.0] - 2026-03-19
+
+  Fix house exit position
+
 ## [0.7.0] - 2026-03-19
 
   Add project docs
