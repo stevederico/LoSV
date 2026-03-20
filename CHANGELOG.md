@@ -13,6 +13,17 @@ Add board room building
 
 ### Changes
 
+## [1.0.0] - 2026-03-20
+
+  Add 20 NPCs across all rooms
+  Add branching dialogue trees
+  Add cross-building quest chains
+  Add go_to and set_flag actions
+  Add interaction prompt indicator
+  Fix NPC proximity detection
+  Fix room spacing and layout
+  Fix missing interactiveNPCs push
+
 ## [0.9.0] - 2026-03-20
 
   Fix font loading (Google Fonts)

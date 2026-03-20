@@ -183,11 +183,20 @@ export class Player {
                         return;
                     }
                 }
-                // Track nearby NPC for action-button interaction (don't auto-trigger dialogue)
-                if (this.isInBuilding && obstacle.userData && obstacle.userData.isNPC && obstacle.userData.characterId) {
-                    this.nearbyNPC = obstacle;
-                }
                 break;
+            }
+        }
+
+        // Separate NPC proximity detection — decoupled from collision order
+        if (this.isInBuilding && this.interactiveNPCs) {
+            let closestDist = 2.5;
+            for (const npc of this.interactiveNPCs) {
+                if (!npc.userData || !npc.userData.isNPC) continue;
+                const dist = this.position.distanceTo(npc.position);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    this.nearbyNPC = npc;
+                }
             }
         }
 
@@ -424,9 +433,22 @@ export class Player {
         this.addVentureFurniture();
 
         // Add venture NPC
-        const ventureNPC = this.createNPC(-1, -3, 0x0088ff, 'venture_npc');
+        const ventureNPC = this.createNPC(-5, -2, 0x0088ff, 'venture_npc');
         this.scene.add(ventureNPC);
         this.buildingObstacles.push(ventureNPC);
+        this.interactiveNPCs.push(ventureNPC);
+
+        // VC Associate
+        const vcAssociate = this.createNPC(5, 0, 0x34495E, 'vc_associate');
+        this.scene.add(vcAssociate);
+        this.buildingObstacles.push(vcAssociate);
+        this.interactiveNPCs.push(vcAssociate);
+
+        // Angel Investor
+        const angelInvestor = this.createNPC(0, 3, 0xE74C3C, 'angel_investor');
+        this.scene.add(angelInvestor);
+        this.buildingObstacles.push(angelInvestor);
+        this.interactiveNPCs.push(angelInvestor);
 
         this.addPlayerToRoom(roomDepth);
         this.addInteriorLighting(0xE6E6FA, 0.8); // Cool lavender light
@@ -495,9 +517,22 @@ export class Player {
         this.addDataCenterFurniture();
 
         // Add data center NPC
-        const dataNPC = this.createNPC(-1, 2, 0x00ffff, 'data_center_npc');
+        const dataNPC = this.createNPC(0, 0, 0x00ffff, 'data_center_npc');
         this.scene.add(dataNPC);
         this.buildingObstacles.push(dataNPC);
+        this.interactiveNPCs.push(dataNPC);
+
+        // SRE Pat
+        const srePat = this.createNPC(0, 3, 0x7F8C8D, 'sre_pat');
+        this.scene.add(srePat);
+        this.buildingObstacles.push(srePat);
+        this.interactiveNPCs.push(srePat);
+
+        // ML Engineer
+        const mlEngineer = this.createNPC(0, -4, 0x9B59B6, 'ml_engineer');
+        this.scene.add(mlEngineer);
+        this.buildingObstacles.push(mlEngineer);
+        this.interactiveNPCs.push(mlEngineer);
 
         this.addPlayerToRoom(roomDepth);
         this.addInteriorLighting(0x00FFFF, 0.4); // Cyan tech glow
@@ -666,9 +701,22 @@ export class Player {
         this.addLawFurniture();
 
         // Add law NPC
-        const lawNPC = this.createNPC(-1, -3, 0x191970, 'law_npc');
+        const lawNPC = this.createNPC(-5, 0, 0x191970, 'law_npc');
         this.scene.add(lawNPC);
         this.buildingObstacles.push(lawNPC);
+        this.interactiveNPCs.push(lawNPC);
+
+        // Patent Attorney
+        const patentAtty = this.createNPC(5, 0, 0x2C3E50, 'patent_atty');
+        this.scene.add(patentAtty);
+        this.buildingObstacles.push(patentAtty);
+        this.interactiveNPCs.push(patentAtty);
+
+        // Paralegal Lee
+        const paralegalLee = this.createNPC(0, 3, 0x16A085, 'paralegal_lee');
+        this.scene.add(paralegalLee);
+        this.buildingObstacles.push(paralegalLee);
+        this.interactiveNPCs.push(paralegalLee);
 
         this.addPlayerToRoom(roomDepth);
         this.addInteriorLighting(0xFFF8DC, 0.7); // Warm cornsilk light
@@ -757,9 +805,22 @@ export class Player {
         this.addNasdaqFurniture();
 
         // Add nasdaq NPC
-        const nasdaqNPC = this.createNPC(-1, 2, 0x00ff00, 'nasdaq_npc');
+        const nasdaqNPC = this.createNPC(-5, 0, 0x00ff00, 'nasdaq_npc');
         this.scene.add(nasdaqNPC);
         this.buildingObstacles.push(nasdaqNPC);
+        this.interactiveNPCs.push(nasdaqNPC);
+
+        // IPO Advisor
+        const ipoAdvisor = this.createNPC(5, 0, 0x8E44AD, 'ipo_advisor');
+        this.scene.add(ipoAdvisor);
+        this.buildingObstacles.push(ipoAdvisor);
+        this.interactiveNPCs.push(ipoAdvisor);
+
+        // Retail Investor
+        const retailInvestor = this.createNPC(0, 3, 0x27AE60, 'retail_investor');
+        this.scene.add(retailInvestor);
+        this.buildingObstacles.push(retailInvestor);
+        this.interactiveNPCs.push(retailInvestor);
 
         this.addPlayerToRoom(roomDepth);
         this.addInteriorLighting(0x90EE90, 0.5); // Green financial glow
@@ -1762,10 +1823,22 @@ export class Player {
 
     addHouseNPC() {
         // Create house NPC
-        const houseNPC = this.createNPC(-5, -3, 0xff6b6b, 'sam');
+        const houseNPC = this.createNPC(-5, 0, 0xff6b6b, 'sam');
         this.scene.add(houseNPC);
         this.buildingObstacles.push(houseNPC);
         this.interactiveNPCs.push(houseNPC);
+
+        // Priya the Researcher
+        const priya = this.createNPC(5, 0, 0x9B59B6, 'priya');
+        this.scene.add(priya);
+        this.buildingObstacles.push(priya);
+        this.interactiveNPCs.push(priya);
+
+        // Old Timer
+        const oldTimer = this.createNPC(0, 3, 0x808080, 'old_timer');
+        this.scene.add(oldTimer);
+        this.buildingObstacles.push(oldTimer);
+        this.interactiveNPCs.push(oldTimer);
 
         // Add MacBook and iPhone items
         this.addHouseItems();
@@ -1773,10 +1846,22 @@ export class Player {
 
     addGarageNPC() {
         // Create garage NPC
-        const garageNPC = this.createNPC(-4, -2, 0x2C3E50, 'alex');
+        const garageNPC = this.createNPC(-5, 0, 0x2C3E50, 'alex');
         this.scene.add(garageNPC);
         this.buildingObstacles.push(garageNPC);
         this.interactiveNPCs.push(garageNPC);
+
+        // DevOps Dani
+        const devopsDani = this.createNPC(5, 2, 0xE67E22, 'devops_dani');
+        this.scene.add(devopsDani);
+        this.buildingObstacles.push(devopsDani);
+        this.interactiveNPCs.push(devopsDani);
+
+        // Intern
+        const intern = this.createNPC(0, 3, 0x3498DB, 'garage_intern');
+        this.scene.add(intern);
+        this.buildingObstacles.push(intern);
+        this.interactiveNPCs.push(intern);
 
         // Add garage items
         this.addGarageItems();
@@ -1784,10 +1869,22 @@ export class Player {
 
     addAcceleratorNPC() {
         // Create accelerator NPC
-        const acceleratorNPC = this.createNPC(0, -2, 0x34495E, 'jordan');
+        const acceleratorNPC = this.createNPC(-5, 0, 0x34495E, 'jordan');
         this.scene.add(acceleratorNPC);
         this.buildingObstacles.push(acceleratorNPC);
         this.interactiveNPCs.push(acceleratorNPC);
+
+        // Demo Coach
+        const demoCoach = this.createNPC(5, 0, 0xF39C12, 'demo_coach');
+        this.scene.add(demoCoach);
+        this.buildingObstacles.push(demoCoach);
+        this.interactiveNPCs.push(demoCoach);
+
+        // Fellow Founder
+        const fellowFounder = this.createNPC(0, 3, 0x1ABC9C, 'fellow_founder');
+        this.scene.add(fellowFounder);
+        this.buildingObstacles.push(fellowFounder);
+        this.interactiveNPCs.push(fellowFounder);
 
         // Add accelerator items
         this.addAcceleratorItems();
@@ -1795,10 +1892,22 @@ export class Player {
 
     addLoftNPC() {
         // Create loft NPC
-        const loftNPC = this.createNPC(-3, 0, 0xE74C3C, 'casey');
+        const loftNPC = this.createNPC(-5, 0, 0xE74C3C, 'casey');
         this.scene.add(loftNPC);
         this.buildingObstacles.push(loftNPC);
         this.interactiveNPCs.push(loftNPC);
+
+        // Recruiter Riya
+        const recruiterRiya = this.createNPC(5, 0, 0x8E44AD, 'recruiter_riya');
+        this.scene.add(recruiterRiya);
+        this.buildingObstacles.push(recruiterRiya);
+        this.interactiveNPCs.push(recruiterRiya);
+
+        // Designer Kai
+        const designerKai = this.createNPC(0, 3, 0x2ECC71, 'designer_kai');
+        this.scene.add(designerKai);
+        this.buildingObstacles.push(designerKai);
+        this.interactiveNPCs.push(designerKai);
 
         // Add loft items
         this.addLoftItems();
@@ -1806,10 +1915,22 @@ export class Player {
 
     addConferenceNPC() {
         // Create conference NPC
-        const conferenceNPC = this.createNPC(0, 2, 0x16A085, 'morgan');
+        const conferenceNPC = this.createNPC(-5, 3, 0x16A085, 'morgan');
         this.scene.add(conferenceNPC);
         this.buildingObstacles.push(conferenceNPC);
         this.interactiveNPCs.push(conferenceNPC);
+
+        // Growth Hacker
+        const growthHacker = this.createNPC(5, 3, 0xD35400, 'growth_hacker');
+        this.scene.add(growthHacker);
+        this.buildingObstacles.push(growthHacker);
+        this.interactiveNPCs.push(growthHacker);
+
+        // Journalist Zoe
+        const journalistZoe = this.createNPC(0, -4, 0xC0392B, 'journalist_zoe');
+        this.scene.add(journalistZoe);
+        this.buildingObstacles.push(journalistZoe);
+        this.interactiveNPCs.push(journalistZoe);
 
         // Add conference items
         this.addConferenceItems();
@@ -1817,10 +1938,22 @@ export class Player {
 
     addBoardRoomNPC() {
         // Create board room NPC
-        const boardRoomNPC = this.createNPC(0, 2, 0x8b4513, 'board_room_npc');
+        const boardRoomNPC = this.createNPC(-5, 0, 0x8b4513, 'board_room_npc');
         this.scene.add(boardRoomNPC);
         this.buildingObstacles.push(boardRoomNPC);
         this.interactiveNPCs.push(boardRoomNPC);
+
+        // CFO Diana
+        const cfoDiana = this.createNPC(5, 0, 0xF1C40F, 'cfo_diana');
+        this.scene.add(cfoDiana);
+        this.buildingObstacles.push(cfoDiana);
+        this.interactiveNPCs.push(cfoDiana);
+
+        // PR Advisor
+        const prAdvisor = this.createNPC(0, 3, 0xBDC3C7, 'pr_advisor');
+        this.scene.add(prAdvisor);
+        this.buildingObstacles.push(prAdvisor);
+        this.interactiveNPCs.push(prAdvisor);
     }
 
     addHouseItems() {

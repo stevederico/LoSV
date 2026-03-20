@@ -96,6 +96,39 @@ export class Game {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(0x87CEEB); // Light blue sky color - Default for main world
         document.getElementById('game-container').appendChild(this.renderer.domElement);
+
+        // Create interaction prompt element
+        this.interactionPrompt = document.createElement('div');
+        this.interactionPrompt.textContent = 'Press SPACE to talk';
+        Object.assign(this.interactionPrompt.style, {
+            position: 'fixed',
+            bottom: '140px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '8px 20px',
+            background: 'rgba(0, 0, 0, 0.85)',
+            color: '#FFD700',
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '12px',
+            borderRadius: '4px',
+            border: '2px solid #FFD700',
+            zIndex: '999',
+            display: 'none',
+            pointerEvents: 'none'
+        });
+        document.body.appendChild(this.interactionPrompt);
+    }
+
+    /**
+     * Shows or hides the "Press SPACE to talk" prompt based on NPC proximity.
+     */
+    updateInteractionPrompt() {
+        if (!this.interactionPrompt) return;
+        const showPrompt = this.player.isInBuilding &&
+            this.player.nearbyNPC &&
+            !this.dialogueManager.isActive() &&
+            !(this.simulatorDialogue && this.simulatorDialogue.waitingForChoice);
+        this.interactionPrompt.style.display = showPrompt ? 'block' : 'none';
     }
     
     setupUI() {
@@ -266,6 +299,9 @@ export class Game {
         } else {
             this.controls.update(this.world.getObstacles());
         }
+
+        // Show/hide "Press SPACE to talk" prompt
+        this.updateInteractionPrompt();
 
         // Update enemies only if not in a building and dialogue is not active
         if (!this.player.isInBuilding && !this.dialogueManager.isActive()) {

@@ -159,18 +159,30 @@ export class DialogueLoader {
             return null;
         }
 
-        // Check requirements
+        // Check requirements (supports both local character dialogues and global flags)
         if (dialogue.requirements) {
             for (const requirement of dialogue.requirements) {
                 const reqKey = `${characterId}_${requirement}`;
-                if (!this.completedDialogues.has(reqKey)) {
-                    console.log(`Dialogue ${dialogueKey} requires ${reqKey} to be completed first`);
+                const isLocalComplete = this.completedDialogues.has(reqKey);
+                const isGlobalFlag = this.playerProgress.has(requirement) && this.playerProgress.get(requirement);
+                if (!isLocalComplete && !isGlobalFlag) {
+                    console.log(`Dialogue ${dialogueKey} requires ${reqKey} or global flag ${requirement}`);
                     return null;
                 }
             }
         }
 
         return dialogue;
+    }
+
+    /**
+     * Stores a quest marker pointing the player to a building and NPC.
+     * @param {string} buildingType - Target building type
+     * @param {string} npcId - Target NPC character ID
+     */
+    setQuestMarker(buildingType, npcId) {
+        this.playerProgress.set('current_quest_building', buildingType);
+        this.playerProgress.set('current_quest_npc', npcId);
     }
 
     markDialogueCompleted(characterId, dialogueId) {
@@ -312,12 +324,14 @@ export class DialogueLoader {
             
             // Check if dialogue is available (repeatable or not completed)
             if (dialogue.repeatable || !this.completedDialogues.has(dialogueKey)) {
-                // Check requirements
+                // Check requirements (supports both local and global flags)
                 let requirementsMet = true;
                 if (dialogue.requirements) {
                     for (const requirement of dialogue.requirements) {
                         const reqKey = `${characterId}_${requirement}`;
-                        if (!this.completedDialogues.has(reqKey)) {
+                        const isLocalComplete = this.completedDialogues.has(reqKey);
+                        const isGlobalFlag = this.playerProgress.has(requirement) && this.playerProgress.get(requirement);
+                        if (!isLocalComplete && !isGlobalFlag) {
                             requirementsMet = false;
                             break;
                         }
