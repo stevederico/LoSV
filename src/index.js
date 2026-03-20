@@ -80,12 +80,7 @@ function startGame() {
     // Add SNES-style font
     const fontStyle = document.createElement('style');
     fontStyle.textContent = `
-        @font-face {
-            font-family: 'SNES';
-            src: url('https://fonts.cdnfonts.com/css/press-start-2p') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
     `;
     document.head.appendChild(fontStyle);
 
@@ -187,6 +182,17 @@ function startGame() {
     `;
     document.body.appendChild(instructions);
     
+    // Mobile notice
+    if ('ontouchstart' in window && window.innerWidth < 768) {
+        const mobileNotice = document.createElement('div');
+        mobileNotice.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;color:#fff;font-family:"Press Start 2P",monospace;text-align:center;padding:20px;box-sizing:border-box';
+        mobileNotice.innerHTML = `
+            <p style="font-size:14px;line-height:2;margin-bottom:30px">Best played on desktop<br>with keyboard</p>
+            <button style="font-family:'Press Start 2P',monospace;font-size:12px;padding:12px 24px;background:#e4c025;color:#000;border:none;cursor:pointer;border-radius:4px" onclick="this.parentElement.remove()">Play Anyway</button>
+        `;
+        document.body.appendChild(mobileNotice);
+    }
+
     // Create game instance to start the game
     const game = new Game();
     console.log('Game initialized!');
