@@ -44,10 +44,10 @@ export class Player {
         this.onExitBuildingCallback = onExitBuildingCallback;
         this.onEnterBuildingCallback = onEnterBuildingCallback;
         this.lastEnteredBuildingData = {
-            position: new THREE.Vector3(-17, 0.1, -10),
+            position: new THREE.Vector3(-15, 0.1, 14),
             width: 3,
             depth: 3
-        }; // Set house data for proper exit
+        }; // Set house data for proper exit (must match world.js createHouse position)
         this.currentRoomDepth = 12; // Store current room depth for exit logic
         
         // Initialize house interior immediately
