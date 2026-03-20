@@ -1,6 +1,6 @@
 {
   "name": "legend-sv",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A tribute game inspired by Legend of Zelda: A Link to the Past using Three.js.",
   "type": "module",
   "scripts": {
@@ -20,6 +20,6 @@
     "game",
     "tribute"
   ],
-  "author": "Your Name",
+  "author": "Steve Derico",
   "license": "MIT"
 }

@@ -1,61 +1,45 @@
 <img width="1023" height="1027" alt="screenshot" src="https://github.com/user-attachments/assets/dd4165b4-bfb3-4bb7-9248-91d540d1a02b" />
-# Zelda Tribute Game
 
+# The Legend of Silicon Valley: A Founder's Journey
 
-This project is a tribute to the classic game "The Legend of Zelda: A Link to the Past" using Three.js. The game features a top-down perspective, allowing players to explore a vibrant world filled with challenges, enemies, and treasures.
+A Zelda-style (SNES Link to the Past) top-down adventure game built with Three.js. Walk through a startup-themed overworld, enter buildings, talk to NPCs, and play a 10-level startup simulator — from garage to IPO.
 
-## Project Structure
+## Play
 
-- **src/**: Contains the main source code for the game.
-  - **index.js**: Entry point of the game. Initializes the Three.js scene and starts the game loop.
-  - **game.js**: Manages overall game logic, including asset loading and game state updates.
-  - **assets/**: Contains all game assets.
-    - **models/**: 3D models for characters and environment objects.
-    - **textures/**: Texture files for models, providing visual details.
-    - **audio/**: Audio files for sound effects and background music.
-  - **components/**: Contains various game components.
-    - **player.js**: Handles player movement, animations, and interactions.
-    - **world.js**: Manages the game environment, including terrain and obstacles.
-    - **camera.js**: Controls the camera's position and perspective.
-    - **controls.js**: Manages user input for character movement and actions.
-    - **enemies.js**: Handles enemy behavior and interactions with the player.
-  - **utils/**: Utility functions for the game.
-    - **collision.js**: Functions for detecting and handling collisions.
-    - **helpers.js**: Utility functions for loading assets and managing game state.
+[losv.bixbyapps.com](https://losv.bixbyapps.com)
 
-- **public/**: Contains public files for the game.
-  - **index.html**: Main HTML file that includes the game canvas and links to JavaScript files.
+## Controls
 
-- **package.json**: Configuration file for npm, listing dependencies and scripts.
+- **WASD / Arrow Keys** — Move
+- **Space / Enter** — Interact / Advance dialogue
+- **1 / 2 / 3** — Choose options in simulator
+- **+/-** — Zoom in/out
+- **Escape** — Pause / Exit building
 
-## Setup Instructions
+## Features
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   ```
+- 9 buildings with unique interiors, furniture, and NPCs
+- 10-level startup simulator with scoring, random events, and stat tracking (DAU, MRR, funding, team, morale, runway)
+- Progression system with building unlock gates
+- Inventory with 20+ collectible items
+- NPC dialogue trees with choices
+- localStorage save persistence
 
-2. Navigate to the project directory:
-   ```
-   cd zelda-tribute
-   ```
+## Setup
 
-3. Install the dependencies:
-   ```
-   npm install
-   ```
+```bash
+deno install
+deno run dev
+```
 
-4. Start the development server:
-   ```
-   npm start
-   ```
+Open `http://localhost:5173`
 
-5. Open your browser and go to `http://localhost:3000` to play the game.
+## Stack
 
-## Gameplay
+- Three.js 0.150
+- Vite 6.1
+- Vanilla JavaScript (ES modules)
 
-Explore the world, defeat enemies, and solve puzzles as you embark on an adventure reminiscent of classic Zelda games. Collect items, unlock new areas, and enjoy the nostalgic experience!
+## License
 
-## Contributing
-
-Contributions are welcome! Feel free to submit a pull request or open an issue for any suggestions or improvements.
+MIT
