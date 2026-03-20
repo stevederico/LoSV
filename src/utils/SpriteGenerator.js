@@ -1458,6 +1458,867 @@ export class SpriteGenerator {
         });
     }
 
+    // ========== NPC SPRITES ==========
+
+    /**
+     * Dispatches NPC sprite generation by character name.
+     * @param {string} name - NPC identifier (e.g. 'sam-visionary')
+     * @returns {THREE.Texture} 48x48 pixel-art character texture
+     */
+    generateNPCSprite(name) {
+        const generators = {
+            'sam-visionary': () => this.generateSamVisionary(),
+            'alex-builder': () => this.generateAlexBuilder(),
+            'jordan-connector': () => this.generateJordanConnector(),
+            'casey-creative': () => this.generateCaseyCreative(),
+            'morgan-marketer': () => this.generateMorganMarketer(),
+        };
+        const gen = generators[name];
+        return gen ? gen() : this.generateDefaultNPC();
+    }
+
+    /**
+     * Draws a pixel-art NPC body onto the canvas context.
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} w - Canvas width
+     * @param {number} h - Canvas height
+     * @param {string} bodyColor - Hex color for torso
+     * @param {string} legColor - Hex color for legs
+     */
+    _drawNPCBody(ctx, w, h, bodyColor, legColor) {
+        const cx = w / 2;
+
+        // Head (skin tone circle)
+        ctx.fillStyle = '#DEB887';
+        ctx.beginPath();
+        ctx.arc(cx, 12, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(cx - 3, 10, 2, 2);
+        ctx.fillRect(cx + 1, 10, 2, 2);
+
+        // Body
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(cx - 8, 20, 16, 14);
+
+        // Legs
+        ctx.fillStyle = legColor;
+        ctx.fillRect(cx - 7, 34, 6, 10);
+        ctx.fillRect(cx + 1, 34, 6, 10);
+    }
+
+    /**
+     * Generates Sam the Visionary NPC sprite (brown hoodie).
+     * @returns {THREE.Texture}
+     */
+    generateSamVisionary() {
+        return this.generateTexture('npc_sam_visionary', 48, 48, (ctx, w, h) => {
+            this._drawNPCBody(ctx, w, h, '#8B4513', '#5C2E0A');
+        });
+    }
+
+    /**
+     * Generates Alex the Builder NPC sprite (dark blue shirt).
+     * @returns {THREE.Texture}
+     */
+    generateAlexBuilder() {
+        return this.generateTexture('npc_alex_builder', 48, 48, (ctx, w, h) => {
+            this._drawNPCBody(ctx, w, h, '#2C3E50', '#1A252F');
+        });
+    }
+
+    /**
+     * Generates Jordan the Connector NPC sprite (business gray).
+     * @returns {THREE.Texture}
+     */
+    generateJordanConnector() {
+        return this.generateTexture('npc_jordan_connector', 48, 48, (ctx, w, h) => {
+            this._drawNPCBody(ctx, w, h, '#34495E', '#1F2B38');
+        });
+    }
+
+    /**
+     * Generates Casey the Creative NPC sprite (red).
+     * @returns {THREE.Texture}
+     */
+    generateCaseyCreative() {
+        return this.generateTexture('npc_casey_creative', 48, 48, (ctx, w, h) => {
+            this._drawNPCBody(ctx, w, h, '#E74C3C', '#962F24');
+        });
+    }
+
+    /**
+     * Generates Morgan the Marketer NPC sprite (teal).
+     * @returns {THREE.Texture}
+     */
+    generateMorganMarketer() {
+        return this.generateTexture('npc_morgan_marketer', 48, 48, (ctx, w, h) => {
+            this._drawNPCBody(ctx, w, h, '#16A085', '#0D6B58');
+        });
+    }
+
+    /**
+     * Generates a fallback NPC sprite with gray body and question mark.
+     * @returns {THREE.Texture}
+     */
+    generateDefaultNPC() {
+        return this.generateTexture('npc_default', 48, 48, (ctx, w, h) => {
+            const cx = w / 2;
+
+            // Head
+            ctx.fillStyle = '#DEB887';
+            ctx.beginPath();
+            ctx.arc(cx, 12, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Question mark instead of eyes
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('?', cx, 12);
+
+            // Gray body
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(cx - 8, 20, 16, 14);
+
+            // Legs
+            ctx.fillStyle = '#555555';
+            ctx.fillRect(cx - 7, 34, 6, 10);
+            ctx.fillRect(cx + 1, 34, 6, 10);
+        });
+    }
+
+    // ========== UI SPRITES ==========
+
+    /**
+     * Generates a 16x16 red pixel heart sprite.
+     * @returns {THREE.Texture}
+     */
+    generateHeartSprite() {
+        return this.generateTexture('ui_heart', 16, 16, (ctx) => {
+            ctx.fillStyle = '#FF0000';
+            // Classic pixel heart shape row by row
+            const rows = [
+                [2, 3, 4, 5, 8, 9, 10, 11],       // y=2
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // y=3
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // y=4
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // y=5
+                [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],         // y=6
+                [3, 4, 5, 6, 7, 8, 9, 10],                 // y=7
+                [4, 5, 6, 7, 8, 9],                         // y=8
+                [5, 6, 7, 8],                               // y=9
+                [6, 7],                                     // y=10
+            ];
+            rows.forEach((cols, i) => {
+                const y = i + 2;
+                cols.forEach(x => {
+                    ctx.fillRect(x, y, 1, 1);
+                });
+            });
+        });
+    }
+
+    /**
+     * Generates a 16x16 gold padlock sprite.
+     * @returns {THREE.Texture}
+     */
+    generatePadlockSprite() {
+        return this.generateTexture('ui_padlock', 16, 16, (ctx, w, h) => {
+            // Shackle arc (darker gold)
+            ctx.fillStyle = '#B8860B';
+            ctx.fillRect(5, 1, 6, 2);
+            ctx.fillRect(4, 2, 2, 5);
+            ctx.fillRect(10, 2, 2, 5);
+            ctx.fillRect(5, 1, 1, 2);
+            ctx.fillRect(10, 1, 1, 2);
+
+            // Lock body (gold)
+            ctx.fillStyle = '#DAA520';
+            ctx.fillRect(3, 6, 10, 8);
+
+            // Body highlight
+            ctx.fillStyle = '#F0C850';
+            ctx.fillRect(3, 6, 10, 1);
+
+            // Body shadow
+            ctx.fillStyle = '#B8860B';
+            ctx.fillRect(3, 13, 10, 1);
+
+            // Keyhole
+            ctx.fillStyle = '#5C3A08';
+            ctx.beginPath();
+            ctx.arc(w / 2, 10, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillRect(w / 2 - 1, 10, 2, 3);
+        });
+    }
+
+    // ========== ITEM SPRITES ==========
+
+    /**
+     * Dispatches item sprite generation by type.
+     * @param {string} itemType - Item type identifier
+     * @returns {THREE.Texture} Generated 32x32 item sprite texture
+     */
+    generateItemSprite(itemType) {
+        const generators = {
+            'whiteboard': () => this.generateWhiteboardItem(),
+            'interview-notes': () => this.generateInterviewNotes(),
+            'keyboard': () => this.generateKeyboardItem(),
+            'energy-drink': () => this.generateEnergyDrink(),
+            'github-stickers': () => this.generateGithubStickers(),
+            'mvp-usb': () => this.generateMvpUsb(),
+            'tech-debt-note': () => this.generateTechDebtNote(),
+            'pitch-deck': () => this.generatePitchDeck(),
+            'term-sheet': () => this.generateTermSheet(),
+            'business-card': () => this.generateBusinessCard(),
+            'yc-letter': () => this.generateYcLetter(),
+            'cap-table': () => this.generateCapTable(),
+            'handbook': () => this.generateHandbook(),
+            'team-photo': () => this.generateTeamPhoto(),
+            'stock-options': () => this.generateStockOptions(),
+            'ping-pong-paddle': () => this.generatePingPongPaddle(),
+            'growth-playbook': () => this.generateGrowthPlaybook(),
+            'analytics-dashboard': () => this.generateAnalyticsDashboard(),
+            'product-hunt-trophy': () => this.generateProductHuntTrophy(),
+            'ad-budget': () => this.generateAdBudget(),
+        };
+        const gen = generators[itemType];
+        return gen ? gen() : this.generateDefaultItem();
+    }
+
+    /**
+     * Generates whiteboard item sprite — white rectangle with colored marker lines.
+     * @returns {THREE.Texture}
+     */
+    generateWhiteboardItem() {
+        return this.generateTexture('item_whiteboard', 32, 32, (ctx, w, h) => {
+            // White board background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(2, 2, 28, 28);
+
+            // Border
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_LIGHT);
+            ctx.fillRect(2, 2, 28, 2);
+            ctx.fillRect(2, 2, 2, 28);
+            ctx.fillRect(2, 28, 28, 2);
+            ctx.fillRect(28, 2, 2, 28);
+
+            // Red marker line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
+            ctx.fillRect(6, 10, 20, 2);
+
+            // Blue marker line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+            ctx.fillRect(6, 16, 18, 2);
+
+            // Green marker line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MED);
+            ctx.fillRect(6, 22, 16, 2);
+        });
+    }
+
+    /**
+     * Generates interview notes sprite — yellow rectangle with horizontal lines.
+     * @returns {THREE.Texture}
+     */
+    generateInterviewNotes() {
+        return this.generateTexture('item_interview_notes', 32, 32, (ctx, w, h) => {
+            // Yellow notepad
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_YELLOW);
+            ctx.fillRect(4, 2, 24, 28);
+
+            // Lines
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_LIGHT, 0.5);
+            for (let y = 8; y < 28; y += 4) {
+                ctx.fillRect(7, y, 18, 1);
+            }
+
+            // Red margin line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED, 0.6);
+            ctx.fillRect(10, 2, 1, 28);
+        });
+    }
+
+    /**
+     * Generates keyboard item sprite — dark rectangle with key dots.
+     * @returns {THREE.Texture}
+     */
+    generateKeyboardItem() {
+        return this.generateTexture('item_keyboard', 32, 32, (ctx, w, h) => {
+            // Keyboard body
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.fillRect(2, 8, 28, 18);
+
+            // Border highlight
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_MED);
+            ctx.fillRect(2, 8, 28, 1);
+
+            // Key rows
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_LIGHT);
+            for (let row = 0; row < 3; row++) {
+                const y = 11 + row * 5;
+                for (let col = 0; col < 8; col++) {
+                    ctx.fillRect(5 + col * 3, y, 2, 2);
+                }
+            }
+
+            // Spacebar
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_LIGHT);
+            ctx.fillRect(10, 23, 12, 2);
+        });
+    }
+
+    /**
+     * Generates energy drink sprite — cyan tall rectangle with yellow lightning bolt.
+     * @returns {THREE.Texture}
+     */
+    generateEnergyDrink() {
+        return this.generateTexture('item_energy_drink', 32, 32, (ctx, w, h) => {
+            // Can body
+            ctx.fillStyle = hexToRgba(NES_PALETTE.TEAL);
+            ctx.fillRect(10, 4, 12, 24);
+
+            // Can top
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+            ctx.fillRect(11, 4, 10, 3);
+
+            // Lightning bolt
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_YELLOW);
+            ctx.fillRect(16, 10, 4, 2);
+            ctx.fillRect(14, 12, 4, 2);
+            ctx.fillRect(16, 14, 4, 2);
+            ctx.fillRect(14, 16, 4, 2);
+            ctx.fillRect(16, 18, 4, 2);
+        });
+    }
+
+    /**
+     * Generates GitHub stickers sprite — dark octagon shape.
+     * @returns {THREE.Texture}
+     */
+    generateGithubStickers() {
+        return this.generateTexture('item_github_stickers', 32, 32, (ctx, w, h) => {
+            // Octagon shape
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.beginPath();
+            ctx.moveTo(10, 4);
+            ctx.lineTo(22, 4);
+            ctx.lineTo(28, 10);
+            ctx.lineTo(28, 22);
+            ctx.lineTo(22, 28);
+            ctx.lineTo(10, 28);
+            ctx.lineTo(4, 22);
+            ctx.lineTo(4, 10);
+            ctx.closePath();
+            ctx.fill();
+
+            // Inner lighter circle (octocat silhouette area)
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.beginPath();
+            ctx.arc(16, 16, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Simple cat ears
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.fillRect(11, 10, 3, 3);
+            ctx.fillRect(18, 10, 3, 3);
+
+            // Face
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.beginPath();
+            ctx.arc(16, 17, 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    /**
+     * Generates MVP USB drive sprite — small gray rectangle with silver connector.
+     * @returns {THREE.Texture}
+     */
+    generateMvpUsb() {
+        return this.generateTexture('item_mvp_usb', 32, 32, (ctx, w, h) => {
+            // USB body
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_MED);
+            ctx.fillRect(8, 10, 16, 14);
+
+            // Connector
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_LIGHT);
+            ctx.fillRect(12, 6, 8, 4);
+
+            // Connector pins
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+            ctx.fillRect(13, 7, 2, 2);
+            ctx.fillRect(17, 7, 2, 2);
+
+            // LED indicator
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+            ctx.fillRect(15, 14, 2, 2);
+
+            // Label area
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE, 0.5);
+            ctx.fillRect(10, 18, 12, 4);
+        });
+    }
+
+    /**
+     * Generates tech debt note sprite — yellow square with red "!".
+     * @returns {THREE.Texture}
+     */
+    generateTechDebtNote() {
+        return this.generateTexture('item_tech_debt_note', 32, 32, (ctx, w, h) => {
+            // Yellow sticky note
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_YELLOW);
+            ctx.fillRect(4, 4, 24, 24);
+
+            // Folded corner
+            ctx.fillStyle = hexToRgba(darken(NES_PALETTE.FIRE_YELLOW, 20));
+            ctx.beginPath();
+            ctx.moveTo(22, 4);
+            ctx.lineTo(28, 10);
+            ctx.lineTo(22, 10);
+            ctx.closePath();
+            ctx.fill();
+
+            // Red exclamation mark "!"
+            ctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
+            ctx.fillRect(14, 10, 4, 10);
+            ctx.fillRect(14, 22, 4, 4);
+        });
+    }
+
+    /**
+     * Generates pitch deck sprite — orange rectangle with ascending bars.
+     * @returns {THREE.Texture}
+     */
+    generatePitchDeck() {
+        return this.generateTexture('item_pitch_deck', 32, 32, (ctx, w, h) => {
+            // Slide background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_ORANGE);
+            ctx.fillRect(3, 4, 26, 24);
+
+            // Border
+            ctx.fillStyle = hexToRgba(darken(NES_PALETTE.FIRE_ORANGE, 20));
+            ctx.fillRect(3, 4, 26, 2);
+
+            // Three ascending bars
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(8, 20, 5, 6);
+            ctx.fillRect(14, 15, 5, 11);
+            ctx.fillRect(20, 10, 5, 16);
+        });
+    }
+
+    /**
+     * Generates term sheet sprite — white rectangle with lines and signature squiggle.
+     * @returns {THREE.Texture}
+     */
+    generateTermSheet() {
+        return this.generateTexture('item_term_sheet', 32, 32, (ctx, w, h) => {
+            // Paper background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(5, 2, 22, 28);
+
+            // Text lines
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK, 0.6);
+            for (let y = 6; y < 20; y += 3) {
+                ctx.fillRect(8, y, 16, 1);
+            }
+
+            // Signature squiggle
+            ctx.strokeStyle = hexToRgba(NES_PALETTE.BLUE_DARK);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(10, 24);
+            ctx.quadraticCurveTo(14, 22, 16, 25);
+            ctx.quadraticCurveTo(18, 28, 22, 24);
+            ctx.stroke();
+
+            // Signature line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK, 0.4);
+            ctx.fillRect(9, 27, 14, 1);
+        });
+    }
+
+    /**
+     * Generates business card sprite — small white rectangle with text lines.
+     * @returns {THREE.Texture}
+     */
+    generateBusinessCard() {
+        return this.generateTexture('item_business_card', 32, 32, (ctx, w, h) => {
+            // Card shadow
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLACK, 0.3);
+            ctx.fillRect(5, 10, 24, 15);
+
+            // Card background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(3, 8, 24, 15);
+
+            // Name line (bold)
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLACK);
+            ctx.fillRect(6, 12, 12, 2);
+
+            // Title line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_MED);
+            ctx.fillRect(6, 16, 10, 1);
+
+            // Email line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED, 0.7);
+            ctx.fillRect(6, 19, 14, 1);
+        });
+    }
+
+    /**
+     * Generates YC letter sprite — orange rectangle with white "Y".
+     * @returns {THREE.Texture}
+     */
+    generateYcLetter() {
+        return this.generateTexture('item_yc_letter', 32, 32, (ctx, w, h) => {
+            // Orange background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_ORANGE);
+            ctx.fillRect(4, 4, 24, 24);
+
+            // Border
+            ctx.fillStyle = hexToRgba(darken(NES_PALETTE.FIRE_ORANGE, 15));
+            ctx.fillRect(4, 4, 24, 2);
+            ctx.fillRect(4, 4, 2, 24);
+            ctx.fillRect(4, 26, 24, 2);
+            ctx.fillRect(26, 4, 2, 24);
+
+            // White "Y"
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(10, 10, 3, 5);
+            ctx.fillRect(19, 10, 3, 5);
+            ctx.fillRect(14, 14, 4, 3);
+            ctx.fillRect(14, 17, 4, 7);
+        });
+    }
+
+    /**
+     * Generates cap table sprite — light green grid with darker borders.
+     * @returns {THREE.Texture}
+     */
+    generateCapTable() {
+        return this.generateTexture('item_cap_table', 32, 32, (ctx, w, h) => {
+            // Background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+            ctx.fillRect(3, 4, 26, 24);
+
+            // Grid lines (4 columns, 3 rows)
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_DARK, 0.6);
+            // Horizontal lines
+            for (let y = 4; y <= 28; y += 8) {
+                ctx.fillRect(3, y, 26, 1);
+            }
+            // Vertical lines
+            for (let x = 3; x <= 29; x += 7) {
+                ctx.fillRect(x, 4, 1, 24);
+            }
+
+            // Header row darker
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MED, 0.5);
+            ctx.fillRect(4, 5, 25, 7);
+        });
+    }
+
+    /**
+     * Generates handbook sprite — blue book with white spine line.
+     * @returns {THREE.Texture}
+     */
+    generateHandbook() {
+        return this.generateTexture('item_handbook', 32, 32, (ctx, w, h) => {
+            // Book body
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+            ctx.fillRect(6, 4, 20, 24);
+
+            // Spine
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_DARK);
+            ctx.fillRect(6, 4, 4, 24);
+
+            // Spine line
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(8, 4, 1, 24);
+
+            // Cover decoration
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE, 0.7);
+            ctx.fillRect(14, 10, 8, 2);
+            ctx.fillRect(14, 14, 6, 1);
+
+            // Pages edge
+            ctx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
+            ctx.fillRect(25, 6, 2, 20);
+        });
+    }
+
+    /**
+     * Generates team photo sprite — brown frame with colored circles inside.
+     * @returns {THREE.Texture}
+     */
+    generateTeamPhoto() {
+        return this.generateTexture('item_team_photo', 32, 32, (ctx, w, h) => {
+            // Frame
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
+            ctx.fillRect(3, 3, 26, 26);
+
+            // Photo area
+            ctx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
+            ctx.fillRect(5, 5, 22, 22);
+
+            // Background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_SKY, 0.5);
+            ctx.fillRect(5, 5, 22, 10);
+
+            // Four head circles
+            const heads = [
+                { x: 11, y: 18, color: NES_PALETTE.RED_MED },
+                { x: 19, y: 18, color: NES_PALETTE.BLUE_MED },
+                { x: 11, y: 24, color: NES_PALETTE.GREEN_MED },
+                { x: 19, y: 24, color: NES_PALETTE.FIRE_YELLOW },
+            ];
+            heads.forEach(({ x, y, color }) => {
+                ctx.fillStyle = hexToRgba(color);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        });
+    }
+
+    /**
+     * Generates stock options sprite — green rectangle with white "$".
+     * @returns {THREE.Texture}
+     */
+    generateStockOptions() {
+        return this.generateTexture('item_stock_options', 32, 32, (ctx, w, h) => {
+            // Green background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MONEY);
+            ctx.fillRect(4, 4, 24, 24);
+
+            // Border
+            ctx.fillStyle = hexToRgba(darken(NES_PALETTE.GREEN_MONEY, 20));
+            ctx.fillRect(4, 4, 24, 2);
+            ctx.fillRect(4, 4, 2, 24);
+            ctx.fillRect(4, 26, 24, 2);
+            ctx.fillRect(26, 4, 2, 24);
+
+            // White "$"
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            // Vertical bar
+            ctx.fillRect(15, 8, 2, 16);
+            // Top curve
+            ctx.fillRect(12, 10, 8, 2);
+            ctx.fillRect(12, 10, 2, 4);
+            // Middle bar
+            ctx.fillRect(12, 15, 8, 2);
+            // Bottom curve
+            ctx.fillRect(18, 17, 2, 4);
+            ctx.fillRect(12, 20, 8, 2);
+        });
+    }
+
+    /**
+     * Generates ping pong paddle sprite — red circle with brown handle.
+     * @returns {THREE.Texture}
+     */
+    generatePingPongPaddle() {
+        return this.generateTexture('item_ping_pong_paddle', 32, 32, (ctx, w, h) => {
+            // Handle
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
+            ctx.fillRect(14, 20, 4, 10);
+
+            // Handle grip
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+            ctx.fillRect(14, 26, 4, 4);
+
+            // Paddle face
+            ctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
+            ctx.beginPath();
+            ctx.arc(16, 13, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Paddle highlight
+            ctx.fillStyle = hexToRgba(NES_PALETTE.RED_LIGHT, 0.4);
+            ctx.beginPath();
+            ctx.arc(14, 10, 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    /**
+     * Generates growth playbook sprite — blue rectangle with white upward arrow.
+     * @returns {THREE.Texture}
+     */
+    generateGrowthPlaybook() {
+        return this.generateTexture('item_growth_playbook', 32, 32, (ctx, w, h) => {
+            // Book body
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
+            ctx.fillRect(5, 3, 22, 26);
+
+            // Spine
+            ctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_DARK);
+            ctx.fillRect(5, 3, 3, 26);
+
+            // White upward arrow
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            // Arrow shaft
+            ctx.fillRect(15, 12, 3, 12);
+            // Arrow head
+            ctx.beginPath();
+            ctx.moveTo(12, 14);
+            ctx.lineTo(17, 7);
+            ctx.lineTo(22, 14);
+            ctx.closePath();
+            ctx.fill();
+        });
+    }
+
+    /**
+     * Generates analytics dashboard sprite — dark rectangle with colored line chart.
+     * @returns {THREE.Texture}
+     */
+    generateAnalyticsDashboard() {
+        return this.generateTexture('item_analytics_dashboard', 32, 32, (ctx, w, h) => {
+            // Screen background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.fillRect(3, 4, 26, 22);
+
+            // Screen border
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+            ctx.fillRect(3, 4, 26, 2);
+            ctx.fillRect(3, 24, 26, 2);
+            ctx.fillRect(3, 4, 2, 22);
+            ctx.fillRect(27, 4, 2, 22);
+
+            // Stand
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
+            ctx.fillRect(13, 26, 6, 3);
+
+            // Green line chart going up
+            ctx.strokeStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(6, 22);
+            ctx.lineTo(10, 20);
+            ctx.lineTo(14, 18);
+            ctx.lineTo(18, 14);
+            ctx.lineTo(22, 10);
+            ctx.lineTo(26, 8);
+            ctx.stroke();
+
+            // Data point dots
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_LIGHT);
+            ctx.fillRect(9, 19, 2, 2);
+            ctx.fillRect(17, 13, 2, 2);
+            ctx.fillRect(25, 7, 2, 2);
+        });
+    }
+
+    /**
+     * Generates Product Hunt trophy sprite — orange/gold trophy shape.
+     * @returns {THREE.Texture}
+     */
+    generateProductHuntTrophy() {
+        return this.generateTexture('item_product_hunt_trophy', 32, 32, (ctx, w, h) => {
+            // Base/pedestal
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
+            ctx.fillRect(10, 26, 12, 4);
+
+            // Trophy stem
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
+            ctx.fillRect(14, 22, 4, 4);
+
+            // Trophy body (cup shape)
+            ctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_ORANGE);
+            ctx.beginPath();
+            ctx.moveTo(6, 6);
+            ctx.lineTo(26, 6);
+            ctx.lineTo(22, 22);
+            ctx.lineTo(10, 22);
+            ctx.closePath();
+            ctx.fill();
+
+            // Trophy highlight
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GOLD, 0.6);
+            ctx.fillRect(12, 8, 8, 2);
+
+            // Cat silhouette (Product Hunt cat)
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(12, 12, 3, 3);
+            ctx.fillRect(17, 12, 3, 3);
+            ctx.fillRect(13, 16, 6, 3);
+        });
+    }
+
+    /**
+     * Generates ad budget sprite — green rectangle stack like money bills.
+     * @returns {THREE.Texture}
+     */
+    generateAdBudget() {
+        return this.generateTexture('item_ad_budget', 32, 32, (ctx, w, h) => {
+            // Bottom bill
+            ctx.fillStyle = hexToRgba(darken(NES_PALETTE.GREEN_MONEY, 15));
+            ctx.fillRect(4, 14, 24, 14);
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_DARK, 0.4);
+            ctx.fillRect(4, 14, 24, 1);
+
+            // Middle bill
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_MONEY);
+            ctx.fillRect(4, 10, 24, 14);
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_DARK, 0.4);
+            ctx.fillRect(4, 10, 24, 1);
+
+            // Top bill
+            ctx.fillStyle = hexToRgba(lighten(NES_PALETTE.GREEN_MONEY, 10));
+            ctx.fillRect(4, 6, 24, 14);
+
+            // Top bill border
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GREEN_DARK, 0.3);
+            ctx.fillRect(4, 6, 24, 1);
+            ctx.fillRect(4, 19, 24, 1);
+            ctx.fillRect(4, 6, 1, 14);
+            ctx.fillRect(27, 6, 1, 14);
+
+            // Dollar sign on top bill
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE, 0.6);
+            ctx.fillRect(15, 9, 2, 8);
+            ctx.fillRect(13, 10, 6, 1);
+            ctx.fillRect(13, 13, 6, 1);
+            ctx.fillRect(13, 16, 6, 1);
+        });
+    }
+
+    /**
+     * Generates default item fallback sprite — gray square with white "?".
+     * @returns {THREE.Texture}
+     */
+    generateDefaultItem() {
+        return this.generateTexture('item_default', 32, 32, (ctx, w, h) => {
+            // Gray background
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_MED);
+            ctx.fillRect(4, 4, 24, 24);
+
+            // Border
+            ctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
+            ctx.fillRect(4, 4, 24, 2);
+            ctx.fillRect(4, 4, 2, 24);
+            ctx.fillRect(4, 26, 24, 2);
+            ctx.fillRect(26, 4, 2, 24);
+
+            // White "?"
+            ctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
+            ctx.fillRect(12, 10, 8, 2);
+            ctx.fillRect(18, 10, 2, 4);
+            ctx.fillRect(12, 14, 8, 2);
+            ctx.fillRect(12, 14, 2, 4);
+            ctx.fillRect(12, 18, 8, 2);
+            // Dot
+            ctx.fillRect(14, 22, 4, 4);
+        });
+    }
+
     /**
      * Disposes of all cached textures.
      */

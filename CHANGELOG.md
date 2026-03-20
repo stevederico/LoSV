@@ -13,6 +13,18 @@ Add board room building
 
 ### Changes
 
+## [0.9.0] - 2026-03-20
+
+  Fix font loading (Google Fonts)
+  Add procedural item sprites (20)
+  Add procedural NPC sprites (5)
+  Add procedural UI sprites
+  Add items to buildings 6-9
+  Add mobile notice overlay
+  Add favicon
+  Add OG image meta tag
+  Replace all placeholder PNGs
+
 ## [0.8.0] - 2026-03-19
 
   Fix house exit position

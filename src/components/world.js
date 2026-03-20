@@ -707,6 +707,37 @@ export class World {
         return iphoneSprite;
     }
 
+    /**
+     * Creates a generic pickup item using procedural sprite generation.
+     * @param {string} itemType - Item type key matching SpriteGenerator definitions
+     * @param {number} x - X position in the scene
+     * @param {number} z - Z position in the scene
+     * @param {number} width - Plane geometry width
+     * @param {number} height - Plane geometry height
+     * @param {Object} itemData - Item metadata (name, icon, description)
+     * @returns {THREE.Mesh} The created item mesh
+     */
+    createItem(itemType, x, z, width, height, itemData) {
+        const texture = spriteGenerator.generateItemSprite(itemType);
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const sprite = new THREE.Mesh(geometry, material);
+        sprite.position.set(x, 0.5, z);
+        sprite.rotation.x = -Math.PI / 2;
+        sprite.width = width;
+        sprite.depth = height;
+        sprite.userData.isPickupItem = true;
+        sprite.userData.itemType = itemType;
+        sprite.userData.itemData = itemData;
+        this.scene.add(sprite);
+        this.interactiveElements.push(sprite);
+        return sprite;
+    }
+
     createChest(x, z, spriteWidth, spriteHeight) {
         const chestTexture = this.textureLoader.load('/assets/textures/chest-sprite.png');
         chestTexture.magFilter = THREE.NearestFilter;
@@ -770,9 +801,7 @@ export class World {
     addLockOverlay(building) {
         if (!building || this.buildingLocks.has(building)) return;
 
-        const lockTexture = this.textureLoader.load('/assets/textures/ui/padlock.png');
-        lockTexture.magFilter = THREE.NearestFilter;
-        lockTexture.minFilter = THREE.NearestFilter;
+        const lockTexture = spriteGenerator.generatePadlockSprite();
 
         const lockGeometry = new THREE.PlaneGeometry(1, 1);
         const lockMaterial = new THREE.MeshBasicMaterial({

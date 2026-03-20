@@ -783,8 +783,43 @@ export class Game {
             light.position.set(-3 + (i % 4) * 2, 1.5, -2.05);
             this.scene.add(light);
         }
+
+        // Add pickup items
+        this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
+
+        const dashboard = this.world.createItem('analytics-dashboard', 2, 1, 0.8, 0.6, {
+            name: 'Analytics Dashboard',
+            icon: '📊',
+            description: 'Server metrics and uptime monitoring'
+        });
+        dashboard.userData.buildingType = 'data-center';
+        this.player.buildingInteractiveElements.push(dashboard);
+
+        const techDebt = this.world.createItem('tech-debt-note', -1, 2, 0.5, 0.5, {
+            name: 'Technical Debt Note',
+            icon: '⚠️',
+            description: '"Fix the deploy pipeline" - Ops Team'
+        });
+        techDebt.userData.buildingType = 'data-center';
+        this.player.buildingInteractiveElements.push(techDebt);
+
+        const drink = this.world.createItem('energy-drink', 3, 0, 0.4, 0.6, {
+            name: 'Energy Drink',
+            icon: '⚡',
+            description: 'On-call fuel for 3AM incidents'
+        });
+        drink.userData.buildingType = 'data-center';
+        this.player.buildingInteractiveElements.push(drink);
+
+        const kb = this.world.createItem('keyboard', -2, 1, 0.8, 0.8, {
+            name: 'Mechanical Keyboard',
+            icon: '⌨️',
+            description: 'Cherry MX Blues - the ops team special'
+        });
+        kb.userData.buildingType = 'data-center';
+        this.player.buildingInteractiveElements.push(kb);
     }
-    
+
     setupVentureInterior() {
         // Add fancy desk
         const deskGeometry = new THREE.BoxGeometry(3, 0.8, 1.5);
@@ -804,8 +839,43 @@ export class Game {
             this.scene.add(chair);
             this.player.buildingObstacles.push(chair);
         }
+
+        // Add pickup items
+        this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
+
+        const pitch = this.world.createItem('pitch-deck', 0, 0, 1.0, 0.7, {
+            name: 'Pitch Deck',
+            icon: '📊',
+            description: 'Left behind by the last founder who pitched here'
+        });
+        pitch.userData.buildingType = 'venture';
+        this.player.buildingInteractiveElements.push(pitch);
+
+        const playbook = this.world.createItem('growth-playbook', -2, 2, 0.9, 1.1, {
+            name: 'Growth Playbook',
+            icon: '📚',
+            description: 'VC-approved growth strategies'
+        });
+        playbook.userData.buildingType = 'venture';
+        this.player.buildingInteractiveElements.push(playbook);
+
+        const card = this.world.createItem('business-card', 2, 2, 0.6, 0.4, {
+            name: 'Investor Business Card',
+            icon: '👔',
+            description: 'Partner at Sequoia - call anytime'
+        });
+        card.userData.buildingType = 'venture';
+        this.player.buildingInteractiveElements.push(card);
+
+        const adBudget = this.world.createItem('ad-budget', 3, -1, 0.8, 0.6, {
+            name: 'Ad Campaign Budget',
+            icon: '💰',
+            description: 'Portfolio company marketing allocation'
+        });
+        adBudget.userData.buildingType = 'venture';
+        this.player.buildingInteractiveElements.push(adBudget);
     }
-    
+
     setupLawInterior() {
         // Add bookshelves
         const shelfGeometry = new THREE.BoxGeometry(0.5, 2.5, 3);
@@ -825,8 +895,43 @@ export class Game {
         desk.position.set(0, 0.4, 0);
         this.scene.add(desk);
         this.player.buildingObstacles.push(desk);
+
+        // Add pickup items
+        this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
+
+        const handbook = this.world.createItem('handbook', -2, 2, 0.8, 1.0, {
+            name: 'Employee Handbook',
+            icon: '📖',
+            description: 'Standard employment agreement template'
+        });
+        handbook.userData.buildingType = 'law';
+        this.player.buildingInteractiveElements.push(handbook);
+
+        const termSheet = this.world.createItem('term-sheet', 1, -1, 0.8, 1.0, {
+            name: 'Term Sheet',
+            icon: '📄',
+            description: 'Reviewed and redlined by legal counsel'
+        });
+        termSheet.userData.buildingType = 'law';
+        this.player.buildingInteractiveElements.push(termSheet);
+
+        const capTable = this.world.createItem('cap-table', 2, 2, 1.0, 0.8, {
+            name: 'Cap Table Spreadsheet',
+            icon: '📈',
+            description: 'Post-money valuation calculations'
+        });
+        capTable.userData.buildingType = 'law';
+        this.player.buildingInteractiveElements.push(capTable);
+
+        const stockOpts = this.world.createItem('stock-options', -1, 1, 0.9, 0.7, {
+            name: 'Stock Option Pool Doc',
+            icon: '💼',
+            description: '409A valuation and vesting schedule'
+        });
+        stockOpts.userData.buildingType = 'law';
+        this.player.buildingInteractiveElements.push(stockOpts);
     }
-    
+
     setupNasdaqInterior() {
         // Add trading terminals
         const terminalGeometry = new THREE.BoxGeometry(1, 1.2, 0.8);
@@ -881,6 +986,38 @@ export class Game {
 
         // Initialize interactive elements array
         this.player.buildingInteractiveElements = this.player.buildingInteractiveElements || [];
+
+        const capTable = this.world.createItem('cap-table', -1, 0, 1.0, 0.8, {
+            name: 'Cap Table Spreadsheet',
+            icon: '📈',
+            description: 'Final equity breakdown before IPO'
+        });
+        capTable.userData.buildingType = 'board-room';
+        this.player.buildingInteractiveElements.push(capTable);
+
+        const termSheet = this.world.createItem('term-sheet', 2, 0, 0.8, 1.0, {
+            name: 'Term Sheet',
+            icon: '📄',
+            description: 'Series C term sheet - $50M valuation'
+        });
+        termSheet.userData.buildingType = 'board-room';
+        this.player.buildingInteractiveElements.push(termSheet);
+
+        const stockOpts = this.world.createItem('stock-options', -2, 1, 0.9, 0.7, {
+            name: 'Stock Option Pool Doc',
+            icon: '💼',
+            description: 'Board-approved option pool expansion'
+        });
+        stockOpts.userData.buildingType = 'board-room';
+        this.player.buildingInteractiveElements.push(stockOpts);
+
+        const teamPhoto = this.world.createItem('team-photo', 3, 1, 1.0, 0.7, {
+            name: 'Team Photo',
+            icon: '📸',
+            description: 'Leadership team at the board offsite'
+        });
+        teamPhoto.userData.buildingType = 'board-room';
+        this.player.buildingInteractiveElements.push(teamPhoto);
     }
 
     /**
