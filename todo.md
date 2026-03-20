@@ -1,0 +1,3 @@
+- add a MRR bar to the top
+- add talking and text
+- add 
