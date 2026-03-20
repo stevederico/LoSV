@@ -1883,9 +1883,7 @@ export class Player {
         this.interactiveNPCs.push(iphoneSprite); // Add to interactive elements
 
         // Create Whiteboard Markers
-        const whiteboardTexture = new THREE.TextureLoader().load('/assets/textures/items/whiteboard.png');
-        whiteboardTexture.magFilter = THREE.NearestFilter;
-        whiteboardTexture.minFilter = THREE.NearestFilter;
+        const whiteboardTexture = spriteGenerator.generateItemSprite('whiteboard');
 
         const whiteboardGeometry = new THREE.PlaneGeometry(0.6, 0.6);
         const whiteboardMaterial = new THREE.MeshBasicMaterial({
@@ -1912,9 +1910,7 @@ export class Player {
         this.interactiveNPCs.push(whiteboardSprite);
 
         // Create Interview Notes
-        const notesTexture = new THREE.TextureLoader().load('/assets/textures/items/interview-notes.png');
-        notesTexture.magFilter = THREE.NearestFilter;
-        notesTexture.minFilter = THREE.NearestFilter;
+        const notesTexture = spriteGenerator.generateItemSprite('interview-notes');
 
         const notesGeometry = new THREE.PlaneGeometry(0.8, 0.6);
         const notesMaterial = new THREE.MeshBasicMaterial({
@@ -1942,11 +1938,8 @@ export class Player {
     }
 
     addGarageItems() {
-        const loader = new THREE.TextureLoader();
-
         // Mechanical Keyboard
-        const keyboardTexture = loader.load('/assets/textures/items/keyboard.png');
-        keyboardTexture.magFilter = THREE.NearestFilter;
+        const keyboardTexture = spriteGenerator.generateItemSprite('keyboard');
         const keyboardSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.8, 0.8),
             new THREE.MeshBasicMaterial({ map: keyboardTexture, transparent: true, side: THREE.DoubleSide })
@@ -1964,8 +1957,7 @@ export class Player {
         this.interactiveNPCs.push(keyboardSprite);
 
         // Energy Drink
-        const drinkTexture = loader.load('/assets/textures/items/energy-drink.png');
-        drinkTexture.magFilter = THREE.NearestFilter;
+        const drinkTexture = spriteGenerator.generateItemSprite('energy-drink');
         const drinkSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.4, 0.6),
             new THREE.MeshBasicMaterial({ map: drinkTexture, transparent: true, side: THREE.DoubleSide })
@@ -1983,8 +1975,7 @@ export class Player {
         this.interactiveNPCs.push(drinkSprite);
 
         // GitHub Stickers
-        const stickersTexture = loader.load('/assets/textures/items/github-stickers.png');
-        stickersTexture.magFilter = THREE.NearestFilter;
+        const stickersTexture = spriteGenerator.generateItemSprite('github-stickers');
         const stickersSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.6, 0.6),
             new THREE.MeshBasicMaterial({ map: stickersTexture, transparent: true, side: THREE.DoubleSide })
@@ -2002,8 +1993,7 @@ export class Player {
         this.interactiveNPCs.push(stickersSprite);
 
         // MVP Demo USB
-        const usbTexture = loader.load('/assets/textures/items/mvp-usb.png');
-        usbTexture.magFilter = THREE.NearestFilter;
+        const usbTexture = spriteGenerator.generateItemSprite('mvp-usb');
         const usbSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.5, 0.3),
             new THREE.MeshBasicMaterial({ map: usbTexture, transparent: true, side: THREE.DoubleSide })
@@ -2021,8 +2011,7 @@ export class Player {
         this.interactiveNPCs.push(usbSprite);
 
         // Technical Debt Note
-        const noteTexture = loader.load('/assets/textures/items/tech-debt-note.png');
-        noteTexture.magFilter = THREE.NearestFilter;
+        const noteTexture = spriteGenerator.generateItemSprite('tech-debt-note');
         const noteSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.5, 0.5),
             new THREE.MeshBasicMaterial({ map: noteTexture, transparent: true, side: THREE.DoubleSide })
@@ -2041,11 +2030,8 @@ export class Player {
     }
 
     addAcceleratorItems() {
-        const loader = new THREE.TextureLoader();
-
         // Pitch Deck
-        const pitchTexture = loader.load('/assets/textures/items/pitch-deck.png');
-        pitchTexture.magFilter = THREE.NearestFilter;
+        const pitchTexture = spriteGenerator.generateItemSprite('pitch-deck');
         const pitchSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(1.0, 0.7),
             new THREE.MeshBasicMaterial({ map: pitchTexture, transparent: true, side: THREE.DoubleSide })
@@ -2063,8 +2049,7 @@ export class Player {
         this.interactiveNPCs.push(pitchSprite);
 
         // Term Sheet
-        const termTexture = loader.load('/assets/textures/items/term-sheet.png');
-        termTexture.magFilter = THREE.NearestFilter;
+        const termTexture = spriteGenerator.generateItemSprite('term-sheet');
         const termSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.8, 1.0),
             new THREE.MeshBasicMaterial({ map: termTexture, transparent: true, side: THREE.DoubleSide })
@@ -2082,8 +2067,7 @@ export class Player {
         this.interactiveNPCs.push(termSprite);
 
         // Investor Business Cards
-        const cardTexture = loader.load('/assets/textures/items/business-card.png');
-        cardTexture.magFilter = THREE.NearestFilter;
+        const cardTexture = spriteGenerator.generateItemSprite('business-card');
         const cardSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.6, 0.4),
             new THREE.MeshBasicMaterial({ map: cardTexture, transparent: true, side: THREE.DoubleSide })
@@ -2101,8 +2085,7 @@ export class Player {
         this.interactiveNPCs.push(cardSprite);
 
         // YC Acceptance Letter
-        const ycTexture = loader.load('/assets/textures/items/yc-letter.png');
-        ycTexture.magFilter = THREE.NearestFilter;
+        const ycTexture = spriteGenerator.generateItemSprite('yc-letter');
         const ycSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.7, 0.9),
             new THREE.MeshBasicMaterial({ map: ycTexture, transparent: true, side: THREE.DoubleSide })
@@ -2120,8 +2103,7 @@ export class Player {
         this.interactiveNPCs.push(ycSprite);
 
         // Cap Table Spreadsheet
-        const capTexture = loader.load('/assets/textures/items/cap-table.png');
-        capTexture.magFilter = THREE.NearestFilter;
+        const capTexture = spriteGenerator.generateItemSprite('cap-table');
         const capSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(1.0, 0.8),
             new THREE.MeshBasicMaterial({ map: capTexture, transparent: true, side: THREE.DoubleSide })
@@ -2140,11 +2122,8 @@ export class Player {
     }
 
     addLoftItems() {
-        const loader = new THREE.TextureLoader();
-
         // Employee Handbook
-        const handbookTexture = loader.load('/assets/textures/items/handbook.png');
-        handbookTexture.magFilter = THREE.NearestFilter;
+        const handbookTexture = spriteGenerator.generateItemSprite('handbook');
         const handbookSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.8, 1.0),
             new THREE.MeshBasicMaterial({ map: handbookTexture, transparent: true, side: THREE.DoubleSide })
@@ -2162,8 +2141,7 @@ export class Player {
         this.interactiveNPCs.push(handbookSprite);
 
         // Team Photos
-        const photoTexture = loader.load('/assets/textures/items/team-photo.png');
-        photoTexture.magFilter = THREE.NearestFilter;
+        const photoTexture = spriteGenerator.generateItemSprite('team-photo');
         const photoSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(1.0, 0.7),
             new THREE.MeshBasicMaterial({ map: photoTexture, transparent: true, side: THREE.DoubleSide })
@@ -2181,8 +2159,7 @@ export class Player {
         this.interactiveNPCs.push(photoSprite);
 
         // Stock Option Pool Doc
-        const stockTexture = loader.load('/assets/textures/items/stock-options.png');
-        stockTexture.magFilter = THREE.NearestFilter;
+        const stockTexture = spriteGenerator.generateItemSprite('stock-options');
         const stockSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.9, 0.7),
             new THREE.MeshBasicMaterial({ map: stockTexture, transparent: true, side: THREE.DoubleSide })
@@ -2200,8 +2177,7 @@ export class Player {
         this.interactiveNPCs.push(stockSprite);
 
         // Ping Pong Paddle
-        const paddleTexture = loader.load('/assets/textures/items/ping-pong-paddle.png');
-        paddleTexture.magFilter = THREE.NearestFilter;
+        const paddleTexture = spriteGenerator.generateItemSprite('ping-pong-paddle');
         const paddleSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.6, 0.8),
             new THREE.MeshBasicMaterial({ map: paddleTexture, transparent: true, side: THREE.DoubleSide })
@@ -2220,11 +2196,8 @@ export class Player {
     }
 
     addConferenceItems() {
-        const loader = new THREE.TextureLoader();
-
         // Growth Playbook
-        const playbookTexture = loader.load('/assets/textures/items/growth-playbook.png');
-        playbookTexture.magFilter = THREE.NearestFilter;
+        const playbookTexture = spriteGenerator.generateItemSprite('growth-playbook');
         const playbookSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.9, 1.1),
             new THREE.MeshBasicMaterial({ map: playbookTexture, transparent: true, side: THREE.DoubleSide })
@@ -2242,8 +2215,7 @@ export class Player {
         this.interactiveNPCs.push(playbookSprite);
 
         // Analytics Dashboard Printout
-        const analyticsTexture = loader.load('/assets/textures/items/analytics-dashboard.png');
-        analyticsTexture.magFilter = THREE.NearestFilter;
+        const analyticsTexture = spriteGenerator.generateItemSprite('analytics-dashboard');
         const analyticsSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(1.2, 0.8),
             new THREE.MeshBasicMaterial({ map: analyticsTexture, transparent: true, side: THREE.DoubleSide })
@@ -2261,8 +2233,7 @@ export class Player {
         this.interactiveNPCs.push(analyticsSprite);
 
         // Product Hunt Trophy
-        const trophyTexture = loader.load('/assets/textures/items/product-hunt-trophy.png');
-        trophyTexture.magFilter = THREE.NearestFilter;
+        const trophyTexture = spriteGenerator.generateItemSprite('product-hunt-trophy');
         const trophySprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.7, 0.9),
             new THREE.MeshBasicMaterial({ map: trophyTexture, transparent: true, side: THREE.DoubleSide })
@@ -2280,8 +2251,7 @@ export class Player {
         this.interactiveNPCs.push(trophySprite);
 
         // Ad Campaign Budget
-        const budgetTexture = loader.load('/assets/textures/items/ad-budget.png');
-        budgetTexture.magFilter = THREE.NearestFilter;
+        const budgetTexture = spriteGenerator.generateItemSprite('ad-budget');
         const budgetSprite = new THREE.Mesh(
             new THREE.PlaneGeometry(0.8, 0.6),
             new THREE.MeshBasicMaterial({ map: budgetTexture, transparent: true, side: THREE.DoubleSide })
@@ -2310,13 +2280,9 @@ export class Player {
         };
 
         const spriteName = spriteMap[characterId] || 'sam-visionary';
-        const spritePath = `/assets/textures/npc/${spriteName}.png`;
 
-        // Load character sprite texture
-        const loader = new THREE.TextureLoader();
-        const spriteTexture = loader.load(spritePath);
-        spriteTexture.magFilter = THREE.NearestFilter;
-        spriteTexture.minFilter = THREE.NearestFilter;
+        // Generate character sprite procedurally
+        const spriteTexture = spriteGenerator.generateNPCSprite(spriteName);
 
         // Create plane geometry for sprite (1x1.5 aspect ratio for character)
         const npcGeometry = new THREE.PlaneGeometry(1, 1.5);
