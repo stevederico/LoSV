@@ -203,6 +203,32 @@ export class DialogueManager {
                 }
                 break;
 
+            case 'go_to':
+                // Show quest hint, then close dialogue
+                this.hideChoices();
+                const hintLines = [choice.hint || `Head to the ${choice.target} and find ${choice.targetNPC}.`];
+                this.showDialogue(hintLines, () => {
+                    this.hideDialogue();
+                    if (this.dialogueLoader) {
+                        this.dialogueLoader.setQuestMarker(choice.target, choice.targetNPC);
+                    }
+                    if (originalCallback) originalCallback();
+                });
+                break;
+
+            case 'set_flag':
+                // Set a global progress flag and optionally chain to next dialogue
+                if (choice.flag && this.dialogueLoader) {
+                    this.dialogueLoader.playerProgress.set(choice.flag, true);
+                }
+                if (choice.nextDialogue) {
+                    this.showCharacterDialogue(characterId, choice.nextDialogue, originalCallback);
+                } else {
+                    this.hideDialogue();
+                    if (originalCallback) originalCallback();
+                }
+                break;
+
             case 'close':
                 // Just close dialogue
                 this.hideDialogue();

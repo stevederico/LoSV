@@ -1,188 +1,184 @@
 {
-  "version": "1.0.0",
-  "description": "Centralized dialogue system for The Legend of Silicon Valley game",
+  "version": "2.0.0",
+  "description": "Centralized dialogue system for Legend of Silicon Valley — 30 NPCs across 10 buildings",
   "settings": {
     "defaultLineDisplayTime": 1500,
     "maxDialogueDistance": 7,
     "autoAdvance": true
   },
   "characters": {
-    "house_npc": {
-      "id": "house_npc",
-      "name": "Sam the Visionary",
-      "color": "#8B4513",
-      "location": "house",
-      "position": { "x": -5, "y": 0.1, "z": -3 },
-      "spritePath": "/assets/textures/npc/sam-visionary.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Welcome to your entrepreneurial journey!",
-            "This is Level 1: Product Ideation at Your Home.",
-            "Goal: Validate problem-solution fit in 3 rounds.",
-            "Ready to brainstorm your next big idea?"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Start Level 1: Product Ideation",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tell me more about product ideation",
-              "action": "dialogue",
-              "nextDialogue": "ideation_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
-          ]
-        },
-        "ideation_help": {
-          "id": "ideation_help",
-          "trigger": "interaction",
-          "lines": [
-            "Remember: Focus on real problems people face.",
-            "Consider your target users carefully - who exactly needs this solution?",
-            "Think about your value proposition - what unique benefit do you provide?",
-            "Assess technical feasibility - can you actually build this?",
-            "User feedback is crucial - listen to what potential customers say.",
-            "Don't fall in love with your first idea - be ready to pivot!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "I'm ready to start!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
-          ]
-        }
-      }
-    },
     "sam": {
       "id": "sam",
       "name": "Sam the Visionary",
-      "color": "#8B4513",
+      "color": "#ff6b6b",
       "location": "house",
-      "position": { "x": -5, "y": 0.1, "z": -3 },
-      "spritePath": "/assets/textures/npc/sam-visionary.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to your entrepreneurial journey!",
-            "This is Level 1: Product Ideation at Your Home.",
-            "Goal: Validate problem-solution fit in 3 rounds.",
-            "Ready to brainstorm your next big idea?"
+            "Every empire starts with a napkin sketch.",
+            "Level 1: Product Ideation.",
+            "Validate your idea in 3 rounds.",
+            "The Valley rewards the bold. You ready?"
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Start Level 1: Product Ideation",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tell me more about product ideation",
-              "action": "dialogue",
-              "nextDialogue": "ideation_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "Start Level 1: Ideation", "action": "start_simulator" },
+            { "text": "Coach me on ideation", "action": "dialogue", "nextDialogue": "ideation_help" },
+            { "text": "Who else should I talk to?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Not yet", "action": "close" }
           ]
         },
         "ideation_help": {
           "id": "ideation_help",
           "trigger": "interaction",
           "lines": [
-            "Remember: Focus on real problems people face.",
-            "Consider your target users carefully - who exactly needs this solution?",
-            "Think about your value proposition - what unique benefit do you provide?",
-            "Assess technical feasibility - can you actually build this?",
-            "User feedback is crucial - listen to what potential customers say.",
-            "Don't fall in love with your first idea - be ready to pivot!"
+            "Solve a problem you've felt yourself.",
+            "Talk to 20 strangers before writing code.",
+            "If nobody says 'shut up and take my money'...",
+            "...you haven't found the pain yet."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "I'm ready to start!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
+            { "text": "I'm ready to start", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Alex down at the Garage builds MVPs overnight.",
+            "And Priya here can validate your assumptions.",
+            "Don't skip validation. Trust me."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Alex at the Garage", "action": "go_to", "target": "garage", "targetNPC": "alex", "hint": "Head south to the Garage." },
+            { "text": "Talk to Priya", "action": "dialogue", "nextDialogue": "greeting" },
+            { "text": "Thanks", "action": "close" }
           ]
         }
       }
     },
-    "garage_npc": {
-      "id": "garage_npc",
-      "name": "Alex the Builder",
-      "color": "#2C3E50",
-      "location": "garage",
-      "position": { "x": -4, "y": 0.1, "z": -2 },
-      "spritePath": "/assets/textures/npc/alex-builder.png",
+    "priya": {
+      "id": "priya",
+      "name": "Priya the Researcher",
+      "color": "#9B59B6",
+      "location": "house",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Hey! Welcome to my garage - where ideas become reality.",
-            "This is Level 2: MVP Development.",
-            "Goal: Ship a minimum viable product in 3 sprints.",
-            "Time to turn your validated idea into working software!"
+            "Hi! I'm Priya. I do user research.",
+            "Gut feelings are nice. Data is better.",
+            "Want me to stress-test your idea?"
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Start Level 2: MVP Development",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tell me about building an MVP",
-              "action": "dialogue",
-              "nextDialogue": "mvp_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "Teach me validation", "action": "dialogue", "nextDialogue": "validation_advice" },
+            { "text": "Where should I go next?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Maybe later", "action": "close" }
           ]
         },
-        "mvp_help": {
-          "id": "mvp_help",
+        "validation_advice": {
+          "id": "validation_advice",
           "trigger": "interaction",
           "lines": [
-            "MVP means Minimum Viable Product - the simplest version that solves the core problem.",
-            "Don't build features nobody asked for. Focus on the essential value proposition.",
-            "Ship fast, gather feedback, iterate. Perfect is the enemy of done.",
-            "Pick the right tech stack - familiar beats trendy when you're moving fast.",
-            "Technical debt is okay early on, but document it so you know where it is.",
-            "Your first users will forgive bugs if the core value is there!"
+            "Step 1: Define your riskiest assumption.",
+            "Step 2: Design a test that could kill it.",
+            "Step 3: Run it with real humans, not friends.",
+            "If it survives, you might have something."
+          ],
+          "repeatable": true,
+          "unlocks": ["validated_idea"],
+          "choices": [
+            { "text": "My idea survived!", "action": "set_flag", "flag": "validated_idea", "nextDialogue": "referral" },
+            { "text": "Back to the drawing board", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Good. Now go build something tangible.",
+            "Alex at the Garage ships fast.",
+            "Tell him Priya sent you."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Let's build this thing!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
+            { "text": "Head to the Garage", "action": "go_to", "target": "garage", "targetNPC": "alex", "hint": "The Garage is south of here." },
+            { "text": "Thanks", "action": "close" }
+          ]
+        }
+      }
+    },
+    "old_timer": {
+      "id": "old_timer",
+      "name": "Old Timer",
+      "color": "#808080",
+      "location": "house",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Three startups. Three failures. One lesson.",
+            "Cash. Is. King.",
+            "Don't look at me like that. Sit down."
+          ],
+          "repeatable": true,
+          "unlocks": ["met_old_timer"],
+          "choices": [
+            { "text": "Tell me what happened", "action": "set_flag", "flag": "met_old_timer", "nextDialogue": "lesson" },
+            { "text": "That's rough, buddy", "action": "close" }
+          ]
+        },
+        "lesson": {
+          "id": "lesson",
+          "trigger": "interaction",
+          "lines": [
+            "First startup: burned $2M on office furniture.",
+            "Second: hired 40 people before finding PMF.",
+            "Third: ran out of runway 2 weeks before profit.",
+            "Two weeks. That one still stings."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Tell me a war story", "action": "dialogue", "nextDialogue": "war_story" },
+            { "text": "Any advice for me?", "action": "dialogue", "nextDialogue": "mentor_quest" },
+            { "text": "I'll be careful", "action": "close" }
+          ]
+        },
+        "war_story": {
+          "id": "war_story",
+          "trigger": "interaction",
+          "lines": [
+            "Once pitched a VC while my servers were on fire.",
+            "Literally. The rack caught fire in the colo.",
+            "Got the term sheet though. He respected hustle.",
+            "Lost the company 6 months later anyway. Ha."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who should I talk to?", "action": "dialogue", "nextDialogue": "mentor_quest" },
+            { "text": "Incredible", "action": "close" }
+          ]
+        },
+        "mentor_quest": {
+          "id": "mentor_quest",
+          "trigger": "interaction",
+          "lines": [
+            "Find Diana at the Board Room. CFO type.",
+            "She almost saved my third company.",
+            "Tell her I sent you. She'll understand."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to the Board Room", "action": "go_to", "target": "board-room", "targetNPC": "cfo_diana", "hint": "The Board Room is far east, past the Conference." },
+            { "text": "I'll find her", "action": "close" }
           ]
         }
       }
@@ -192,427 +188,157 @@
       "name": "Alex the Builder",
       "color": "#2C3E50",
       "location": "garage",
-      "position": { "x": -4, "y": 0.1, "z": -2 },
-      "spritePath": "/assets/textures/npc/alex-builder.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Hey! Welcome to my garage - where ideas become reality.",
-            "This is Level 2: MVP Development.",
-            "Goal: Ship a minimum viable product in 3 sprints.",
-            "Time to turn your validated idea into working software!"
+            "Welcome to the Garage. No slides here.",
+            "Level 2: MVP Development.",
+            "Ship something real in 3 sprints.",
+            "Code talks. Everything else walks."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Start Level 2: MVP Development",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tell me about building an MVP",
-              "action": "dialogue",
-              "nextDialogue": "mvp_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "Start Level 2: MVP", "action": "start_simulator" },
+            { "text": "MVP advice?", "action": "dialogue", "nextDialogue": "mvp_help" },
+            { "text": "Who else is around?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Later", "action": "close" }
           ]
         },
         "mvp_help": {
           "id": "mvp_help",
           "trigger": "interaction",
           "lines": [
-            "MVP means Minimum Viable Product - the simplest version that solves the core problem.",
-            "Don't build features nobody asked for. Focus on the essential value proposition.",
-            "Ship fast, gather feedback, iterate. Perfect is the enemy of done.",
-            "Pick the right tech stack - familiar beats trendy when you're moving fast.",
-            "Technical debt is okay early on, but document it so you know where it is.",
-            "Your first users will forgive bugs if the core value is there!"
+            "Build the smallest thing that proves value.",
+            "If it takes more than 2 weeks, scope is wrong.",
+            "Ship ugly. Ship broken. Ship FAST.",
+            "Users forgive bugs. They won't forgive vapor."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Let's build this thing!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
+            { "text": "Let's build", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Once you've shipped, talk to Jordan.",
+            "He's at the Accelerator. Knows every VC.",
+            "Also, Dani here handles DevOps. Ship safer."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Jordan at Accelerator", "action": "go_to", "target": "accelerator", "targetNPC": "jordan", "hint": "The Accelerator is west of the Garage." },
+            { "text": "Got it", "action": "close" }
           ]
         }
       }
     },
-    "venture_npc": {
-      "id": "venture_npc",
-      "name": "VC Partner",
-      "color": "#0088ff",
-      "location": "venture",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+    "devops_dani": {
+      "id": "devops_dani",
+      "name": "DevOps Dani",
+      "color": "#E67E22",
+      "location": "garage",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to our venture capital firm!",
-            "We invest in the future.",
-            "Got a great startup idea?"
-          ],
-          "repeatable": true
-        },
-        "pitch_request": {
-          "id": "pitch_request",
-          "trigger": "interaction",
-          "lines": [
-            "Tell me about your startup.",
-            "What's your business model?",
-            "How much funding do you need?"
-          ],
-          "repeatable": false,
-          "unlocks": ["funding_discussion"]
-        },
-        "funding_discussion": {
-          "id": "funding_discussion",
-          "trigger": "interaction",
-          "lines": [
-            "We typically invest $1M to $10M.",
-            "We look for strong teams and scalable ideas.",
-            "Come back when you have traction!"
+            "99.99% uptime or I don't sleep.",
+            "I'm Dani. I keep things running.",
+            "Your deploy pipeline scares me already."
           ],
           "repeatable": true,
-          "requirements": ["pitch_request"]
+          "choices": [
+            { "text": "Help me with infrastructure", "action": "dialogue", "nextDialogue": "infra_advice" },
+            { "text": "Know anyone at the Data Center?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "My pipeline is fine", "action": "close" }
+          ]
+        },
+        "infra_advice": {
+          "id": "infra_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Automate deploys. No manual SSH. Ever.",
+            "Monitor everything. Alert on the right things.",
+            "Rollbacks should take 30 seconds, not 30 minutes.",
+            "If you can't deploy on Friday, your CI is broken."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who handles scale?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Noted", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "When you outgrow this garage setup...",
+            "Find SRE Pat at the Data Center.",
+            "Pat's paranoid, but that's the job."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to Data Center", "action": "go_to", "target": "data-center", "targetNPC": "sre_pat", "hint": "The Data Center is east, past the Accelerator." },
+            { "text": "Thanks Dani", "action": "close" }
+          ]
         }
       }
     },
-    "data_center_npc": {
-      "id": "data_center_npc",
-      "name": "Data Engineer",
-      "color": "#00ffff",
-      "location": "data-center",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+    "garage_intern": {
+      "id": "garage_intern",
+      "name": "The Intern",
+      "color": "#3498DB",
+      "location": "garage",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to our data center!",
-            "We process petabytes of data.",
-            "The servers never sleep!"
-          ],
-          "repeatable": true
-        },
-        "tech_talk": {
-          "id": "tech_talk",
-          "trigger": "interaction",
-          "lines": [
-            "Our infrastructure handles millions of requests.",
-            "We use cutting-edge cloud technology.",
-            "Data is the new oil, they say!"
-          ],
-          "repeatable": true
-        }
-      }
-    },
-    "conference_npc": {
-      "id": "conference_npc",
-      "name": "Morgan the Marketer",
-      "color": "#16A085",
-      "location": "conference",
-      "position": { "x": 0, "y": 0.1, "z": 2 },
-      "spritePath": "/assets/textures/npc/morgan-marketer.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Welcome to the big leagues! I'm Morgan, your growth strategist.",
-            "This is Level 5: Go-to-Market Strategy.",
-            "Goal: Scale from thousands to millions of users.",
-            "It's time to turn your product into a movement!"
+            "Hi! I'm interning here this summer!",
+            "So like... what IS a startup exactly?",
+            "Is it just a company that loses money on purpose?"
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Start Level 5: Go-to-Market",
-              "action": "start_simulator"
-            },
-            {
-              "text": "How do I scale growth?",
-              "action": "dialogue",
-              "nextDialogue": "growth_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "That's... surprisingly accurate", "action": "dialogue", "nextDialogue": "questions" },
+            { "text": "It's more complicated than that", "action": "dialogue", "nextDialogue": "questions" },
+            { "text": "Good luck kid", "action": "close" }
           ]
         },
-        "growth_help": {
-          "id": "growth_help",
+        "questions": {
+          "id": "questions",
           "trigger": "interaction",
           "lines": [
-            "Growth is a science, not magic. Test channels systematically.",
-            "Know your unit economics: CAC, LTV, payback period, retention cohorts.",
-            "The best growth channel is the one your competitors aren't using.",
-            "Viral loops compound - a 1.1x viral coefficient beats 10% weekly growth.",
-            "Product-led growth works when your product sells itself.",
-            "Scale what works, kill what doesn't. Fast!"
+            "Wait, so you raise money to NOT be profitable?",
+            "And VCs want 10x returns in 7 years?",
+            "What happens to the 9 out of 10 that fail?",
+            "This sounds like a video game with permadeath."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Let's grow this thing!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
-          ]
-        }
-      }
-    },
-    "morgan": {
-      "id": "morgan",
-      "name": "Morgan the Marketer",
-      "color": "#16A085",
-      "location": "conference",
-      "position": { "x": 0, "y": 0.1, "z": 2 },
-      "spritePath": "/assets/textures/npc/morgan-marketer.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Welcome to the big leagues! I'm Morgan, your growth strategist.",
-            "This is Level 5: Go-to-Market Strategy.",
-            "Goal: Scale from thousands to millions of users.",
-            "It's time to turn your product into a movement!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Start Level 5: Go-to-Market",
-              "action": "start_simulator"
-            },
-            {
-              "text": "How do I scale growth?",
-              "action": "dialogue",
-              "nextDialogue": "growth_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "You ask good questions", "action": "close" },
+            { "text": "Welcome to Silicon Valley", "action": "close" }
           ]
         },
-        "growth_help": {
-          "id": "growth_help",
+        "press_quote": {
+          "id": "press_quote",
           "trigger": "interaction",
+          "requirements": ["journalist_quest"],
           "lines": [
-            "Growth is a science, not magic. Test channels systematically.",
-            "Know your unit economics: CAC, LTV, payback period, retention cohorts.",
-            "The best growth channel is the one your competitors aren't using.",
-            "Viral loops compound - a 1.1x viral coefficient beats 10% weekly growth.",
-            "Product-led growth works when your product sells itself.",
-            "Scale what works, kill what doesn't. Fast!"
+            "Oh, a reporter wants MY opinion?",
+            "Quote me: 'I thought the ping pong table WAS the product.'",
+            "Wait, don't actually print that. Or do. Whatever."
           ],
           "repeatable": true,
+          "unlocks": ["intern_quote"],
           "choices": [
-            {
-              "text": "Let's grow this thing!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
-          ]
-        }
-      }
-    },
-    "loft_npc": {
-      "id": "loft_npc",
-      "name": "Casey the Creative",
-      "color": "#E74C3C",
-      "location": "loft",
-      "position": { "x": -3, "y": 0.1, "z": 0 },
-      "spritePath": "/assets/textures/npc/casey-creative.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Hey there! Welcome to the loft where culture meets code.",
-            "This is Level 4: Team Building.",
-            "Goal: Assemble and retain your dream team.",
-            "A startup is only as strong as the people behind it!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Start Level 4: Team Building",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tips on building a team?",
-              "action": "dialogue",
-              "nextDialogue": "team_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
-          ]
-        },
-        "team_help": {
-          "id": "team_help",
-          "trigger": "interaction",
-          "lines": [
-            "Hire for culture fit AND skills. Both matter equally.",
-            "Your first 10 hires define your company culture forever.",
-            "Equity is currency when you can't pay market salaries.",
-            "Don't hire too fast - every bad hire costs months of progress.",
-            "Great people want to work with other great people. Bar raises itself.",
-            "Culture isn't ping pong tables - it's how you treat people when things go wrong!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Let's build this team!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
-          ]
-        }
-      }
-    },
-    "casey": {
-      "id": "casey",
-      "name": "Casey the Creative",
-      "color": "#E74C3C",
-      "location": "loft",
-      "position": { "x": -3, "y": 0.1, "z": 0 },
-      "spritePath": "/assets/textures/npc/casey-creative.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Hey there! Welcome to the loft where culture meets code.",
-            "This is Level 4: Team Building.",
-            "Goal: Assemble and retain your dream team.",
-            "A startup is only as strong as the people behind it!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Start Level 4: Team Building",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Tips on building a team?",
-              "action": "dialogue",
-              "nextDialogue": "team_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
-          ]
-        },
-        "team_help": {
-          "id": "team_help",
-          "trigger": "interaction",
-          "lines": [
-            "Hire for culture fit AND skills. Both matter equally.",
-            "Your first 10 hires define your company culture forever.",
-            "Equity is currency when you can't pay market salaries.",
-            "Don't hire too fast - every bad hire costs months of progress.",
-            "Great people want to work with other great people. Bar raises itself.",
-            "Culture isn't ping pong tables - it's how you treat people when things go wrong!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Let's build this team!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
-          ]
-        }
-      }
-    },
-    "accelerator_npc": {
-      "id": "accelerator_npc",
-      "name": "Jordan the Connector",
-      "color": "#34495E",
-      "location": "accelerator",
-      "position": { "x": 0, "y": 0.1, "z": -2 },
-      "spritePath": "/assets/textures/npc/jordan-connector.png",
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Welcome to the accelerator! I'm Jordan, your program director.",
-            "This is Level 3: Fundraising.",
-            "Goal: Raise your seed round by convincing investors.",
-            "It's time to turn traction into capital!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Start Level 3: Fundraising",
-              "action": "start_simulator"
-            },
-            {
-              "text": "How do I raise money?",
-              "action": "dialogue",
-              "nextDialogue": "fundraising_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
-          ]
-        },
-        "fundraising_help": {
-          "id": "fundraising_help",
-          "trigger": "interaction",
-          "lines": [
-            "Fundraising is about telling a compelling story backed by data.",
-            "Know your metrics cold: MRR, DAU, growth rate, unit economics.",
-            "VCs invest in teams first, markets second, products third.",
-            "Have a clear use of funds - what milestones will this money unlock?",
-            "Don't give away too much equity too early. 15-20% for seed is typical.",
-            "The best fundraise is when you don't desperately need the money!"
-          ],
-          "repeatable": true,
-          "choices": [
-            {
-              "text": "Let's pitch some VCs!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
+            { "text": "Perfect quote, thanks", "action": "set_flag", "flag": "intern_quote" },
+            { "text": "I'll paraphrase", "action": "set_flag", "flag": "intern_quote" }
           ]
         }
       }
@@ -622,57 +348,1010 @@
       "name": "Jordan the Connector",
       "color": "#34495E",
       "location": "accelerator",
-      "position": { "x": 0, "y": 0.1, "z": -2 },
-      "spritePath": "/assets/textures/npc/jordan-connector.png",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to the accelerator! I'm Jordan, your program director.",
-            "This is Level 3: Fundraising.",
-            "Goal: Raise your seed round by convincing investors.",
-            "It's time to turn traction into capital!"
+            "Jordan here. I know a guy who knows a guy.",
+            "Level 3: Fundraising.",
+            "Convince investors your vision is worth millions.",
+            "Let's get you that seed round."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Start Level 3: Fundraising",
-              "action": "start_simulator"
-            },
-            {
-              "text": "How do I raise money?",
-              "action": "dialogue",
-              "nextDialogue": "fundraising_help"
-            },
-            {
-              "text": "I'll come back later",
-              "action": "close"
-            }
+            { "text": "Start Level 3: Fundraising", "action": "start_simulator" },
+            { "text": "Fundraising tips?", "action": "dialogue", "nextDialogue": "fundraising_help" },
+            { "text": "Connect me with someone", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Not ready", "action": "close" }
           ]
         },
         "fundraising_help": {
           "id": "fundraising_help",
           "trigger": "interaction",
           "lines": [
-            "Fundraising is about telling a compelling story backed by data.",
-            "Know your metrics cold: MRR, DAU, growth rate, unit economics.",
-            "VCs invest in teams first, markets second, products third.",
-            "Have a clear use of funds - what milestones will this money unlock?",
-            "Don't give away too much equity too early. 15-20% for seed is typical.",
-            "The best fundraise is when you don't desperately need the money!"
+            "VCs invest in teams, not decks.",
+            "Know your TAM, SAM, SOM cold.",
+            "Ask for intros, not cold emails.",
+            "Best fundraise: when you don't need the money."
           ],
           "repeatable": true,
           "choices": [
-            {
-              "text": "Let's pitch some VCs!",
-              "action": "start_simulator"
-            },
-            {
-              "text": "Back to main menu",
-              "action": "dialogue",
-              "nextDialogue": "greeting"
-            }
+            { "text": "Let's pitch", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Casey at the Loft is building culture.",
+            "You'll need a team before Series A.",
+            "Tell her Jordan sent you. She owes me."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to the Loft", "action": "go_to", "target": "loft", "targetNPC": "casey", "hint": "The Loft is north of the Accelerator." },
+            { "text": "I'll find her", "action": "close" }
+          ]
+        }
+      }
+    },
+    "demo_coach": {
+      "id": "demo_coach",
+      "name": "Demo Coach",
+      "color": "#F39C12",
+      "location": "accelerator",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "STOP. Your posture is terrible.",
+            "I'm the Demo Coach. I fix pitches.",
+            "Demo Day is everything. Are you ready? No."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Coach me", "action": "dialogue", "nextDialogue": "pitch_coaching" },
+            { "text": "Who else should I prep with?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "My pitch is fine", "action": "close" }
+          ]
+        },
+        "pitch_coaching": {
+          "id": "pitch_coaching",
+          "trigger": "interaction",
+          "lines": [
+            "First 10 seconds: hook them or lose them.",
+            "Tell a story. Numbers alone don't fundraise.",
+            "End with the ask. Always end with the ask.",
+            "Practice until it feels like breathing."
+          ],
+          "repeatable": true,
+          "unlocks": ["demo_ready"],
+          "choices": [
+            { "text": "I'm demo ready now", "action": "set_flag", "flag": "demo_ready" },
+            { "text": "I need more practice", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Talk to the Fellow Founder here.",
+            "Nothing sharpens a pitch like a rival.",
+            "Friendly competition. Emphasis on competition."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find the Fellow Founder", "action": "close" },
+            { "text": "Thanks Coach", "action": "close" }
+          ]
+        }
+      }
+    },
+    "fellow_founder": {
+      "id": "fellow_founder",
+      "name": "Fellow Founder",
+      "color": "#1ABC9C",
+      "location": "accelerator",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Oh hey. Another founder in the cohort.",
+            "How's your MRR? Mine's... growing. Definitely.",
+            "We're all in this together. Sort of."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "How's your startup going?", "action": "dialogue", "nextDialogue": "rivalry" },
+            { "text": "Any honest advice?", "action": "dialogue", "nextDialogue": "advice" },
+            { "text": "Good luck out there", "action": "close" }
+          ]
+        },
+        "rivalry": {
+          "id": "rivalry",
+          "trigger": "interaction",
+          "lines": [
+            "We just hit 10K users. No big deal.",
+            "Okay fine, 8K are bots. But still.",
+            "What about you? Don't lie, I'll check."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Give me real advice", "action": "dialogue", "nextDialogue": "advice" },
+            { "text": "May the best startup win", "action": "close" }
+          ]
+        },
+        "advice": {
+          "id": "advice",
+          "trigger": "interaction",
+          "lines": [
+            "Real talk? This is the loneliest job.",
+            "Everyone posts wins. Nobody posts 3am doubts.",
+            "Find one founder you can be honest with.",
+            "That's worth more than any VC check."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Thanks for being real", "action": "close" },
+            { "text": "We should grab coffee sometime", "action": "close" }
+          ]
+        }
+      }
+    },
+    "casey": {
+      "id": "casey",
+      "name": "Casey the Creative",
+      "color": "#E74C3C",
+      "location": "loft",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Corporate called. I hung up.",
+            "Level 4: Team Building.",
+            "Your first 10 hires define everything.",
+            "Let's build something that doesn't suck."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 4: Team Building", "action": "start_simulator" },
+            { "text": "Team building advice?", "action": "dialogue", "nextDialogue": "team_help" },
+            { "text": "Who else is hiring?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Later", "action": "close" }
+          ]
+        },
+        "team_help": {
+          "id": "team_help",
+          "trigger": "interaction",
+          "lines": [
+            "Culture isn't a ping pong table.",
+            "It's how you treat people at 2am on a deadline.",
+            "Hire slow. Fire fast. Sounds brutal.",
+            "But one toxic hire poisons the whole well."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's build the team", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Morgan at the Conference does growth.",
+            "She's intense but she gets results.",
+            "Also talk to Riya here. Best recruiter around."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Morgan at Conference", "action": "go_to", "target": "conference", "targetNPC": "morgan", "hint": "The Conference is east of the Loft." },
+            { "text": "Cool", "action": "close" }
+          ]
+        }
+      }
+    },
+    "recruiter_riya": {
+      "id": "recruiter_riya",
+      "name": "Recruiter Riya",
+      "color": "#8E44AD",
+      "location": "loft",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Riya here. I find the unfindable.",
+            "Every founder says 'we only hire A players.'",
+            "Nobody knows what that means. I do."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Help me hire", "action": "dialogue", "nextDialogue": "hiring_tips" },
+            { "text": "Know any designers?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "We're good on headcount", "action": "close" }
+          ]
+        },
+        "hiring_tips": {
+          "id": "hiring_tips",
+          "trigger": "interaction",
+          "lines": [
+            "Hire for slope, not y-intercept.",
+            "Best engineers want hard problems, not perks.",
+            "Your job post is boring. Rewrite it.",
+            "Referrals beat job boards 10 to 1."
+          ],
+          "repeatable": true,
+          "unlocks": ["has_team"],
+          "choices": [
+            { "text": "Team assembled!", "action": "set_flag", "flag": "has_team", "nextDialogue": "referral" },
+            { "text": "Still interviewing", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Talk to Kai here. Best designer I know.",
+            "Also, the Data Center is hiring SREs.",
+            "Pat over there is solid. Paranoid, but solid."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Kai", "action": "close" },
+            { "text": "Head to Data Center", "action": "go_to", "target": "data-center", "targetNPC": "sre_pat", "hint": "The Data Center is east of here." },
+            { "text": "Thanks Riya", "action": "close" }
+          ]
+        }
+      }
+    },
+    "designer_kai": {
+      "id": "designer_kai",
+      "name": "Designer Kai",
+      "color": "#2ECC71",
+      "location": "loft",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "If your onboarding takes more than 3 taps...",
+            "...you've already lost.",
+            "I'm Kai. I design things that don't suck."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Teach me about design", "action": "dialogue", "nextDialogue": "design_philosophy" },
+            { "text": "Know any growth people?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "My UI is fine", "action": "close" }
+          ]
+        },
+        "design_philosophy": {
+          "id": "design_philosophy",
+          "trigger": "interaction",
+          "lines": [
+            "Design is not decoration. It's communication.",
+            "Every pixel should earn its place.",
+            "Dark patterns get short-term metrics.",
+            "They also get long-term hatred. Choose wisely."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who handles growth?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Preach", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "The Growth Hacker at the Conference...",
+            "...let's just say we disagree on ethics.",
+            "Talk to them. But question everything they say."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Growth Hacker at Conference", "action": "go_to", "target": "conference", "targetNPC": "growth_hacker", "hint": "The Conference is east of the Loft." },
+            { "text": "Noted", "action": "close" }
+          ]
+        }
+      }
+    },
+    "morgan": {
+      "id": "morgan",
+      "name": "Morgan the Marketer",
+      "color": "#16A085",
+      "location": "conference",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Metrics don't lie. People do.",
+            "Level 5: Go-to-Market Strategy.",
+            "Scale from thousands to millions.",
+            "Let's make your hockey stick real."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 5: Go-to-Market", "action": "start_simulator" },
+            { "text": "Growth strategy?", "action": "dialogue", "nextDialogue": "growth_help" },
+            { "text": "What's next after this?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Later", "action": "close" }
+          ]
+        },
+        "growth_help": {
+          "id": "growth_help",
+          "trigger": "interaction",
+          "lines": [
+            "Know your CAC and LTV. Tattoo them on your arm.",
+            "The best channel is the one competitors ignore.",
+            "Viral loops beat paid ads at scale.",
+            "Product-led growth: make the product sell itself."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's grow", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "You'll need infrastructure to handle scale.",
+            "The Data Center team handles that.",
+            "Also, Zoe the journalist is here. Be careful."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to Data Center", "action": "go_to", "target": "data-center", "targetNPC": "data_center_npc", "hint": "The Data Center is east of the Conference." },
+            { "text": "Thanks Morgan", "action": "close" }
+          ]
+        }
+      }
+    },
+    "growth_hacker": {
+      "id": "growth_hacker",
+      "name": "Growth Hacker",
+      "color": "#D35400",
+      "location": "conference",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "A/B test EVERYTHING. Even this conversation.",
+            "I'm the Growth Hacker. Results are all that matter.",
+            "Ethics? That's a Series B problem."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Show me growth tactics", "action": "dialogue", "nextDialogue": "growth_tactics" },
+            { "text": "What does Kai think of you?", "action": "dialogue", "nextDialogue": "rivalry_with_kai" },
+            { "text": "Hard pass", "action": "close" }
+          ]
+        },
+        "growth_tactics": {
+          "id": "growth_tactics",
+          "trigger": "interaction",
+          "lines": [
+            "Scrape competitor reviews for pain points.",
+            "Gamify onboarding. Dopamine is free.",
+            "Send push notifications at 9am. Trust me.",
+            "If the DAU chart isn't up, nothing else matters."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Some of this feels wrong", "action": "dialogue", "nextDialogue": "rivalry_with_kai" },
+            { "text": "Effective. I'll adapt it.", "action": "close" }
+          ]
+        },
+        "rivalry_with_kai": {
+          "id": "rivalry_with_kai",
+          "trigger": "interaction",
+          "lines": [
+            "Kai? The designer? Loves to lecture me.",
+            "Says my tactics are 'dark patterns.'",
+            "I say dark patterns are just patterns that work.",
+            "We agree to disagree. Loudly."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "You two should talk it out", "action": "close" },
+            { "text": "I see both sides", "action": "close" }
+          ]
+        },
+        "press_quote": {
+          "id": "press_quote",
+          "trigger": "interaction",
+          "requirements": ["journalist_quest"],
+          "lines": [
+            "A reporter? Finally, some earned media.",
+            "Quote me: 'Growth isn't a department, it's a religion.'",
+            "Make sure you spell my LinkedIn handle right."
+          ],
+          "repeatable": true,
+          "unlocks": ["growth_hacker_quote"],
+          "choices": [
+            { "text": "Got the quote", "action": "set_flag", "flag": "growth_hacker_quote" },
+            { "text": "Religion? Really?", "action": "set_flag", "flag": "growth_hacker_quote" }
+          ]
+        }
+      }
+    },
+    "journalist_zoe": {
+      "id": "journalist_zoe",
+      "name": "Journalist Zoe",
+      "color": "#C0392B",
+      "location": "conference",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Zoe Chen, TechCrunch. Don't worry, I'm off duty.",
+            "Actually that's a lie. I'm never off duty.",
+            "So... tell me about your startup."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What do you want to know?", "action": "dialogue", "nextDialogue": "interview" },
+            { "text": "No comment", "action": "close" }
+          ]
+        },
+        "interview": {
+          "id": "interview",
+          "trigger": "interaction",
+          "lines": [
+            "What problem are you actually solving?",
+            "And don't say 'disrupting.' I beg you.",
+            "How's your runway? Burn rate?",
+            "Relax. This is off the record. Mostly."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "I have a story for you", "action": "dialogue", "nextDialogue": "quest_start" },
+            { "text": "Nice try", "action": "close" }
+          ]
+        },
+        "quest_start": {
+          "id": "quest_start",
+          "trigger": "interaction",
+          "lines": [
+            "I'm writing a piece on the startup ecosystem.",
+            "I need color. Quotes from real people.",
+            "Get me quotes from the Intern, the Retail Investor...",
+            "...the Growth Hacker, and the ML Engineer.",
+            "Four quotes. Then we'll talk front page."
+          ],
+          "repeatable": true,
+          "unlocks": ["journalist_quest"],
+          "choices": [
+            { "text": "I'll get your quotes", "action": "set_flag", "flag": "journalist_quest" },
+            { "text": "That's a lot of legwork", "action": "close" }
+          ]
+        },
+        "quest_complete": {
+          "id": "quest_complete",
+          "trigger": "interaction",
+          "requirements": ["intern_quote", "retail_investor_quote", "growth_hacker_quote", "ml_engineer_quote"],
+          "lines": [
+            "You got all four? Impressive hustle.",
+            "This is going to be a great piece.",
+            "I'll make sure your startup gets a mention.",
+            "Off the record: you're going to make it."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Thanks Zoe", "action": "close" },
+            { "text": "Make us look good", "action": "close" }
+          ]
+        }
+      }
+    },
+    "data_center_npc": {
+      "id": "data_center_npc",
+      "name": "Data Engineer",
+      "color": "#00ffff",
+      "location": "data-center",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Welcome to the humming heart of the Valley.",
+            "Level 6: Scaling Infrastructure.",
+            "Your code works on localhost. Cute.",
+            "Now make it work for a million users."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 6: Scaling", "action": "start_simulator" },
+            { "text": "Scaling advice?", "action": "dialogue", "nextDialogue": "scaling_advice" },
+            { "text": "What comes after scaling?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Later", "action": "close" }
+          ]
+        },
+        "scaling_advice": {
+          "id": "scaling_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Cache everything. Database calls are expensive.",
+            "Horizontal scaling beats vertical every time.",
+            "Your bottleneck is never where you think it is.",
+            "Profile first. Optimize second. Guess never."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's scale", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Infrastructure is solved. Now survive the board.",
+            "Head to the Board Room. They're... intense.",
+            "Pat and the ML Engineer here can help too."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to Board Room", "action": "go_to", "target": "board-room", "targetNPC": "board_room_npc", "hint": "The Board Room is east of the Data Center." },
+            { "text": "Got it", "action": "close" }
+          ]
+        }
+      }
+    },
+    "sre_pat": {
+      "id": "sre_pat",
+      "name": "SRE Pat",
+      "color": "#7F8C8D",
+      "location": "data-center",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Shh. I'm watching the dashboards.",
+            "I'm Pat. Site Reliability. The pager never stops.",
+            "Last outage cost us $50K per minute. Per. Minute."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Tell me about outages", "action": "dialogue", "nextDialogue": "uptime_stories" },
+            { "text": "Know the ML Engineer?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll let you work", "action": "close" }
+          ]
+        },
+        "uptime_stories": {
+          "id": "uptime_stories",
+          "trigger": "interaction",
+          "lines": [
+            "Worst outage: intern ran DROP TABLE in prod.",
+            "Second worst: DNS expired on a Saturday.",
+            "Best practice: everything fails. Plan for it.",
+            "I sleep with my pager. My partner hates it."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What about the ML team?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Terrifying. Thanks.", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "The ML Engineer is here too.",
+            "Fair warning: they want to add AI to everything.",
+            "Last week they pitched an ML-powered thermostat.",
+            "For the server room. We already have one. It works."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "I have to meet this person", "action": "close" },
+            { "text": "Sounds... ambitious", "action": "close" }
+          ]
+        }
+      }
+    },
+    "ml_engineer": {
+      "id": "ml_engineer",
+      "name": "ML Engineer",
+      "color": "#9B59B6",
+      "location": "data-center",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Have you considered adding ML to your product?",
+            "No? What about AI? LLMs? RAG pipelines?",
+            "Your sandwich shop app NEEDS a recommendation engine."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Pitch me your AI vision", "action": "dialogue", "nextDialogue": "ai_pitch" },
+            { "text": "We're good without ML", "action": "close" }
+          ]
+        },
+        "ai_pitch": {
+          "id": "ai_pitch",
+          "trigger": "interaction",
+          "lines": [
+            "Picture this: AI-powered user onboarding.",
+            "ML-driven push notification timing.",
+            "A neural net that predicts churn before signup.",
+            "Yes, I said BEFORE. That's the innovation."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "That's not how any of this works", "action": "close" },
+            { "text": "Tell me more (I'm fascinated)", "action": "close" }
+          ]
+        },
+        "press_quote": {
+          "id": "press_quote",
+          "trigger": "interaction",
+          "requirements": ["journalist_quest"],
+          "lines": [
+            "A journalist? Perfect. Let me explain AGI.",
+            "Quote: 'Every startup is an AI company now.'",
+            "'They just don't know it yet.'",
+            "Make sure to mention my GitHub stars."
+          ],
+          "repeatable": true,
+          "unlocks": ["ml_engineer_quote"],
+          "choices": [
+            { "text": "Got it, thanks", "action": "set_flag", "flag": "ml_engineer_quote" },
+            { "text": "That's... a take", "action": "set_flag", "flag": "ml_engineer_quote" }
+          ]
+        }
+      }
+    },
+    "board_room_npc": {
+      "id": "board_room_npc",
+      "name": "Board Member",
+      "color": "#8b4513",
+      "location": "board-room",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Take a seat. This won't be comfortable.",
+            "Level 7: Crisis Management.",
+            "Every startup hits a wall. How you respond matters.",
+            "Show me you can lead under pressure."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 7: Crisis Management", "action": "start_simulator" },
+            { "text": "How do I handle crises?", "action": "dialogue", "nextDialogue": "crisis_guidance" },
+            { "text": "What's after the board?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I need more time", "action": "close" }
+          ]
+        },
+        "crisis_guidance": {
+          "id": "crisis_guidance",
+          "trigger": "interaction",
+          "lines": [
+            "Bad news doesn't age well. Deliver it fast.",
+            "Never lie to your board. We always find out.",
+            "Have a plan before you report the problem.",
+            "The best founders grow the most during crises."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "I'm ready for the challenge", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Survive the board, then raise more capital.",
+            "The VC Partner at the Venture office is next.",
+            "Diana here can prep your financials first."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to Venture office", "action": "go_to", "target": "venture", "targetNPC": "venture_npc", "hint": "The Venture office is east of the Board Room." },
+            { "text": "Understood", "action": "close" }
+          ]
+        }
+      }
+    },
+    "cfo_diana": {
+      "id": "cfo_diana",
+      "name": "CFO Diana",
+      "color": "#F1C40F",
+      "location": "board-room",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Diana. CFO. I know your burn rate better than you.",
+            "Let me guess: 18 months of runway?",
+            "Wrong. It's 14. You forgot the tax bill."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Help me with finances", "action": "dialogue", "nextDialogue": "financial_advice" },
+            { "text": "Someone named Old Timer sent me", "action": "dialogue", "nextDialogue": "old_timer_connection" },
+            { "text": "Where should I go for IP stuff?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll check my spreadsheet", "action": "close" }
+          ]
+        },
+        "financial_advice": {
+          "id": "financial_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Unit economics. Say it with me. Unit. Economics.",
+            "If CAC exceeds LTV, you're buying users at a loss.",
+            "Gross margin above 70% or VCs won't look twice.",
+            "Cash flow positive beats 'we'll figure it out later.'"
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who handles IP protection?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll fix my model", "action": "close" }
+          ]
+        },
+        "old_timer_connection": {
+          "id": "old_timer_connection",
+          "trigger": "interaction",
+          "requirements": ["met_old_timer"],
+          "lines": [
+            "He sent you? That stubborn old fool.",
+            "I almost saved his third company. Almost.",
+            "Two more weeks of runway and we'd have made it.",
+            "He taught me: never let the cash hit zero.",
+            "Now I make sure it never does. For anyone."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Where to next?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Thank you Diana", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Protect your IP before you scale.",
+            "The Patent Attorney at the Law office is sharp.",
+            "Tell them Diana sent you. They owe me a favor."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to the Law office", "action": "go_to", "target": "law", "targetNPC": "patent_atty", "hint": "The Law office is east of the Venture building." },
+            { "text": "On my way", "action": "close" }
+          ]
+        }
+      }
+    },
+    "pr_advisor": {
+      "id": "pr_advisor",
+      "name": "PR Advisor",
+      "color": "#BDC3C7",
+      "location": "board-room",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Perception IS reality. I manage both.",
+            "I'm your PR advisor. Let's craft the narrative.",
+            "Every crisis is a rebranding opportunity."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Teach me crisis comms", "action": "dialogue", "nextDialogue": "crisis_comms" },
+            { "text": "How do I handle press?", "action": "dialogue", "nextDialogue": "spin_advice" },
+            { "text": "I prefer radical transparency", "action": "close" }
+          ]
+        },
+        "crisis_comms": {
+          "id": "crisis_comms",
+          "trigger": "interaction",
+          "lines": [
+            "Step 1: Acknowledge. Never deny or deflect.",
+            "Step 2: Apologize without qualifiers.",
+            "Step 3: Action plan. What are you fixing?",
+            "Step 4: Follow up. Show you actually did it."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What about the press?", "action": "dialogue", "nextDialogue": "spin_advice" },
+            { "text": "Solid framework", "action": "close" }
+          ]
+        },
+        "spin_advice": {
+          "id": "spin_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Zoe Chen at the Conference? She's sharp.",
+            "Never say 'no comment.' Say 'here's what I can share.'",
+            "Control the narrative or it controls you.",
+            "And for the love of god, stay off Twitter during a crisis."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "I'll be careful with press", "action": "close" },
+            { "text": "Thanks for the warning", "action": "close" }
+          ]
+        }
+      }
+    },
+    "venture_npc": {
+      "id": "venture_npc",
+      "name": "VC Partner",
+      "color": "#0088ff",
+      "location": "venture",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "I've seen 10,000 pitches. Yours has 60 seconds.",
+            "Level 8: Series A Fundraising.",
+            "Prove you can build a billion-dollar company.",
+            "Impress me."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 8: Series A", "action": "start_simulator" },
+            { "text": "What do VCs look for?", "action": "dialogue", "nextDialogue": "pitch_advice" },
+            { "text": "What comes after funding?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I need to prep more", "action": "close" }
+          ]
+        },
+        "pitch_advice": {
+          "id": "pitch_advice",
+          "trigger": "interaction",
+          "lines": [
+            "Show me a moat. Network effects. Switching costs.",
+            "TAM better be $10B+. I don't do lifestyle businesses.",
+            "Why you? Why now? Why this team?",
+            "Show traction. Revenue beats projections."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's do this", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "After funding, protect your company legally.",
+            "The Law office has the attorneys you need.",
+            "My associate here can brief you on due diligence."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to Law office", "action": "go_to", "target": "law", "targetNPC": "law_npc", "hint": "The Law office is east of the Venture building." },
+            { "text": "Thanks", "action": "close" }
+          ]
+        }
+      }
+    },
+    "vc_associate": {
+      "id": "vc_associate",
+      "name": "VC Associate",
+      "color": "#34495E",
+      "location": "venture",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "*yawns* Sorry. Due diligence until 3am.",
+            "I'm the associate. I do the actual work.",
+            "The partner takes the meetings. I read the code."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What's VC really like?", "action": "dialogue", "nextDialogue": "real_talk" },
+            { "text": "Know any founder-friendly investors?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Get some sleep", "action": "close" }
+          ]
+        },
+        "real_talk": {
+          "id": "real_talk",
+          "trigger": "interaction",
+          "lines": [
+            "Honestly? We pass on 99% of deals.",
+            "Most pitches blur together after the first thousand.",
+            "The ones that stand out? Founders who've felt the pain.",
+            "Not 'I read a report.' Actual lived experience."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who's more founder-friendly?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Brutal honesty. I respect it.", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Between us? Try the Angel Investor here.",
+            "Angels write smaller checks but ask fewer questions.",
+            "They've actually built companies before.",
+            "VCs... mostly read about building companies."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find the Angel Investor", "action": "close" },
+            { "text": "Don't let your boss hear that", "action": "close" }
+          ]
+        }
+      }
+    },
+    "angel_investor": {
+      "id": "angel_investor",
+      "name": "Angel Investor",
+      "color": "#E74C3C",
+      "location": "venture",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Hey! I write checks on napkins. Literally.",
+            "Had a good exit in '09. Now I give back.",
+            "What's your story?"
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "How do angels invest?", "action": "dialogue", "nextDialogue": "investment_style" },
+            { "text": "Old Timer mentioned you", "action": "dialogue", "nextDialogue": "old_timer_reveal" },
+            { "text": "Just browsing", "action": "close" }
+          ]
+        },
+        "investment_style": {
+          "id": "investment_style",
+          "trigger": "interaction",
+          "lines": [
+            "I invest in people, not spreadsheets.",
+            "$25K to $100K. Keep it simple. SAFE note.",
+            "No board seat. No weekly reports.",
+            "Just build something great and keep me posted."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "That sounds refreshing", "action": "close" },
+            { "text": "What's a SAFE note?", "action": "close" }
+          ]
+        },
+        "old_timer_reveal": {
+          "id": "old_timer_reveal",
+          "trigger": "interaction",
+          "requirements": ["met_old_timer"],
+          "lines": [
+            "Old Timer... you mean Dave? That's my old co-founder.",
+            "We built our first startup in a garage. Like this one.",
+            "He blames himself for the failures. Shouldn't.",
+            "The market killed us. Not the team.",
+            "Tell him I said hi. And that I'd build with him again."
+          ],
+          "repeatable": true,
+          "unlocks": ["met_angel"],
+          "choices": [
+            { "text": "I'll tell him", "action": "set_flag", "flag": "met_angel" },
+            { "text": "That's a good story", "action": "set_flag", "flag": "met_angel" }
           ]
         }
       }
@@ -682,27 +1361,157 @@
       "name": "Attorney",
       "color": "#191970",
       "location": "law",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to our law office!",
-            "Justice and legal expertise.",
-            "How can we help you legally?"
+            "The fine print is where fortunes are made or lost.",
+            "Level 9: Legal & Compliance.",
+            "Incorporate right. Protect your IP. Don't get sued.",
+            "Let's make sure you're bulletproof."
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 9: Legal", "action": "start_simulator" },
+            { "text": "Legal advice?", "action": "dialogue", "nextDialogue": "legal_advice" },
+            { "text": "What's the final step?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll get my docs in order first", "action": "close" }
+          ]
         },
         "legal_advice": {
           "id": "legal_advice",
           "trigger": "interaction",
           "lines": [
-            "Always read the fine print.",
-            "Intellectual property is crucial for startups.",
-            "We handle corporate law and contracts."
+            "Delaware C-Corp. Don't even think about LLC.",
+            "Vesting schedules: 4 years, 1-year cliff. Standard.",
+            "Get your 83(b) election filed in 30 days.",
+            "Miss that deadline and the IRS wins."
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's handle legal", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Last stop: NASDAQ. The endgame.",
+            "The trading floor awaits.",
+            "My patent colleague and Lee here can help prep."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to NASDAQ", "action": "go_to", "target": "nasdaq", "targetNPC": "nasdaq_npc", "hint": "NASDAQ is the final building, far east." },
+            { "text": "Almost there", "action": "close" }
+          ]
+        }
+      }
+    },
+    "patent_atty": {
+      "id": "patent_atty",
+      "name": "Patent Attorney",
+      "color": "#2C3E50",
+      "location": "law",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Is that algorithm patentable? Probably.",
+            "Is that button color trademarkable? Also probably.",
+            "I'm the Patent Attorney. Everything is IP."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Help me protect my tech", "action": "dialogue", "nextDialogue": "ip_advice" },
+            { "text": "I need practical help filing", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll take my chances", "action": "close" }
+          ]
+        },
+        "ip_advice": {
+          "id": "ip_advice",
+          "trigger": "interaction",
+          "lines": [
+            "File provisional patents early. $300 buys you 12 months.",
+            "Trade secrets are free but fragile.",
+            "Open source your commodity code. Patent your moat.",
+            "And never, EVER discuss IP without an NDA."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Who files the paperwork?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "I'll draft my patent", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "Lee the Paralegal handles the filings. Talk to them.",
+            "Also, the Angel Investor at Venture funds IP-heavy startups.",
+            "Tell them I flagged your tech as defensible."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Find Paralegal Lee", "action": "close" },
+            { "text": "Visit Angel at Venture", "action": "go_to", "target": "venture", "targetNPC": "angel_investor", "hint": "The Venture office is west of Law." },
+            { "text": "Thanks", "action": "close" }
+          ]
+        }
+      }
+    },
+    "paralegal_lee": {
+      "id": "paralegal_lee",
+      "name": "Paralegal Lee",
+      "color": "#16A085",
+      "location": "law",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "Lee. Paralegal. I do the actual work here.",
+            "Attorneys bill $800/hr. I bill $150 and work faster.",
+            "What do you need filed?"
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Startup legal shortcuts?", "action": "dialogue", "nextDialogue": "shortcuts" },
+            { "text": "I'm heading to NASDAQ soon", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Just looking around", "action": "close" }
+          ]
+        },
+        "shortcuts": {
+          "id": "shortcuts",
+          "trigger": "interaction",
+          "lines": [
+            "Use Clerky or Stripe Atlas to incorporate. Not a lawyer.",
+            "Standard SAFE notes don't need custom legal review.",
+            "Save the $50K legal bill for when you actually need it.",
+            "That's usually your first lawsuit. It'll come."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What about going public?", "action": "dialogue", "nextDialogue": "referral" },
+            { "text": "Practical advice. Love it.", "action": "close" }
+          ]
+        },
+        "referral": {
+          "id": "referral",
+          "trigger": "interaction",
+          "lines": [
+            "If you're thinking IPO, talk to the advisor at NASDAQ.",
+            "They know the SEC filing process inside and out.",
+            "It's the big leagues over there. You ready?"
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Head to NASDAQ", "action": "go_to", "target": "nasdaq", "targetNPC": "ipo_advisor", "hint": "NASDAQ is the final building, far east." },
+            { "text": "Almost ready", "action": "close" }
+          ]
         }
       }
     },
@@ -711,77 +1520,160 @@
       "name": "Trader",
       "color": "#00ff00",
       "location": "nasdaq",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to the trading floor!",
-            "Markets are always moving.",
-            "Buy low, sell high!"
+            "The bell rings at 9:30. Sharp.",
+            "Level 10: IPO Day.",
+            "Price it right. Ring the bell. Don't throw up.",
+            "This is what it all comes down to."
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "Start Level 10: IPO", "action": "start_simulator" },
+            { "text": "How do markets work?", "action": "dialogue", "nextDialogue": "market_talk" },
+            { "text": "Any final wisdom?", "action": "dialogue", "nextDialogue": "victory_hint" },
+            { "text": "I need a minute", "action": "close" }
+          ]
         },
         "market_talk": {
           "id": "market_talk",
           "trigger": "interaction",
           "lines": [
-            "Tech stocks are hot right now.",
-            "IPOs can make or break companies.",
-            "The market rewards innovation."
+            "Markets are driven by fear and greed. That's it.",
+            "Your stock price on day one means nothing.",
+            "What matters: revenue growth, quarter over quarter.",
+            "Wall Street has the memory of a goldfish."
           ],
-          "repeatable": true
-        }
-      }
-    },
-    "board_room_npc": {
-      "id": "board_room_npc",
-      "name": "Board Member",
-      "color": "#8b4513",
-      "location": "board-room",
-      "position": { "x": 0, "y": 0.75, "z": 2 },
-      "dialogues": {
-        "greeting": {
-          "id": "greeting",
-          "trigger": "proximity",
-          "lines": [
-            "Welcome to the Board Room.",
-            "This is Level 7: Crisis Management.",
-            "Every startup faces critical moments that test its resilience.",
-            "How you handle these crises will determine your survival."
-          ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "Ring the bell", "action": "start_simulator" },
+            { "text": "Back", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
         },
-        "crisis_guidance": {
-          "id": "crisis_guidance",
+        "victory_hint": {
+          "id": "victory_hint",
           "trigger": "interaction",
           "lines": [
-            "When crisis hits, stay calm and think strategically.",
-            "Communicate transparently with your team and stakeholders.",
-            "Act decisively but don't panic.",
-            "Learn from each crisis to build a stronger company."
+            "You started with a napkin sketch at home.",
+            "Now you're ringing the NASDAQ bell.",
+            "Most people dream about this. You built it.",
+            "Remember everyone who helped you get here."
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "Let's make history", "action": "start_simulator" },
+            { "text": "I won't forget", "action": "close" }
+          ]
         }
       }
     },
-    "generic_npc": {
-      "id": "generic_npc",
-      "name": "Resident",
-      "color": "#888888",
-      "location": "generic",
-      "position": { "x": -1, "y": 0.75, "z": -3 },
+    "ipo_advisor": {
+      "id": "ipo_advisor",
+      "name": "IPO Advisor",
+      "color": "#8E44AD",
+      "location": "nasdaq",
       "dialogues": {
         "greeting": {
           "id": "greeting",
           "trigger": "proximity",
           "lines": [
-            "Welcome to this building!",
-            "This is a generic space.",
-            "Thanks for visiting!"
+            "I speak in multiples and basis points.",
+            "IPO advisor. I've taken 47 companies public.",
+            "The question is: should YOU go public?"
           ],
-          "repeatable": true
+          "repeatable": true,
+          "choices": [
+            { "text": "What are my exit options?", "action": "dialogue", "nextDialogue": "exit_strategies" },
+            { "text": "Any parting wisdom?", "action": "dialogue", "nextDialogue": "final_advice" },
+            { "text": "I'm still deciding", "action": "close" }
+          ]
+        },
+        "exit_strategies": {
+          "id": "exit_strategies",
+          "trigger": "interaction",
+          "lines": [
+            "IPO: maximum valuation, maximum headache.",
+            "Acquisition: quick exit, someone else's vision.",
+            "Stay private: keep control, limit liquidity.",
+            "There's no wrong answer. Only trade-offs."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "What would you recommend?", "action": "dialogue", "nextDialogue": "final_advice" },
+            { "text": "I'll think it over", "action": "close" }
+          ]
+        },
+        "final_advice": {
+          "id": "final_advice",
+          "trigger": "interaction",
+          "lines": [
+            "47 IPOs. Know what they all have in common?",
+            "The founders who made it weren't the smartest.",
+            "They were the most stubborn.",
+            "Keep going. That's the whole secret."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Best advice I've gotten", "action": "close" },
+            { "text": "Time to ring the bell", "action": "close" }
+          ]
+        }
+      }
+    },
+    "retail_investor": {
+      "id": "retail_investor",
+      "name": "Retail Investor",
+      "color": "#27AE60",
+      "location": "nasdaq",
+      "dialogues": {
+        "greeting": {
+          "id": "greeting",
+          "trigger": "proximity",
+          "lines": [
+            "TO. THE. MOON.",
+            "Diamond hands baby! I'm never selling!",
+            "I bought at the top and I'd do it again!"
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "Any investment wisdom?", "action": "dialogue", "nextDialogue": "meme_wisdom" },
+            { "text": "You're... enthusiastic", "action": "close" }
+          ]
+        },
+        "meme_wisdom": {
+          "id": "meme_wisdom",
+          "trigger": "interaction",
+          "lines": [
+            "Okay real talk? Beneath the memes...",
+            "Retail investors believe in what they buy.",
+            "We're not just customers. We're evangelists.",
+            "A million small believers beat one big VC."
+          ],
+          "repeatable": true,
+          "choices": [
+            { "text": "That's actually profound", "action": "close" },
+            { "text": "Back to the memes", "action": "dialogue", "nextDialogue": "greeting" }
+          ]
+        },
+        "press_quote": {
+          "id": "press_quote",
+          "trigger": "interaction",
+          "requirements": ["journalist_quest"],
+          "lines": [
+            "A reporter? FINALLY someone covers retail!",
+            "Quote: 'I YOLO'd my savings and I'm UP 2%!'",
+            "'That's after being down 80% but we don't talk about that.'",
+            "Print it all. The people need to hear this."
+          ],
+          "repeatable": true,
+          "unlocks": ["retail_investor_quote"],
+          "choices": [
+            { "text": "This is gold, thanks", "action": "set_flag", "flag": "retail_investor_quote" },
+            { "text": "I'll quote you accurately", "action": "set_flag", "flag": "retail_investor_quote" }
+          ]
         }
       }
     }
@@ -793,7 +1685,7 @@
         "lines": [
           "Welcome to The Legend of Silicon Valley!",
           "Your entrepreneurial journey begins now.",
-          "Explore the Silicon Valley ecosystem."
+          "Explore the Valley. Talk to everyone."
         ]
       },
       "building_entered": {
@@ -831,39 +1723,43 @@
     }
   },
   "dialogue_chains": {
-    "startup_journey": {
-      "id": "startup_journey",
-      "description": "Multi-NPC dialogue chain for startup progression",
+    "founding_story": {
+      "id": "founding_story",
+      "description": "Main quest: from napkin sketch to IPO bell",
       "steps": [
-        {
-          "npc": "loft_npc",
-          "dialogue": "creative_process",
-          "unlocks": "idea_generated"
-        },
-        {
-          "npc": "accelerator_npc",
-          "dialogue": "program_info",
-          "requires": "idea_generated",
-          "unlocks": "accelerator_accepted"
-        },
-        {
-          "npc": "venture_npc",
-          "dialogue": "funding_discussion",
-          "requires": "accelerator_accepted",
-          "unlocks": "funding_secured"
-        },
-        {
-          "npc": "law_npc",
-          "dialogue": "legal_advice",
-          "requires": "funding_secured",
-          "unlocks": "legal_setup"
-        },
-        {
-          "npc": "nasdaq_npc",
-          "dialogue": "market_talk",
-          "requires": "legal_setup",
-          "unlocks": "ipo_ready"
-        }
+        { "npc": "sam", "dialogue": "greeting", "unlocks": "idea_started" },
+        { "npc": "alex", "dialogue": "greeting", "requires": "idea_started", "unlocks": "mvp_built" },
+        { "npc": "jordan", "dialogue": "greeting", "requires": "mvp_built", "unlocks": "seed_raised" },
+        { "npc": "casey", "dialogue": "greeting", "requires": "seed_raised", "unlocks": "team_assembled" },
+        { "npc": "morgan", "dialogue": "greeting", "requires": "team_assembled", "unlocks": "growth_launched" },
+        { "npc": "data_center_npc", "dialogue": "greeting", "requires": "growth_launched", "unlocks": "infra_scaled" },
+        { "npc": "board_room_npc", "dialogue": "greeting", "requires": "infra_scaled", "unlocks": "crisis_survived" },
+        { "npc": "venture_npc", "dialogue": "greeting", "requires": "crisis_survived", "unlocks": "series_a_closed" },
+        { "npc": "law_npc", "dialogue": "greeting", "requires": "series_a_closed", "unlocks": "legal_complete" },
+        { "npc": "nasdaq_npc", "dialogue": "greeting", "requires": "legal_complete", "unlocks": "ipo_ready" }
+      ]
+    },
+    "mentor_network": {
+      "id": "mentor_network",
+      "description": "Side quest: the Old Timer's redemption arc",
+      "steps": [
+        { "npc": "old_timer", "dialogue": "greeting", "unlocks": "met_old_timer" },
+        { "npc": "cfo_diana", "dialogue": "old_timer_connection", "requires": "met_old_timer", "unlocks": "diana_connection" },
+        { "npc": "patent_atty", "dialogue": "referral", "requires": "diana_connection", "unlocks": "ip_protected" },
+        { "npc": "angel_investor", "dialogue": "old_timer_reveal", "requires": "met_old_timer", "unlocks": "met_angel" },
+        { "npc": "old_timer", "dialogue": "mentor_quest", "requires": "met_angel", "unlocks": "mentor_complete" }
+      ]
+    },
+    "valley_gossip": {
+      "id": "valley_gossip",
+      "description": "Side quest: help Journalist Zoe collect press quotes",
+      "steps": [
+        { "npc": "journalist_zoe", "dialogue": "quest_start", "unlocks": "journalist_quest" },
+        { "npc": "garage_intern", "dialogue": "press_quote", "requires": "journalist_quest", "unlocks": "intern_quote" },
+        { "npc": "retail_investor", "dialogue": "press_quote", "requires": "journalist_quest", "unlocks": "retail_investor_quote" },
+        { "npc": "growth_hacker", "dialogue": "press_quote", "requires": "journalist_quest", "unlocks": "growth_hacker_quote" },
+        { "npc": "ml_engineer", "dialogue": "press_quote", "requires": "journalist_quest", "unlocks": "ml_engineer_quote" },
+        { "npc": "journalist_zoe", "dialogue": "quest_complete", "requires": "intern_quote,retail_investor_quote,growth_hacker_quote,ml_engineer_quote", "unlocks": "article_published" }
       ]
     }
   },
