@@ -1,3 +1,5 @@
+import { trackEvent } from '../utils/analytics.js';
+
 export class Inventory {
     constructor() {
         this.items = [];
@@ -16,6 +18,7 @@ export class Inventory {
         // Create main inventory container
         this.inventoryContainer = document.createElement('div');
         this.inventoryContainer.id = 'inventory-container';
+        this.inventoryContainer.dataset.sectionId = 'inventory';
         this.inventoryContainer.style.position = 'fixed';
         this.inventoryContainer.style.top = '50%';
         this.inventoryContainer.style.left = '50%';
@@ -89,9 +92,12 @@ export class Inventory {
     toggle() {
         this.isVisible = !this.isVisible;
         this.inventoryContainer.style.display = this.isVisible ? 'block' : 'none';
-        
+
         if (this.isVisible) {
+            trackEvent('inventory-opened', { itemCount: this.items.length });
             this.updateDisplay();
+        } else {
+            trackEvent('inventory-closed');
         }
     }
     
@@ -109,9 +115,11 @@ export class Inventory {
     addItem(item) {
         if (this.items.length < this.maxSlots) {
             this.items.push(item);
+            trackEvent('item-collected', { item: item.name });
             this.updateDisplay();
             return true;
         }
+        trackEvent('inventory-full', { item: item.name });
         return false; // Inventory full
     }
     

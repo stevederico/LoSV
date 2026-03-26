@@ -12,6 +12,7 @@ import { ProgressionManager } from './components/ProgressionManager.js';
 import { PauseMenu } from './components/PauseMenu.js';
 import { audioManager } from './utils/AudioManager.js';
 import { loadAssets, setupKeyboardControls } from './utils/helpers.js';
+import { trackEvent } from './utils/analytics.js';
 
 export class Game {
     constructor() {
@@ -347,6 +348,7 @@ export class Game {
         console.log("Game: Handling enter building:", building.userData.buildingType);
 
         const buildingType = building.userData.buildingType;
+        trackEvent('building-entered', { building: buildingType });
 
         // Check if building is locked
         if (this.progressionManager.isLocked(buildingType)) {
@@ -515,6 +517,7 @@ export class Game {
 
     handleExitBuilding() {
         console.log("Game: Handling exit building.");
+        trackEvent('building-exited');
 
         // Hide building name display
         this.hideBuildingName();
@@ -1069,6 +1072,8 @@ export class Game {
         // Create victory overlay
         const overlay = document.createElement('div');
         overlay.id = 'victory-screen';
+        overlay.dataset.sectionId = 'victory';
+        trackEvent('game-won', { funding: stats.funding, mrr: stats.mrr, dau: stats.dau, teamSize: stats.teamSize });
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -1116,8 +1121,8 @@ export class Game {
                 <div class="stat-row"><span class="stat-label">Team Size:</span><span class="stat-value">${stats.teamSize || 1} people</span></div>
             </div>
             <div>
-                <button class="victory-btn" id="play-again-btn">Play Again</button>
-                <button class="victory-btn" id="main-menu-btn">Main Menu</button>
+                <button class="victory-btn" id="play-again-btn" data-umami-event="victory-play-again">Play Again</button>
+                <button class="victory-btn" id="main-menu-btn" data-umami-event="victory-main-menu">Main Menu</button>
             </div>
         `;
 
@@ -1162,6 +1167,8 @@ export class Game {
 
         const overlay = document.createElement('div');
         overlay.id = 'game-over-screen';
+        overlay.dataset.sectionId = 'game-over';
+        trackEvent('game-over', { completedLevels, dau: stats.dau, mrr: stats.mrr });
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -1203,8 +1210,8 @@ export class Game {
                 <div class="stat-row"><span class="stat-label">Final MRR:</span><span class="stat-value">$${(stats.mrr || 0).toLocaleString()}</span></div>
             </div>
             <div>
-                <button class="game-over-btn" id="try-again-btn">Try Again</button>
-                <button class="game-over-btn" id="main-menu-btn-go">Main Menu</button>
+                <button class="game-over-btn" id="try-again-btn" data-umami-event="game-over-retry">Try Again</button>
+                <button class="game-over-btn" id="main-menu-btn-go" data-umami-event="game-over-menu">Main Menu</button>
             </div>
         `;
 

@@ -1,3 +1,5 @@
+import { trackEvent } from '../utils/analytics.js';
+
 /**
  * Manages the pause menu UI and game pause state.
  */
@@ -70,6 +72,7 @@ export class PauseMenu {
     createOverlay() {
         this.overlay = document.createElement('div');
         this.overlay.id = 'pause-menu';
+        this.overlay.dataset.sectionId = 'pause-menu';
         this.overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -206,23 +209,23 @@ export class PauseMenu {
             <div class="menu-title">PAUSED</div>
 
             <div class="menu-container" id="main-menu">
-                <button class="menu-btn" id="resume-btn">Resume</button>
-                <button class="menu-btn" id="settings-btn">Settings</button>
-                <button class="menu-btn" id="controls-btn">Controls</button>
-                <button class="menu-btn" id="restart-btn">Restart Game</button>
+                <button class="menu-btn" id="resume-btn" data-umami-event="game-resumed">Resume</button>
+                <button class="menu-btn" id="settings-btn" data-umami-event="settings-opened">Settings</button>
+                <button class="menu-btn" id="controls-btn" data-umami-event="controls-viewed">Controls</button>
+                <button class="menu-btn" id="restart-btn" data-umami-event="game-restarted">Restart Game</button>
             </div>
 
             <div class="settings-panel" id="settings-panel">
                 <div class="settings-title">Settings</div>
                 <div class="setting-row">
                     <span class="setting-label">Music Volume</span>
-                    <input type="range" class="setting-slider" id="music-volume" min="0" max="100" value="50">
+                    <input type="range" class="setting-slider" id="music-volume" min="0" max="100" value="50" data-umami-event="music-volume-changed">
                 </div>
                 <div class="setting-row">
                     <span class="setting-label">SFX Volume</span>
-                    <input type="range" class="setting-slider" id="sfx-volume" min="0" max="100" value="70">
+                    <input type="range" class="setting-slider" id="sfx-volume" min="0" max="100" value="70" data-umami-event="sfx-volume-changed">
                 </div>
-                <button class="menu-btn back-btn" id="settings-back">Back</button>
+                <button class="menu-btn back-btn" id="settings-back" data-umami-event="settings-closed">Back</button>
             </div>
 
             <div class="controls-panel" id="controls-panel">
@@ -247,7 +250,7 @@ export class PauseMenu {
                     <span class="control-desc">Pause Game</span>
                     <span class="control-key">Escape</span>
                 </div>
-                <button class="menu-btn back-btn" id="controls-back">Back</button>
+                <button class="menu-btn back-btn" id="controls-back" data-umami-event="controls-closed">Back</button>
             </div>
         `;
 
@@ -270,6 +273,7 @@ export class PauseMenu {
         document.getElementById('music-volume').addEventListener('input', (e) => {
             this.settings.musicVolume = e.target.value / 100;
             this.saveSettings();
+            trackEvent('music-volume-changed', { volume: this.settings.musicVolume });
             // Notify audio manager if it exists
             if (this.game.audioManager) {
                 this.game.audioManager.setMusicVolume(this.settings.musicVolume);
@@ -278,6 +282,7 @@ export class PauseMenu {
         document.getElementById('sfx-volume').addEventListener('input', (e) => {
             this.settings.sfxVolume = e.target.value / 100;
             this.saveSettings();
+            trackEvent('sfx-volume-changed', { volume: this.settings.sfxVolume });
             // Notify audio manager if it exists
             if (this.game.audioManager) {
                 this.game.audioManager.setSFXVolume(this.settings.sfxVolume);
@@ -328,6 +333,7 @@ export class PauseMenu {
         this.isPaused = true;
         this.overlay.style.display = 'flex';
         this.showMainMenu();
+        trackEvent('game-paused');
 
         // Pause game loop if game has a pause method
         if (this.game && typeof this.game.pauseGame === 'function') {
@@ -343,6 +349,7 @@ export class PauseMenu {
 
         this.isPaused = false;
         this.overlay.style.display = 'none';
+        trackEvent('game-resumed');
 
         // Resume game loop if game has a resume method
         if (this.game && typeof this.game.resumeGame === 'function') {
@@ -354,6 +361,7 @@ export class PauseMenu {
      * Restarts the game.
      */
     restart() {
+        trackEvent('game-restarted');
         if (this.game && this.game.progressionManager) {
             this.game.progressionManager.resetProgress();
         }
