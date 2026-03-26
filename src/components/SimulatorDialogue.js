@@ -1,3 +1,5 @@
+import { trackEvent } from '../utils/analytics.js';
+
 export class SimulatorDialogue {
     constructor(dialogueManager) {
         this.dialogueManager = dialogueManager;
@@ -16,6 +18,7 @@ export class SimulatorDialogue {
         // Create main simulator container
         this.simulatorBox = document.createElement('div');
         this.simulatorBox.id = 'simulator-box';
+        this.simulatorBox.dataset.sectionId = 'simulator';
         this.simulatorBox.style.position = 'fixed';
         this.simulatorBox.style.bottom = '30px';
         this.simulatorBox.style.left = '50%';
@@ -74,6 +77,8 @@ export class SimulatorDialogue {
         if (key >= '1' && key <= '3') {
             const choice = parseInt(key);
             if (choice <= this.currentOptions.length) {
+                const selectedOption = this.currentOptions[choice - 1];
+                trackEvent('simulator-choice-made', { choice: selectedOption.name, index: choice });
                 this.waitingForChoice = false;
                 if (this.onChoiceCallback) {
                     this.onChoiceCallback(choice);
@@ -83,6 +88,7 @@ export class SimulatorDialogue {
     }
     
     displayRound(roundData) {
+        trackEvent('simulator-round-displayed', { level: roundData.level, round: roundData.round, levelName: roundData.levelName });
         this.contentContainer.innerHTML = '';
         this.currentOptions = roundData.options;
         
@@ -108,6 +114,7 @@ export class SimulatorDialogue {
         
         roundData.options.forEach((option, index) => {
             const optionDiv = document.createElement('div');
+            optionDiv.dataset.umamiEvent = 'simulator-option-viewed';
             optionDiv.style.marginBottom = '15px';
             optionDiv.style.padding = '10px';
             optionDiv.style.border = '1px solid #00ff00';
@@ -188,6 +195,9 @@ export class SimulatorDialogue {
     }
     
     displayResult(result) {
+        if (result.levelComplete) {
+            trackEvent('level-completed', { score: result.finalScore, success: result.levelSuccess });
+        }
         this.contentContainer.innerHTML = '';
         
         // Results header
