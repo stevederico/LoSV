@@ -1,4 +1,5 @@
 import { DialogueLoader } from '../utils/DialogueLoader.js';
+import { trackEvent } from '../utils/analytics.js';
 
 export class DialogueManager {
     constructor() {
@@ -84,6 +85,7 @@ export class DialogueManager {
         // Create dialogue-box container
         this.dialogueBox = document.createElement('div');
         this.dialogueBox.id = 'dialogue-box';
+        this.dialogueBox.dataset.sectionId = 'dialogue';
         this.dialogueBox.style.position = 'fixed';
         this.dialogueBox.style.bottom = '30px'; // Adjusted position
         this.dialogueBox.style.left = '50%';
@@ -182,6 +184,7 @@ export class DialogueManager {
             }
         };
 
+        trackEvent('dialogue-started', { character: characterId, dialogue: dialogueId });
         this.showDialogue(dialogue.lines, wrappedCallback);
         return true;
     }
@@ -368,6 +371,7 @@ export class DialogueManager {
         this.choiceContainer.innerHTML = '';
         choices.forEach((choice, index) => {
             const choiceElement = document.createElement('div');
+            choiceElement.dataset.umamiEvent = 'dialogue-choice-clicked';
             choiceElement.style.padding = '8px';
             choiceElement.style.marginBottom = '5px';
             choiceElement.style.cursor = 'pointer';
@@ -417,6 +421,7 @@ export class DialogueManager {
 
     confirmChoice() {
         const selectedChoice = this.currentChoices[this.selectedChoiceIndex];
+        trackEvent('dialogue-choice-selected', { choice: selectedChoice.text, index: this.selectedChoiceIndex });
         this.hideChoices();
 
         if (this.onChoiceCallback) {
