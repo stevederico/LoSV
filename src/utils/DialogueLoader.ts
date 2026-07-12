@@ -1,4 +1,17 @@
+import type { DialogueData, DialogueDef, CharacterDef, PlayerStats } from '../types';
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isDialogueData(value: unknown): value is DialogueData {
+    return isPlainObject(value) && isPlainObject(value.characters);
+}
+
 export class DialogueLoader {
+    dialogueData: DialogueData | null;
+    playerProgress: Map<string, unknown>;
+    completedDialogues: Set<string>;
     constructor() {
         this.dialogueData = null;
         this.playerProgress = new Map(); // Track player progress through dialogue chains
@@ -20,10 +33,11 @@ export class DialogueLoader {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            this.dialogueData = await response.json();
+            const raw: unknown = await response.json();
+            this.dialogueData = isDialogueData(raw) ? raw : null;
             console.log('Dialogue data loaded successfully');
             return this.dialogueData;
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to load dialogue data:', error);
             // Fallback with hardcoded data for testing
             this.dialogueData = {
@@ -138,13 +152,13 @@ export class DialogueLoader {
         }
     }
 
-    getCharacterDialogue(characterId, dialogueId = 'greeting') {
-        if (!this.dialogueData || !this.dialogueData.characters[characterId]) {
+    getCharacterDialogue(characterId: string, dialogueId: string = 'greeting'): import("../types").DialogueDef | null {
+        if (!this.dialogueData || !this.dialogueData?.characters?.[characterId]) {
             console.warn(`Character ${characterId} not found in dialogue data`);
             return null;
         }
 
-        const character = this.dialogueData.characters[characterId];
+        const character = this.dialogueData?.characters?.[characterId];
         const dialogue = character.dialogues[dialogueId];
 
         if (!dialogue) {
@@ -180,12 +194,12 @@ export class DialogueLoader {
      * @param {string} buildingType - Target building type
      * @param {string} npcId - Target NPC character ID
      */
-    setQuestMarker(buildingType, npcId) {
+    setQuestMarker(buildingType: string, npcId: string) {
         this.playerProgress.set('current_quest_building', buildingType);
         this.playerProgress.set('current_quest_npc', npcId);
     }
 
-    markDialogueCompleted(characterId, dialogueId) {
+    markDialogueCompleted(characterId: string, dialogueId: string) {
         const dialogueKey = `${characterId}_${dialogueId}`;
         this.completedDialogues.add(dialogueKey);
 
@@ -199,25 +213,34 @@ export class DialogueLoader {
         }
     }
 
-    getCharacterData(characterId) {
-        if (!this.dialogueData || !this.dialogueData.characters[characterId]) {
+    getCharacterData(characterId: string) {
+        if (!this.dialogueData || !this.dialogueData?.characters?.[characterId]) {
             return null;
         }
-        return this.dialogueData.characters[characterId];
+        return this.dialogueData?.characters?.[characterId];
     }
 
-    getGlobalDialogue(category, dialogueId) {
-        if (!this.dialogueData || !this.dialogueData.global_dialogues[category]) {
+    getGlobalDialogue(category: string, dialogueId: string): import("../types").DialogueDef | null {
+        if (!this.dialogueData || !this.dialogueData?.global_dialogues?.[category]) {
             return null;
         }
-        return this.dialogueData.global_dialogues[category][dialogueId];
+        const entry = this.dialogueData?.global_dialogues?.[category]?.[dialogueId];
+        if (!entry || typeof entry !== 'object' || entry === null) return null;
+        const lines = Reflect.get(entry, 'lines');
+        if (!Array.isArray(lines)) return null;
+        const result: import("../types").DialogueDef = {
+            lines: lines.filter((l): l is string => typeof l === 'string'),
+        };
+        const unlocks = Reflect.get(entry, 'unlocks');
+        if (Array.isArray(unlocks)) result.unlocks = unlocks.filter((u): u is string => typeof u === 'string');
+        return result;
     }
 
-    getRandomDialogue(category) {
-        if (!this.dialogueData || !this.dialogueData.random_dialogues[category]) {
+    getRandomDialogue(category: string): import("../types").DialogueDef | null {
+        if (!this.dialogueData || !this.dialogueData?.random_dialogues?.[category]) {
             return null;
         }
-        const dialogues = this.dialogueData.random_dialogues[category];
+        const dialogues = this.dialogueData?.random_dialogues?.[category];
         const randomIndex = Math.floor(Math.random() * dialogues.length);
         return {
             id: `random_${category}_${randomIndex}`,
@@ -225,46 +248,46 @@ export class DialogueLoader {
         };
     }
 
-    getConditionalDialogue(playerStats) {
-        if (!this.dialogueData || !this.dialogueData.conditional_dialogues) {
+    getConditionalDialogue(playerStats: import("../types").PlayerStats) {
+        if (!this.dialogueData || !this.dialogueData?.conditional_dialogues) {
             return null;
         }
 
-        const conditions = this.dialogueData.conditional_dialogues.player_stats;
+        const conditions = this.dialogueData?.conditional_dialogues.player_stats;
         
         // Check high DAU condition
-        if (playerStats.dau > 1000 && conditions.high_dau) {
+        if (playerStats.dau > 1000 && conditions?.high_dau) {
             return {
                 id: 'conditional_high_dau',
-                lines: conditions.high_dau.lines
+                lines: conditions?.high_dau.lines
             };
         }
 
         // Check high MRR condition
-        if (playerStats.mrr > 10000 && conditions.high_mrr) {
+        if (playerStats.mrr > 10000 && conditions?.high_mrr) {
             return {
                 id: 'conditional_high_mrr',
-                lines: conditions.high_mrr.lines
+                lines: conditions?.high_mrr.lines
             };
         }
 
         // Check low stats condition
-        if (playerStats.dau < 100 && playerStats.mrr < 1000 && conditions.low_stats) {
+        if (playerStats.dau < 100 && playerStats.mrr < 1000 && conditions?.low_stats) {
             return {
                 id: 'conditional_low_stats',
-                lines: conditions.low_stats.lines
+                lines: conditions?.low_stats.lines
             };
         }
 
         return null;
     }
 
-    getDialogueChainProgress(chainId) {
-        if (!this.dialogueData || !this.dialogueData.dialogue_chains[chainId]) {
+    getDialogueChainProgress(chainId: string) {
+        if (!this.dialogueData?.dialogue_chains?.[chainId]) {
             return null;
         }
 
-        const chain = this.dialogueData.dialogue_chains[chainId];
+        const chain = this.dialogueData?.dialogue_chains?.[chainId];
         const progress = {
             chainId: chainId,
             currentStep: 0,
@@ -288,14 +311,15 @@ export class DialogueLoader {
         return progress;
     }
 
-    getNextDialogueInChain(chainId) {
+    getNextDialogueInChain(chainId: string) {
         const progress = this.getDialogueChainProgress(chainId);
         if (!progress || progress.completed) {
             return null;
         }
 
-        const chain = this.dialogueData.dialogue_chains[chainId];
-        const nextStep = chain.steps[progress.currentStep];
+        const chain = this.dialogueData?.dialogue_chains?.[chainId];
+        const nextStep = chain?.steps?.[progress.currentStep];
+        if (!nextStep) return null;
         
         return {
             npc: nextStep.npc,
@@ -314,7 +338,7 @@ export class DialogueLoader {
     }
 
     // Helper method to get all available dialogues for a character
-    getAvailableDialogues(characterId) {
+    getAvailableDialogues(characterId: string) {
         const character = this.getCharacterData(characterId);
         if (!character) return [];
 

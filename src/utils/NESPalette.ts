@@ -63,10 +63,17 @@ export const NES_PALETTE = {
     MAHOGANY: 0x420420
 };
 
+export type RoomTheme = {
+    background: number;
+    floor: number;
+    walls: number;
+    accent: number;
+};
+
 /**
  * Room-specific color schemes using the NES palette.
  */
-export const ROOM_THEMES = {
+export const ROOM_THEMES: Record<string, RoomTheme> = {
     house: {
         background: 0x4A3728,
         floor: NES_PALETTE.WOOD_MED,
@@ -131,10 +138,8 @@ export const ROOM_THEMES = {
 
 /**
  * Converts hex color to RGB object.
- * @param {number} hex - Hex color value
- * @returns {{r: number, g: number, b: number}} RGB values (0-255)
  */
-export function hexToRgb(hex) {
+export function hexToRgb(hex: number): { r: number; g: number; b: number } {
     return {
         r: (hex >> 16) & 255,
         g: (hex >> 8) & 255,
@@ -144,31 +149,23 @@ export function hexToRgb(hex) {
 
 /**
  * Converts hex color to CSS rgba string.
- * @param {number} hex - Hex color value
- * @param {number} alpha - Alpha value (0-1)
- * @returns {string} CSS rgba string
  */
-export function hexToRgba(hex, alpha = 1) {
+export function hexToRgba(hex: number, alpha = 1): string {
     const { r, g, b } = hexToRgb(hex);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 /**
  * Converts hex color to CSS hex string.
- * @param {number} hex - Hex color value
- * @returns {string} CSS hex string
  */
-export function hexToString(hex) {
+export function hexToString(hex: number): string {
     return '#' + hex.toString(16).padStart(6, '0');
 }
 
 /**
  * Darkens a color by a percentage.
- * @param {number} hex - Hex color value
- * @param {number} percent - Percentage to darken (0-100)
- * @returns {number} Darkened hex color
  */
-export function darken(hex, percent) {
+export function darken(hex: number, percent: number): number {
     const { r, g, b } = hexToRgb(hex);
     const factor = 1 - (percent / 100);
     return (
@@ -180,11 +177,8 @@ export function darken(hex, percent) {
 
 /**
  * Lightens a color by a percentage.
- * @param {number} hex - Hex color value
- * @param {number} percent - Percentage to lighten (0-100)
- * @returns {number} Lightened hex color
  */
-export function lighten(hex, percent) {
+export function lighten(hex: number, percent: number): number {
     const { r, g, b } = hexToRgb(hex);
     const factor = percent / 100;
     return (

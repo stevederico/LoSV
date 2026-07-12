@@ -1,17 +1,28 @@
 /**
- * Advanced Umami analytics for vanilla JS apps
+ * Advanced Umami analytics for vanilla apps
  *
  * Sets up passive tracking for time on page, exit intent,
  * section visibility, page load performance, JS errors, and text copy events.
  * All tracking is disabled on localhost via isLocal() guard.
  */
-import { trackEvent, trackPageView } from './analytics.js';
+import { trackEvent, trackPageView } from './analytics';
 
-/** @returns {boolean} True if running on localhost */
-const isLocal = () => ['localhost', '127.0.0.1'].includes(window.location.hostname);
+/** True if running on localhost */
+const isLocal = (): boolean =>
+  ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+type AnalyticsState = {
+  timeStart: number;
+  timeThresholds: Set<number>;
+  exitFired: boolean;
+  errorCount: number;
+  interval: ReturnType<typeof setInterval> | null;
+  observer: IntersectionObserver | null;
+  cleanups: Array<() => void>;
+};
 
 /** Tracked state */
-const state = {
+const state: AnalyticsState = {
   timeStart: Date.now(),
   timeThresholds: new Set(),
   exitFired: false,
@@ -23,43 +34,46 @@ const state = {
 
 /**
  * Adds an event listener and tracks it for cleanup
- * @param {EventTarget} target
- * @param {string} event
- * @param {Function} handler
- * @param {Object} [options]
  */
-function addTrackedListener(target, event, handler, options) {
+function addTrackedListener(
+  target: EventTarget,
+  event: string,
+  handler: EventListener,
+  options?: boolean | AddEventListenerOptions
+): void {
   target.addEventListener(event, handler, options);
   state.cleanups.push(() => target.removeEventListener(event, handler, options));
 }
 
 /** Observe elements with data-section-id */
-function observeSections() {
+function observeSections(): void {
   if (state.observer) state.observer.disconnect();
 
-  const seen = new Set();
+  const seen = new Set<string>();
   state.observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
-      const id = entry.target.dataset.sectionId;
+      const target = entry.target;
+      if (!(target instanceof HTMLElement)) continue;
+      const id = target.dataset.sectionId;
+      if (!id) continue;
       if (entry.isIntersecting && !seen.has(id)) {
         seen.add(id);
         trackEvent('section-viewed', { section: id });
-        state.observer?.unobserve(entry.target);
+        state.observer?.unobserve(target);
       }
     }
   }, { threshold: 0.3 });
 
   document.querySelectorAll('[data-section-id]').forEach((el) => {
-    state.observer.observe(el);
+    state.observer?.observe(el);
   });
 }
 
 /**
  * Initialize all passive analytics trackers.
  * Call once at app startup. Returns a cleanup function.
- * @returns {Function} Cleanup function to remove all listeners
  */
-export function initAdvancedAnalytics() {
+export function initAdvancedAnalytics(): () => void {
   if (isLocal()) return () => {};
 
   // Time on page
@@ -74,7 +88,8 @@ export function initAdvancedAnalytics() {
   }, 5000);
 
   // Exit intent
-  const handleMouseout = (e) => {
+  const handleMouseout = (e: Event): void => {
+    if (!(e instanceof MouseEvent)) return;
     if (!e.relatedTarget && !state.exitFired && e.clientY < 10) {
       state.exitFired = true;
       trackEvent('exit-intent');
@@ -83,23 +98,26 @@ export function initAdvancedAnalytics() {
   addTrackedListener(document, 'mouseout', handleMouseout);
 
   // Page load performance (once)
-  const perf = performance.getEntriesByType('navigation')[0];
-  if (perf) {
+  const perfEntries = performance.getEntriesByType('navigation');
+  const perf = perfEntries[0];
+  if (perf && perf instanceof PerformanceNavigationTiming) {
     const loadTime = Math.round(perf.loadEventEnd - perf.startTime);
     const speed = loadTime < 1000 ? 'fast' : loadTime < 3000 ? 'medium' : 'slow';
     trackEvent('page-load', { ms: loadTime, speed });
   }
 
   // JS error tracking (max 5 per session)
-  const handleError = (e) => {
+  const handleError = (e: Event): void => {
     if (state.errorCount >= 5) return;
     state.errorCount++;
-    trackEvent('js-error', { message: (e.message || 'unknown').substring(0, 50) });
+    const message =
+      e instanceof ErrorEvent ? (e.message || 'unknown').substring(0, 50) : 'unknown';
+    trackEvent('js-error', { message });
   };
   addTrackedListener(window, 'error', handleError);
 
   // Text copy
-  const handleCopy = () => {
+  const handleCopy = (): void => {
     trackEvent('text-copied');
   };
   addTrackedListener(document, 'copy', handleCopy);

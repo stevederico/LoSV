@@ -1,10 +1,15 @@
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../utils/analytics';
 
 /**
  * Manages the pause menu UI and game pause state.
  */
 export class PauseMenu {
-    constructor(game) {
+    game: import('../game').Game;
+    isPaused: boolean = false;
+    overlay: HTMLDivElement | null = null;
+    settings: import('../types').PauseSettings;
+    boundKeyHandler: (event: KeyboardEvent) => void;
+    constructor(game: import("../game").Game) {
         this.game = game;
         this.isPaused = false;
         this.overlay = null;
@@ -55,7 +60,7 @@ export class PauseMenu {
      * Handles keyboard input for pause menu.
      * @param {KeyboardEvent} event - Keyboard event
      */
-    handleKeyPress(event) {
+    handleKeyPress(event: KeyboardEvent) {
         if (event.key === 'Escape') {
             event.preventDefault();
             if (this.isPaused) {
@@ -73,7 +78,7 @@ export class PauseMenu {
         this.overlay = document.createElement('div');
         this.overlay.id = 'pause-menu';
         this.overlay.dataset.sectionId = 'pause-menu';
-        this.overlay.style.cssText = `
+        if (this.overlay) this.overlay.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
@@ -262,66 +267,77 @@ export class PauseMenu {
      * Attaches event listeners to menu buttons.
      */
     attachEventListeners() {
-        // Main menu buttons
-        document.getElementById('resume-btn').addEventListener('click', () => this.resume());
-        document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
-        document.getElementById('controls-btn').addEventListener('click', () => this.showControls());
-        document.getElementById('restart-btn').addEventListener('click', () => this.restart());
+        const on = (id: string, event: string, handler: EventListener) => {
+            document.getElementById(id)?.addEventListener(event, handler);
+        };
 
-        // Settings panel
-        document.getElementById('settings-back').addEventListener('click', () => this.showMainMenu());
-        document.getElementById('music-volume').addEventListener('input', (e) => {
-            this.settings.musicVolume = e.target.value / 100;
+        on('resume-btn', 'click', () => this.resume());
+        on('settings-btn', 'click', () => this.showSettings());
+        on('controls-btn', 'click', () => this.showControls());
+        on('restart-btn', 'click', () => this.restart());
+        on('settings-back', 'click', () => this.showMainMenu());
+        on('controls-back', 'click', () => this.showMainMenu());
+
+        on('music-volume', 'input', (e: Event) => {
+            const t = e.target;
+            if (!(t instanceof HTMLInputElement)) return;
+            this.settings.musicVolume = Number(t.value) / 100;
             this.saveSettings();
-            trackEvent('music-volume-changed', { volume: this.settings.musicVolume });
-            // Notify audio manager if it exists
+            trackEvent('music-volume-changed', { volume: this.settings.musicVolume ?? 0 });
             if (this.game.audioManager) {
-                this.game.audioManager.setMusicVolume(this.settings.musicVolume);
-            }
-        });
-        document.getElementById('sfx-volume').addEventListener('input', (e) => {
-            this.settings.sfxVolume = e.target.value / 100;
-            this.saveSettings();
-            trackEvent('sfx-volume-changed', { volume: this.settings.sfxVolume });
-            // Notify audio manager if it exists
-            if (this.game.audioManager) {
-                this.game.audioManager.setSFXVolume(this.settings.sfxVolume);
+                this.game.audioManager.setMusicVolume(this.settings.musicVolume ?? 0);
             }
         });
 
-        // Controls panel
-        document.getElementById('controls-back').addEventListener('click', () => this.showMainMenu());
+        on('sfx-volume', 'input', (e: Event) => {
+            const t = e.target;
+            if (!(t instanceof HTMLInputElement)) return;
+            this.settings.sfxVolume = Number(t.value) / 100;
+            this.saveSettings();
+            trackEvent('sfx-volume-changed', { volume: this.settings.sfxVolume ?? 0 });
+            if (this.game.audioManager) {
+                this.game.audioManager.setSFXVolume(this.settings.sfxVolume ?? 0);
+            }
+        });
 
-        // Update sliders to match saved settings
-        document.getElementById('music-volume').value = this.settings.musicVolume * 100;
-        document.getElementById('sfx-volume').value = this.settings.sfxVolume * 100;
+        const musicVolEl = document.getElementById('music-volume');
+        if (musicVolEl instanceof HTMLInputElement) {
+            musicVolEl.value = String((this.settings.musicVolume ?? 0.5) * 100);
+        }
+        const sfxVolEl = document.getElementById('sfx-volume');
+        if (sfxVolEl instanceof HTMLInputElement) {
+            sfxVolEl.value = String((this.settings.sfxVolume ?? 0.7) * 100);
+        }
     }
 
     /**
      * Shows the main pause menu.
      */
     showMainMenu() {
-        document.getElementById('main-menu').style.display = 'flex';
-        document.getElementById('settings-panel').classList.remove('active');
-        document.getElementById('controls-panel').classList.remove('active');
+        const main = document.getElementById('main-menu');
+        if (main) main.style.display = 'flex';
+        document.getElementById('settings-panel')?.classList.remove('active');
+        document.getElementById('controls-panel')?.classList.remove('active');
     }
 
     /**
      * Shows the settings panel.
      */
     showSettings() {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('settings-panel').classList.add('active');
-        document.getElementById('controls-panel').classList.remove('active');
+        const main = document.getElementById('main-menu');
+        if (main) main.style.display = 'none';
+        document.getElementById('settings-panel')?.classList.add('active');
+        document.getElementById('controls-panel')?.classList.remove('active');
     }
 
     /**
      * Shows the controls panel.
      */
     showControls() {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('settings-panel').classList.remove('active');
-        document.getElementById('controls-panel').classList.add('active');
+        const main = document.getElementById('main-menu');
+        if (main) main.style.display = 'none';
+        document.getElementById('settings-panel')?.classList.remove('active');
+        document.getElementById('controls-panel')?.classList.add('active');
     }
 
     /**
@@ -331,12 +347,12 @@ export class PauseMenu {
         if (this.isPaused) return;
 
         this.isPaused = true;
-        this.overlay.style.display = 'flex';
+        if (this.overlay) { this.overlay.style.display = 'flex'; }
         this.showMainMenu();
         trackEvent('game-paused');
 
         // Pause game loop if game has a pause method
-        if (this.game && typeof this.game.pauseGame === 'function') {
+        if (this.game && 'pauseGame' in this.game && typeof this.game.pauseGame === 'function') {
             this.game.pauseGame();
         }
     }
@@ -348,11 +364,11 @@ export class PauseMenu {
         if (!this.isPaused) return;
 
         this.isPaused = false;
-        this.overlay.style.display = 'none';
+        if (this.overlay) { this.overlay.style.display = 'none'; }
         trackEvent('game-resumed');
 
         // Resume game loop if game has a resume method
-        if (this.game && typeof this.game.resumeGame === 'function') {
+        if (this.game && 'resumeGame' in this.game && typeof this.game.resumeGame === 'function') {
             this.game.resumeGame();
         }
     }

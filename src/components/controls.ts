@@ -1,7 +1,17 @@
 import * as THREE from 'three';
 
 export class Controls {
-    constructor(player, camera, world, onEnterBuilding) {
+    player: import('./player').Player;
+    camera: import('./camera').Camera;
+    world: import('./world').World;
+    onEnterBuilding: ((building: import('three').Object3D) => void) | null;
+    keys: Record<string, boolean>;
+    actionCooldown: number;
+    actionCooldownTime: number;
+    boundKeyDown: ((event: KeyboardEvent) => void) | null;
+    boundKeyUp: ((event: KeyboardEvent) => void) | null;
+    touchArea: HTMLDivElement | null;
+    constructor(player: import("./player").Player, camera: import("./camera").Camera, world: import("./world").World, onEnterBuilding: ((building: import("three").Object3D) => void) | null) {
         this.player = player;
         this.camera = camera;
         this.world = world;
@@ -47,7 +57,7 @@ export class Controls {
 
     init() {
         // Create bound event handlers for proper removal later
-        this.boundKeyDown = (event) => {
+        this.boundKeyDown = (event: KeyboardEvent) => {
             // Only prevent default and track keys if UI is not active
             if (!this.isUIActive()) {
                 event.preventDefault();
@@ -55,7 +65,7 @@ export class Controls {
             this.keys[event.key] = true;
         };
 
-        this.boundKeyUp = (event) => {
+        this.boundKeyUp = (event: KeyboardEvent) => {
             this.keys[event.key] = false;
         };
 
@@ -108,12 +118,12 @@ export class Controls {
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
             touchArea.style.display = 'block';
             
-            touchArea.addEventListener('touchstart', (event) => {
+            touchArea.addEventListener('touchstart', (event: TouchEvent) => {
                 event.preventDefault();
                 this.handleTouchInput(event);
             });
             
-            touchArea.addEventListener('touchmove', (event) => {
+            touchArea.addEventListener('touchmove', (event: TouchEvent) => {
                 event.preventDefault();
                 this.handleTouchInput(event);
             });
@@ -128,9 +138,11 @@ export class Controls {
         }
     }
     
-    handleTouchInput(event) {
+    handleTouchInput(event: TouchEvent) {
         const touch = event.touches[0];
+        if (!touch) return;
         const touchArea = event.currentTarget;
+        if (!(touchArea instanceof HTMLElement)) return;
         const rect = touchArea.getBoundingClientRect();
         
         // Calculate touch position relative to center of control pad
@@ -231,7 +243,7 @@ export class Controls {
         }
     }
 
-    update(obstacles) {
+    update(obstacles: import("three").Object3D[]) {
         // Skip movement processing if dialogue/simulator UI is active
         if (this.isUIActive()) {
             // Still update camera but don't process movement

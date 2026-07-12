@@ -1,11 +1,12 @@
 import * as THREE from 'three';
-import { NES_PALETTE, hexToRgba, darken, lighten } from './NESPalette.js';
+import { NES_PALETTE, hexToRgba, darken, lighten } from './NESPalette';
 
 /**
  * Generates NES-style pixel art sprites and textures at runtime using Canvas API.
  * No external PNG files needed - all sprites are procedurally generated.
  */
 export class SpriteGenerator {
+    cache: Map<string, import('three').Texture>;
     constructor() {
         this.cache = new Map();
     }
@@ -18,15 +19,17 @@ export class SpriteGenerator {
      * @param {Function} drawFunction - Function that draws on ctx
      * @returns {THREE.Texture} The generated texture
      */
-    generateTexture(cacheKey, width, height, drawFunction) {
-        if (this.cache.has(cacheKey)) {
-            return this.cache.get(cacheKey);
+    generateTexture(cacheKey: string, width: number, height: number, drawFunction: (ctx: CanvasRenderingContext2D, w: number, h: number) => void): import('three').Texture {
+        const cached = this.cache.get(cacheKey);
+        if (cached) {
+            return cached;
         }
 
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('2d context unavailable');
         ctx.imageSmoothingEnabled = false;
 
         drawFunction(ctx, width, height);
@@ -1465,8 +1468,8 @@ export class SpriteGenerator {
      * @param {string} name - NPC identifier (e.g. 'sam-visionary')
      * @returns {THREE.Texture} 48x48 pixel-art character texture
      */
-    generateNPCSprite(name) {
-        const generators = {
+    generateNPCSprite(name: string) {
+        const generators: Record<string, () => THREE.Texture> = {
             'sam-visionary': () => this.generateSamVisionary(),
             'alex-builder': () => this.generateAlexBuilder(),
             'jordan-connector': () => this.generateJordanConnector(),
@@ -1485,7 +1488,7 @@ export class SpriteGenerator {
      * @param {string} bodyColor - Hex color for torso
      * @param {string} legColor - Hex color for legs
      */
-    _drawNPCBody(ctx, w, h, bodyColor, legColor) {
+    _drawNPCBody(ctx: CanvasRenderingContext2D, w: number, h: number, bodyColor: string, legColor: string) {
         const cx = w / 2;
 
         // Head (skin tone circle)
@@ -1663,8 +1666,8 @@ export class SpriteGenerator {
      * @param {string} itemType - Item type identifier
      * @returns {THREE.Texture} Generated 32x32 item sprite texture
      */
-    generateItemSprite(itemType) {
-        const generators = {
+    generateItemSprite(itemType: string) {
+        const generators: Record<string, () => THREE.Texture> = {
             'whiteboard': () => this.generateWhiteboardItem(),
             'interview-notes': () => this.generateInterviewNotes(),
             'keyboard': () => this.generateKeyboardItem(),
@@ -2323,7 +2326,7 @@ export class SpriteGenerator {
      * Disposes of all cached textures.
      */
     dispose() {
-        this.cache.forEach(texture => {
+        this.cache.forEach((texture: import("three").Texture) => {
             if (texture && texture.dispose) {
                 texture.dispose();
             }

@@ -1,6 +1,25 @@
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../utils/analytics';
 
 export class StartupSimulator {
+    currentLevel: number;
+    currentRound: number;
+    isActive: boolean;
+    levelGoal: number;
+    levelProgress: number;
+    totalScore: number;
+    playerStats: import('../types').PlayerStats;
+    levelScores: Record<number, { rounds: number[]; total: number }>;
+    currentChoices: unknown[];
+    levels: Record<number, {
+      name: string;
+      location: string;
+      goal: string;
+      goalTarget: number;
+      progressUnit: string;
+      rounds: Array<Record<string, unknown>>;
+      [key: string]: unknown;
+    }>;
+    randomEvents: Record<string, string[]>;
     constructor() {
         this.currentLevel = 1;
         this.currentRound = 1;
@@ -1010,7 +1029,7 @@ export class StartupSimulator {
         };
     }
     
-    startLevel(levelNumber) {
+    startLevel(levelNumber: number) {
         if (levelNumber < 1 || levelNumber > 10) {
             return null;
         }
@@ -1034,14 +1053,15 @@ export class StartupSimulator {
             return null;
         }
         
-        const round = level.rounds[this.currentRound - 1];
+        const round: Record<string, unknown> | undefined = level.rounds[this.currentRound - 1];
+        if (!round) return null;
         return {
             level: this.currentLevel,
             levelName: level.name,
             location: level.location,
             round: this.currentRound,
             objective: round.objective,
-            options: round.options.map((opt, index) => ({
+            options: (Array.isArray(round?.options) ? round.options : []).map((opt: import("../types").SimulatorOption, index: number) => ({
                 ...opt,
                 number: index + 1
             })),
@@ -1052,46 +1072,54 @@ export class StartupSimulator {
         };
     }
     
-    makeChoice(choiceNumber) {
+    makeChoice(choiceNumber: number): Record<string, unknown> | null {
         if (!this.isActive || choiceNumber < 1 || choiceNumber > 3) {
             return null;
         }
         
         const level = this.levels[this.currentLevel];
-        const round = level.rounds[this.currentRound - 1];
-        const choice = round.options[choiceNumber - 1];
+        const round: Record<string, unknown> | undefined = level.rounds[this.currentRound - 1];
+        if (!round) return null;
+        const choiceRaw = (Array.isArray(round.options) ? round.options : [])[choiceNumber - 1];
+        const choice: Record<string, unknown> | undefined =
+            choiceRaw && typeof choiceRaw === "object" && !Array.isArray(choiceRaw)
+                ? Object.fromEntries(Object.entries(choiceRaw))
+                : undefined;
         
         if (!choice) {
             return null;
         }
         
         // Calculate score and progress
-        const roundScore = choice.score || 0;
+        const roundScore = Number(choice["score"] ?? 0);
+        if (!this.levelScores[this.currentLevel]) {
+            this.levelScores[this.currentLevel] = { rounds: [], total: 0 };
+        }
         this.levelScores[this.currentLevel].rounds.push(roundScore);
         this.levelScores[this.currentLevel].total += roundScore;
         this.totalScore += roundScore;
         
         // Update progress based on level type
-        if (choice.funding) {
-            this.levelProgress += choice.funding;
-            this.playerStats.funding += choice.funding;
-        } else if (choice.users) {
-            this.levelProgress += choice.users;
-            this.playerStats.dau += choice.users;
-        } else if (choice.hires) {
-            this.levelProgress += choice.hires;
-            this.playerStats.teamSize += choice.hires;
-        } else if (choice.revenue) {
-            this.levelProgress += choice.revenue;
-            this.playerStats.mrr += Math.floor(choice.revenue / 12);
-        } else if (choice.capacity) {
-            this.levelProgress += choice.capacity;
-        } else if (choice.stability) {
-            this.levelProgress += choice.stability;
-        } else if (choice.compliance) {
-            this.levelProgress += choice.compliance;
-        } else if (choice.completion) {
-            this.levelProgress += choice.completion;
+        if (choice["funding"]) {
+            this.levelProgress += Number(choice["funding"]);
+            this.playerStats.funding = (this.playerStats.funding ?? 0) + Number(choice["funding"]);
+        } else if (choice["users"]) {
+            this.levelProgress += Number(choice["users"]);
+            this.playerStats.dau += Number(choice["users"]);
+        } else if (choice["hires"]) {
+            this.levelProgress += Number(choice["hires"]);
+            this.playerStats.teamSize = (this.playerStats.teamSize ?? 0) + Number(choice["hires"]);
+        } else if (choice["revenue"]) {
+            this.levelProgress += Number(choice["revenue"]);
+            this.playerStats.mrr += Math.floor(Number(choice["revenue"]) / 12);
+        } else if (choice["capacity"]) {
+            this.levelProgress += Number(choice["capacity"]);
+        } else if (choice["stability"]) {
+            this.levelProgress += Number(choice["stability"]);
+        } else if (choice["compliance"]) {
+            this.levelProgress += Number(choice["compliance"]);
+        } else if (choice["completion"]) {
+            this.levelProgress += Number(choice["completion"]);
         } else {
             // Default progress for other levels
             this.levelProgress += Math.floor(roundScore / 3);
@@ -1101,10 +1129,11 @@ export class StartupSimulator {
         const randomEvent = this.generateRandomEvent();
         
         // Prepare result
-        const result = {
-            choice: choice.name,
+        const levelScore = this.levelScores[this.currentLevel] ?? { rounds: [], total: 0 };
+        const result: Record<string, unknown> = {
+            choice: choice["name"],
             roundScore: roundScore,
-            totalScore: this.levelScores[this.currentLevel].total,
+            totalScore: levelScore.total,
             progress: this.levelProgress,
             progressPercent: Math.min(100, Math.floor((this.levelProgress / this.levelGoal) * 100)),
             randomEvent: randomEvent,
@@ -1116,9 +1145,9 @@ export class StartupSimulator {
         
         // Check if level is complete
         if (this.currentRound > level.rounds.length) {
-            result.levelComplete = true;
-            result.levelSuccess = this.levelProgress >= this.levelGoal;
-            result.finalScore = this.levelScores[this.currentLevel].total;
+            result["levelComplete"] = true;
+            result["levelSuccess"] = this.levelProgress >= this.levelGoal;
+            result["finalScore"] = levelScore.total;
             this.isActive = false;
         }
         
@@ -1140,19 +1169,19 @@ export class StartupSimulator {
             }
         }
         
-        const events = this.randomEvents[eventType];
-        const event = events[Math.floor(Math.random() * events.length)];
+        const events = this.randomEvents[eventType] ?? [];
+        const event = events[Math.floor(Math.random() * events.length)] ?? "";
         
         // Apply event effects
         if (eventType === 'positive') {
-            this.playerStats.morale = Math.min(100, this.playerStats.morale + 10);
+            this.playerStats.morale = Math.min(100, (this.playerStats.morale ?? 100) + 10);
             if (event.includes('runway')) {
-                this.playerStats.runway += 1;
+                this.playerStats.runway = (this.playerStats.runway ?? 0) + 1;
             }
         } else if (eventType === 'negative') {
-            this.playerStats.morale = Math.max(0, this.playerStats.morale - 10);
+            this.playerStats.morale = Math.max(0, (this.playerStats.morale ?? 100) - 10);
             if (event.includes('runway')) {
-                this.playerStats.runway = Math.max(0, this.playerStats.runway - 1);
+                this.playerStats.runway = Math.max(0, (this.playerStats.runway ?? 0) - 1);
             }
         }
         
@@ -1209,7 +1238,7 @@ export class StartupSimulator {
      * Maps building types to their corresponding simulator levels.
      * @returns {Object} Map of building type to level number
      */
-    getBuildingLevelMap() {
+    getBuildingLevelMap(): Record<string, number> {
         return {
             'house': 1,
             'garage': 2,
@@ -1225,7 +1254,7 @@ export class StartupSimulator {
     }
     
     // Get level for a building type
-    getLevelForBuilding(buildingType) {
+    getLevelForBuilding(buildingType: string) {
         const map = this.getBuildingLevelMap();
         return map[buildingType] || null;
     }
