@@ -1,6 +1,11 @@
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../utils/analytics';
 
 export class Inventory {
+    items: import('../types').InventoryItem[];
+    maxSlots: number;
+    isVisible: boolean;
+    inventoryContainer: HTMLDivElement = document.createElement("div");
+    gridContainer: HTMLDivElement = document.createElement("div");
     constructor() {
         this.items = [];
         this.maxSlots = 20;
@@ -64,7 +69,7 @@ export class Inventory {
             slot.style.justifyContent = 'center';
             slot.style.cursor = 'pointer';
             slot.style.position = 'relative';
-            slot.dataset.slotIndex = i;
+            slot.dataset.slotIndex = String(i);
             
             this.gridContainer.appendChild(slot);
         }
@@ -83,7 +88,7 @@ export class Inventory {
         document.body.appendChild(this.inventoryContainer);
     }
     
-    handleKeyPress(event) {
+    handleKeyPress(event: KeyboardEvent) {
         if (event.key.toLowerCase() === 'i') {
             this.toggle();
         }
@@ -112,7 +117,7 @@ export class Inventory {
         this.inventoryContainer.style.display = 'none';
     }
     
-    addItem(item) {
+    addItem(item: import("../types").InventoryItem) {
         if (this.items.length < this.maxSlots) {
             this.items.push(item);
             trackEvent('item-collected', { item: item.name });
@@ -123,7 +128,7 @@ export class Inventory {
         return false; // Inventory full
     }
     
-    removeItem(index) {
+    removeItem(index: number) {
         if (index >= 0 && index < this.items.length) {
             this.items.splice(index, 1);
             this.updateDisplay();
@@ -132,7 +137,7 @@ export class Inventory {
         return false;
     }
     
-    hasItem(itemName) {
+    hasItem(itemName: string) {
         return this.items.some(item => item.name === itemName);
     }
     

@@ -1,7 +1,27 @@
 import * as THREE from 'three';
 
+function geomSize(geometry: THREE.BufferGeometry | undefined): { width: number; height: number; depth: number } {
+    if (!geometry) return { width: 1, height: 1, depth: 1 };
+    if (geometry instanceof THREE.BoxGeometry) {
+        const p = geometry.parameters;
+        return { width: p.width, height: p.height, depth: p.depth };
+    }
+    if (geometry instanceof THREE.PlaneGeometry) {
+        const p = geometry.parameters;
+        return { width: p.width, height: p.height, depth: 0.1 };
+    }
+    return { width: 1, height: 1, depth: 1 };
+}
+
+
 export class Enemies {
-    constructor(scene, world) {
+    scene: THREE.Scene;
+    world: import('./world').World;
+    enemies: import('../types').EnemyInstance[];
+    enemyTypes: Record<string, import('../types').EnemyTypeDef>;
+    spawnTimer: number;
+    spawnRate: number;
+    constructor(scene: THREE.Scene, world: import("./world").World) {
         this.scene = scene;
         this.world = world;
         this.enemies = [];
@@ -45,7 +65,7 @@ export class Enemies {
         // this.spawnEnemy('keese', new THREE.Vector3(-5, 0, -5));
     }
 
-    spawnEnemy(type, position) {
+    spawnEnemy(type: string, position: THREE.Vector3) {
         const enemyType = this.enemyTypes[type];
         if (!enemyType) return;
         
@@ -83,7 +103,7 @@ export class Enemies {
         return enemy;
     }
     
-    moveRandomly(enemy) {
+    moveRandomly(enemy: import("../types").EnemyInstance) {
         // Change direction occasionally
         enemy.userData.directionChangeTime--;
         if (enemy.userData.directionChangeTime <= 0) {
@@ -108,7 +128,7 @@ export class Enemies {
         enemy.position.copy(newPosition);
     }
     
-    moveChase(enemy, playerPosition) {
+    moveChase(enemy: import("../types").EnemyInstance, playerPosition: THREE.Vector3) {
         // Move toward player
         const direction = new THREE.Vector3();
         direction.subVectors(playerPosition, enemy.position).normalize();
@@ -120,7 +140,7 @@ export class Enemies {
         enemy.position.add(direction.multiplyScalar(enemy.userData.speed));
     }
     
-    moveErratic(enemy) {
+    moveErratic(enemy: import("../types").EnemyInstance) {
         // Change direction frequently with sudden movements
         enemy.userData.directionChangeTime--;
         if (enemy.userData.directionChangeTime <= 0) {
@@ -146,7 +166,7 @@ export class Enemies {
     checkCollisions() {
         const obstacles = this.world ? this.world.getObstacles() : [];
         
-        this.enemies.forEach(enemy => {
+        this.enemies.forEach((enemy: import("../types").EnemyInstance) => {
             // Check collision with world boundaries
             const worldSize = this.world ? this.world.worldSize / 2 : 25;
             if (
@@ -163,8 +183,8 @@ export class Enemies {
             for (const obstacle of obstacles) {
                 // Simple distance-based collision
                 const distance = enemy.position.distanceTo(obstacle.position);
-                const minDistance = enemy.geometry.parameters.width / 2 + 
-                                   obstacle.geometry.parameters.width / 2;
+                const minDistance = geomSize(enemy.geometry).width / 2 + 
+                                   geomSize(obstacle.geometry).width / 2;
                 
                 if (distance < minDistance) {
                     // Revert to last position and change direction
@@ -180,8 +200,8 @@ export class Enemies {
                 if (enemy === otherEnemy) continue;
                 
                 const distance = enemy.position.distanceTo(otherEnemy.position);
-                const minDistance = enemy.geometry.parameters.width / 2 + 
-                                   otherEnemy.geometry.parameters.width / 2;
+                const minDistance = geomSize(enemy.geometry).width / 2 + 
+                                   geomSize(otherEnemy.geometry).width / 2;
                 
                 if (distance < minDistance) {
                     // Push both enemies away from each other
@@ -200,15 +220,15 @@ export class Enemies {
         });
     }
     
-    takeDamage(enemy, damage) {
+    takeDamage(enemy: import("../types").EnemyInstance, damage: number) {
         enemy.userData.health -= damage;
         
         // Flash the enemy red when hit
-        const originalColor = enemy.material.color.clone();
-        enemy.material.color.set(0xffffff);
+        const originalColor = (enemy.material instanceof THREE.MeshBasicMaterial ? enemy.material.color.clone() : new THREE.Color());
+        if (enemy.material instanceof THREE.MeshBasicMaterial) enemy.material.color.set(0xffffff);
         
         setTimeout(() => {
-            enemy.material.color.copy(originalColor);
+            if (enemy.material instanceof THREE.MeshBasicMaterial) enemy.material.color.copy(originalColor);
         }, 100);
         
         // Check if enemy is defeated
@@ -217,7 +237,7 @@ export class Enemies {
         }
     }
 
-    removeEnemy(enemy) {
+    removeEnemy(enemy: import("../types").EnemyInstance) {
         this.scene.remove(enemy);
         const index = this.enemies.indexOf(enemy);
         if (index !== -1) {
@@ -250,12 +270,12 @@ export class Enemies {
         // } // Commented out
     }
 
-    update(playerPosition) {
+    update(playerPosition: THREE.Vector3) {
         // Check if we should spawn new enemies
         // this.checkSpawn(); // Commented out
         
         // Update each enemy
-        this.enemies.forEach(enemy => {
+        this.enemies.forEach((enemy: import("../types").EnemyInstance) => {
             // Move based on movement pattern
             switch(enemy.userData.movementPattern) {
                 case 'chase':

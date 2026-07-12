@@ -1,7 +1,16 @@
 import * as THREE from 'three';
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../utils/analytics';
 
 export class ProgressionManager {
+    unlockedBuildings: Record<string, { unlocked: boolean; completed: boolean; score: number }>;
+    completedLevels: string[];
+    currentStats: import('../types').PlayerStats;
+    buildingOrder: string[];
+    levelRequirements: Record<string, {
+      levelNumber: number;
+      requiredLevel: string | null;
+      stats: Record<string, number>;
+    }>;
   constructor() {
     this.completedLevels = [];
     this.unlockedBuildings = {
@@ -83,11 +92,11 @@ export class ProgressionManager {
     this.loadProgress();
   }
 
-  isLocked(buildingType) {
+  isLocked(buildingType: string) {
     return !this.unlockedBuildings[buildingType]?.unlocked;
   }
 
-  checkRequirements(buildingType) {
+  checkRequirements(buildingType: string) {
     const requirements = this.levelRequirements[buildingType];
     if (!requirements) return { met: false, missing: ['Invalid building'] };
 
@@ -114,10 +123,10 @@ export class ProgressionManager {
     if (requirements.stats.dau && this.currentStats.dau < requirements.stats.dau) {
       missing.push(`DAU: ${requirements.stats.dau} (currently ${this.currentStats.dau})`);
     }
-    if (requirements.stats.funding && this.currentStats.funding < requirements.stats.funding) {
-      missing.push(`Funding: $${this.formatNumber(requirements.stats.funding)} (currently $${this.formatNumber(this.currentStats.funding)})`);
+    if (requirements.stats.funding && (this.currentStats.funding ?? 0) < requirements.stats.funding) {
+      missing.push(`Funding: $${this.formatNumber(requirements.stats.funding)} (currently $${this.formatNumber(this.currentStats.funding ?? 0)})`);
     }
-    if (requirements.stats.teamSize && this.currentStats.teamSize < requirements.stats.teamSize) {
+    if (requirements.stats.teamSize && (this.currentStats.teamSize ?? 0) < requirements.stats.teamSize) {
       missing.push(`Team: ${requirements.stats.teamSize} people (currently ${this.currentStats.teamSize})`);
     }
 
@@ -127,7 +136,7 @@ export class ProgressionManager {
     };
   }
 
-  unlockBuilding(buildingType) {
+  unlockBuilding(buildingType: string) {
     if (this.unlockedBuildings[buildingType]) {
       this.unlockedBuildings[buildingType].unlocked = true;
       trackEvent('building-unlocked', { building: buildingType });
@@ -137,7 +146,7 @@ export class ProgressionManager {
     return false;
   }
 
-  completeLevel(buildingType, score) {
+  completeLevel(buildingType: string, score: number) {
     if (this.unlockedBuildings[buildingType]) {
       this.unlockedBuildings[buildingType].completed = true;
       this.unlockedBuildings[buildingType].score = Math.max(
@@ -146,9 +155,9 @@ export class ProgressionManager {
       );
       trackEvent('progression-level-completed', { building: buildingType, score });
 
-      const levelNumber = this.levelRequirements[buildingType].levelNumber;
-      if (!this.completedLevels.includes(levelNumber)) {
-        this.completedLevels.push(levelNumber);
+      const levelNumber = this.levelRequirements[buildingType]?.levelNumber;
+      if (levelNumber !== undefined && !this.completedLevels.includes(String(levelNumber))) {
+        this.completedLevels.push(String(levelNumber));
       }
 
       // Auto-unlock next building if requirements met
@@ -167,27 +176,27 @@ export class ProgressionManager {
     return false;
   }
 
-  updateStats(statUpdates) {
-    Object.keys(statUpdates).forEach(key => {
+  updateStats(statUpdates: Partial<import("../types").PlayerStats>) {
+    Object.keys(statUpdates).forEach((key: string) => {
       if (key in this.currentStats) {
-        this.currentStats[key] = statUpdates[key];
+        this.currentStats[key] = statUpdates[key] ?? this.currentStats[key];
       }
     });
     this.saveProgress();
   }
 
-  modifyRunway(amount) {
-    this.currentStats.runway = Math.max(0, Math.min(12, this.currentStats.runway + amount));
+  modifyRunway(amount: number) {
+    this.currentStats.runway = Math.max(0, Math.min(12, (this.currentStats.runway ?? 0) + amount));
     this.saveProgress();
     return this.currentStats.runway;
   }
 
   isGameOver() {
-    return this.currentStats.runway <= 0;
+    return (this.currentStats.runway ?? 0) <= 0;
   }
 
-  formatBuildingName(buildingType) {
-    const names = {
+  formatBuildingName(buildingType: string) {
+    const names: Record<string, string> = {
       'house': 'House',
       'garage': 'Garage',
       'accelerator': 'Accelerator',
@@ -202,7 +211,7 @@ export class ProgressionManager {
     return names[buildingType] || buildingType;
   }
 
-  formatNumber(num) {
+  formatNumber(num: number) {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
     } else if (num >= 1000) {
@@ -211,7 +220,7 @@ export class ProgressionManager {
     return num.toString();
   }
 
-  getRequirementsText(buildingType) {
+  getRequirementsText(buildingType: string) {
     const check = this.checkRequirements(buildingType);
     if (check.met) return 'Requirements met!';
 

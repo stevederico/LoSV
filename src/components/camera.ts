@@ -1,23 +1,27 @@
 import * as THREE from 'three';
 
 export class Camera {
-    constructor(scene, renderer) {
+    scene: THREE.Scene;
+    renderer: THREE.WebGLRenderer;
+    camera: THREE.OrthographicCamera;
+
+    constructor(scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
         this.scene = scene;
         this.renderer = renderer;
-        
+
         // Use orthographic camera for a true top-down view like in Zelda: ALTTP
-        this.setupOrthographicCamera();
-        
+        this.camera = this.setupOrthographicCamera();
+
         // Event listeners
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
-    
-    setupOrthographicCamera() {
+
+    setupOrthographicCamera(): THREE.OrthographicCamera {
         // Orthographic camera provides a flat, top-down view without perspective distortion
         const aspect = window.innerWidth / window.innerHeight;
         const frustumSize = 20;
-        
-        this.camera = new THREE.OrthographicCamera(
+
+        const camera = new THREE.OrthographicCamera(
             frustumSize * aspect / -2,  // left
             frustumSize * aspect / 2,   // right
             frustumSize / 2,            // top
@@ -25,46 +29,52 @@ export class Camera {
             1,                         // near
             1000                       // far
         );
-        
-        this.camera.position.set(0, 20, 0); // Position directly above
-        this.camera.lookAt(0, 0, 0);        // Look straight down
+
+        camera.position.set(0, 20, 0); // Position directly above
+        camera.lookAt(0, 0, 0);        // Look straight down
+        return camera;
     }
 
-    onWindowResize() {
+    onWindowResize(): void {
         const aspect = window.innerWidth / window.innerHeight;
         const frustumSize = 20;
-        
+
         this.camera.left = frustumSize * aspect / -2;
         this.camera.right = frustumSize * aspect / 2;
         this.camera.top = frustumSize / 2;
         this.camera.bottom = frustumSize / -2;
-        
+
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    update(position) {
+    update(position: THREE.Vector3): void {
         // Follow the player from above, maintaining the top-down view
         this.camera.position.x = position.x;
         this.camera.position.z = position.z;
-        
+
         // Always look down at the player's position
         this.camera.lookAt(position.x, 0, position.z);
     }
-    
-    zoomIn() {
+
+    zoomIn(): void {
         // Adjust camera zoom for a closer view
         this.camera.zoom += 0.1;
         this.camera.updateProjectionMatrix();
     }
-    
-    zoomOut() {
+
+    zoomOut(): void {
         // Adjust camera zoom for a wider view
         this.camera.zoom -= 0.1;
         this.camera.updateProjectionMatrix();
     }
 
-    getCamera() {
+    setInteriorView(_enabled: boolean): void {
+        // yagni: interior framing tweak; currently no-op
+        void _enabled;
+    }
+
+    getCamera(): THREE.OrthographicCamera {
         return this.camera;
     }
 }

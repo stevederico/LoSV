@@ -13,6 +13,15 @@ Add board room building
 
 ### Changes
 
+## [1.1.0] - 2026-07-12
+
+  Convert src to TypeScript
+  Add tsconfig and typecheck
+  Add three type defs
+  Add dispose helper
+  Type public game APIs
+
+
 ## [1.0.0] - 2026-03-20
 
   Add 20 NPCs across all rooms

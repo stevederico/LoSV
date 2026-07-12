@@ -1,12 +1,24 @@
 import * as THREE from 'three';
-import { spriteGenerator } from '../utils/SpriteGenerator.js';
+import { spriteGenerator } from '../utils/SpriteGenerator';
+import { disposeObject3D } from '../utils/dispose';
 
 /**
  * World manages the overworld terrain, buildings, and decorations.
  * Layout: Silicon Valley town with districts and water bay.
  */
 export class World {
-    constructor(scene, progressionManager = null) {
+    scene: import('three').Scene;
+    terrain: import('three').Object3D[];
+    interactiveElements: import('../types').GameObject3D[];
+    buildings: import('../types').GameMesh[];
+    buildingLocks: Map<import('three').Object3D, import('three').Object3D>;
+    colliders: import('../types').GameObject3D[];
+    decorations: import('three').Object3D[];
+    worldSize: number;
+    tileSize: number;
+    textureLoader: import('three').TextureLoader;
+    progressionManager: import('./ProgressionManager').ProgressionManager | null;
+    constructor(scene: import("three").Scene, progressionManager: import("./ProgressionManager").ProgressionManager | null = null) {
         this.scene = scene;
         this.terrain = [];
         this.interactiveElements = [];
@@ -19,6 +31,10 @@ export class World {
         this.textureLoader = new THREE.TextureLoader();
         this.progressionManager = progressionManager;
         this.init();
+    }
+
+    get obstacles(): import('../types').GameObject3D[] {
+        return this.colliders;
     }
 
     init() {
@@ -138,7 +154,7 @@ export class World {
      * @param {number} depth - Depth of zone
      * @param {THREE.Texture} texture - Texture to use
      */
-    createTerrainZone(x, z, width, depth, texture) {
+    createTerrainZone(x: number, z: number, width: number, depth: number, texture: import("three").Texture) {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
         texture.repeat.set(width / 2, depth / 2);
@@ -189,7 +205,7 @@ export class World {
      * @param {number} width - Width
      * @param {number} depth - Depth
      */
-    createPath(x, z, width, depth) {
+    createPath(x: number, z: number, width: number, depth: number) {
         const pathTexture = spriteGenerator.generateDirtPath();
         pathTexture.wrapS = THREE.RepeatWrapping;
         pathTexture.wrapT = THREE.RepeatWrapping;
@@ -274,7 +290,7 @@ export class World {
         this.createNasdaqBuilding(12, -16, 3, 3);
     }
 
-    createHouse(x, z, spriteWidth, spriteHeight) {
+    createHouse(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const houseTexture = this.textureLoader.load('/assets/textures/house-sprite.png');
         houseTexture.magFilter = THREE.NearestFilter;
         houseTexture.minFilter = THREE.NearestFilter;
@@ -298,7 +314,7 @@ export class World {
         this.colliders.push(houseSprite);
     }
 
-    createGarage(x, z, spriteWidth, spriteHeight) {
+    createGarage(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const garageTexture = this.textureLoader.load('/assets/textures/garage.png');
         garageTexture.magFilter = THREE.NearestFilter;
         garageTexture.minFilter = THREE.NearestFilter;
@@ -322,7 +338,7 @@ export class World {
         this.colliders.push(garageSprite);
     }
 
-    createAccelerator(x, z, spriteWidth, spriteHeight) {
+    createAccelerator(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const acceleratorTexture = this.textureLoader.load('/assets/textures/accelerator.png');
         acceleratorTexture.magFilter = THREE.NearestFilter;
         acceleratorTexture.minFilter = THREE.NearestFilter;
@@ -346,7 +362,7 @@ export class World {
         this.colliders.push(acceleratorSprite);
     }
 
-    createLoft(x, z, spriteWidth, spriteHeight) {
+    createLoft(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const loftTexture = this.textureLoader.load('/assets/textures/loft.png');
         loftTexture.magFilter = THREE.NearestFilter;
         loftTexture.minFilter = THREE.NearestFilter;
@@ -370,7 +386,7 @@ export class World {
         this.colliders.push(loftSprite);
     }
 
-    createConference(x, z, spriteWidth, spriteHeight) {
+    createConference(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const conferenceTexture = this.textureLoader.load('/assets/textures/conference.png');
         conferenceTexture.magFilter = THREE.NearestFilter;
         conferenceTexture.minFilter = THREE.NearestFilter;
@@ -394,7 +410,7 @@ export class World {
         this.colliders.push(conferenceSprite);
     }
 
-    createDataCenter(x, z, spriteWidth, spriteHeight) {
+    createDataCenter(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const dataCenterTexture = this.textureLoader.load('/assets/textures/data-center.png');
         dataCenterTexture.magFilter = THREE.NearestFilter;
         dataCenterTexture.minFilter = THREE.NearestFilter;
@@ -418,7 +434,7 @@ export class World {
         this.colliders.push(dataCenterSprite);
     }
 
-    createBoardRoom(x, z, spriteWidth, spriteHeight) {
+    createBoardRoom(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const boardRoomTexture = this.textureLoader.load('/assets/textures/board-room.png');
         boardRoomTexture.magFilter = THREE.NearestFilter;
         boardRoomTexture.minFilter = THREE.NearestFilter;
@@ -442,7 +458,7 @@ export class World {
         this.colliders.push(boardRoomSprite);
     }
 
-    createVentureBuilding(x, z, spriteWidth, spriteHeight) {
+    createVentureBuilding(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const ventureTexture = this.textureLoader.load('/assets/textures/venture.png');
         ventureTexture.magFilter = THREE.NearestFilter;
         ventureTexture.minFilter = THREE.NearestFilter;
@@ -466,7 +482,7 @@ export class World {
         this.colliders.push(ventureSprite);
     }
 
-    createLawBuilding(x, z, spriteWidth, spriteHeight) {
+    createLawBuilding(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const lawTexture = this.textureLoader.load('/assets/textures/law.png');
         lawTexture.magFilter = THREE.NearestFilter;
         lawTexture.minFilter = THREE.NearestFilter;
@@ -490,7 +506,7 @@ export class World {
         this.colliders.push(lawSprite);
     }
 
-    createNasdaqBuilding(x, z, spriteWidth, spriteHeight) {
+    createNasdaqBuilding(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const nasdaqTexture = this.textureLoader.load('/assets/textures/nasdaq.png');
         nasdaqTexture.magFilter = THREE.NearestFilter;
         nasdaqTexture.minFilter = THREE.NearestFilter;
@@ -583,7 +599,7 @@ export class World {
      * @param {number} width - Sprite width
      * @param {number} height - Sprite height
      */
-    createDecoration(x, z, type, width, height) {
+    createDecoration(x: number, z: number, type: string, width: number, height: number) {
         let texture;
         switch (type) {
             case 'tree':
@@ -647,7 +663,7 @@ export class World {
         // Items will be created inside buildings, not in the main world
     }
 
-    createMacBook(x, z, spriteWidth, spriteHeight) {
+    createMacBook(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const macbookTexture = this.textureLoader.load('/assets/textures/macbook.png');
         macbookTexture.magFilter = THREE.NearestFilter;
         macbookTexture.minFilter = THREE.NearestFilter;
@@ -677,7 +693,7 @@ export class World {
         return macbookSprite;
     }
 
-    createiPhone(x, z, spriteWidth, spriteHeight) {
+    createiPhone(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const iphoneTexture = this.textureLoader.load('/assets/textures/iphone.png');
         iphoneTexture.magFilter = THREE.NearestFilter;
         iphoneTexture.minFilter = THREE.NearestFilter;
@@ -717,7 +733,7 @@ export class World {
      * @param {Object} itemData - Item metadata (name, icon, description)
      * @returns {THREE.Mesh} The created item mesh
      */
-    createItem(itemType, x, z, width, height, itemData) {
+    createItem(itemType: string, x: number, z: number, width: number, height: number, itemData: unknown) {
         const texture = spriteGenerator.generateItemSprite(itemType);
         const geometry = new THREE.PlaneGeometry(width, height);
         const material = new THREE.MeshBasicMaterial({
@@ -738,7 +754,7 @@ export class World {
         return sprite;
     }
 
-    createChest(x, z, spriteWidth, spriteHeight) {
+    createChest(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const chestTexture = this.textureLoader.load('/assets/textures/chest-sprite.png');
         chestTexture.magFilter = THREE.NearestFilter;
         chestTexture.minFilter = THREE.NearestFilter;
@@ -761,7 +777,7 @@ export class World {
         this.interactiveElements.push(chestSprite);
     }
 
-    createGem(x, z, spriteWidth, spriteHeight) {
+    createGem(x: number, z: number, spriteWidth: number, spriteHeight: number) {
         const gemTexture = this.textureLoader.load('/assets/textures/gem-sprite.png');
         gemTexture.magFilter = THREE.NearestFilter;
         gemTexture.minFilter = THREE.NearestFilter;
@@ -798,7 +814,7 @@ export class World {
         // Animation updates could go here (water waves, etc.)
     }
 
-    addLockOverlay(building) {
+    addLockOverlay(building: import("three").Object3D) {
         if (!building || this.buildingLocks.has(building)) return;
 
         const lockTexture = spriteGenerator.generatePadlockSprite();
@@ -819,7 +835,7 @@ export class World {
         );
         lockSprite.rotation.x = -Math.PI / 2;
 
-        if (building.material) {
+        if (building instanceof THREE.Mesh && building.material instanceof THREE.MeshBasicMaterial) {
             building.material.color.setHex(0x888888);
             building.material.opacity = 0.6;
             building.material.transparent = true;
@@ -829,13 +845,13 @@ export class World {
         this.buildingLocks.set(building, lockSprite);
     }
 
-    removeLockOverlay(building) {
+    removeLockOverlay(building: import("three").Object3D) {
         const lockSprite = this.buildingLocks.get(building);
         if (lockSprite) {
             this.scene.remove(lockSprite);
             this.buildingLocks.delete(building);
 
-            if (building.material) {
+            if (building instanceof THREE.Mesh && building.material instanceof THREE.MeshBasicMaterial) {
                 building.material.color.setHex(0xffffff);
                 building.material.opacity = 1.0;
             }
@@ -845,10 +861,11 @@ export class World {
     updateBuildingStates() {
         if (!this.progressionManager) return;
 
-        this.buildings.forEach(building => {
+        const pm = this.progressionManager;
+        this.buildings.forEach((building: import("three").Object3D) => {
             const buildingType = building.userData.buildingType;
-            if (buildingType) {
-                if (this.progressionManager.isLocked(buildingType)) {
+            if (typeof buildingType === 'string' && pm) {
+                if (pm.isLocked(buildingType)) {
                     this.addLockOverlay(building);
                 } else {
                     this.removeLockOverlay(building);
@@ -857,7 +874,7 @@ export class World {
         });
     }
 
-    getBuildingByType(buildingType) {
+    getBuildingByType(buildingType: string) {
         return this.buildings.find(b => b.userData.buildingType === buildingType);
     }
 
@@ -865,46 +882,15 @@ export class World {
      * Disposes of a Three.js object and its children.
      * @param {THREE.Object3D} object - The object to dispose
      */
-    disposeObject(object) {
-        if (!object) return;
-
-        if (object.children && object.children.length > 0) {
-            const children = [...object.children];
-            children.forEach(child => this.disposeObject(child));
-        }
-
-        if (object.geometry) {
-            object.geometry.dispose();
-        }
-
-        if (object.material) {
-            if (Array.isArray(object.material)) {
-                object.material.forEach(material => this.disposeMaterial(material));
-            } else {
-                this.disposeMaterial(object.material);
-            }
-        }
+    disposeObject(object: import("three").Object3D) {
+        disposeObject3D(object);
     }
 
     /**
      * Disposes of a material and its textures.
      * @param {THREE.Material} material - The material to dispose
      */
-    disposeMaterial(material) {
-        if (!material) return;
-
-        const textureProperties = [
-            'map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap',
-            'envMap', 'alphaMap', 'aoMap', 'displacementMap',
-            'emissiveMap', 'gradientMap', 'metalnessMap', 'roughnessMap'
-        ];
-
-        textureProperties.forEach(prop => {
-            if (material[prop]) {
-                material[prop].dispose();
-            }
-        });
-
+    disposeMaterial(material: import("three").Material) {
         material.dispose();
     }
 
@@ -912,13 +898,13 @@ export class World {
      * Cleans up all world resources.
      */
     cleanup() {
-        this.terrain.forEach(t => {
+        this.terrain.forEach((t: import("three").Object3D) => {
             this.disposeObject(t);
             this.scene.remove(t);
         });
         this.terrain = [];
 
-        this.buildings.forEach(b => {
+        this.buildings.forEach((b: import("three").Object3D) => {
             this.disposeObject(b);
             this.scene.remove(b);
         });
@@ -930,7 +916,7 @@ export class World {
         });
         this.decorations = [];
 
-        this.colliders.forEach(c => {
+        this.colliders.forEach((c: import("three").Object3D) => {
             if (c instanceof THREE.Mesh) {
                 this.disposeObject(c);
                 this.scene.remove(c);

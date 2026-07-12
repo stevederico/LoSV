@@ -1,10 +1,23 @@
 import * as THREE from 'three';
 
+export type TextureLoadOptions = {
+    fallbackColor?: number;
+    pixelArt?: boolean;
+    timeout?: number;
+};
+
 /**
  * Manages texture loading with error handling and fallback materials.
  * Caches loaded textures to avoid duplicate loads.
  */
 export class TextureManager {
+    loader: THREE.TextureLoader;
+    cache: Map<string, THREE.Texture>;
+    failedUrls: Set<string>;
+    loadingCount: number;
+    loadedCount: number;
+    errorCount: number;
+
     constructor() {
         this.loader = new THREE.TextureLoader();
         this.cache = new Map();
@@ -16,16 +29,18 @@ export class TextureManager {
 
     /**
      * Creates a fallback colored texture when loading fails.
-     * @param {number} color - Hex color value
-     * @returns {THREE.Texture} A 1x1 colored texture
      */
-    createFallbackTexture(color = 0x888888) {
+    createFallbackTexture(color = 0x888888): THREE.Texture {
         const canvas = document.createElement('canvas');
         canvas.width = 1;
         canvas.height = 1;
         const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('2d context unavailable');
+        if (!ctx) {
+            // yagni: solid texture via DataTexture if canvas 2d ever missing
+            return new THREE.Texture();
+        }
 
-        // Convert hex to RGB
         const r = (color >> 16) & 255;
         const g = (color >> 8) & 255;
         const b = color & 255;
@@ -42,35 +57,26 @@ export class TextureManager {
     /**
      * Loads a texture with error handling.
      * Returns cached texture if already loaded.
-     * @param {string} url - Texture URL
-     * @param {Object} options - Loading options
-     * @param {number} options.fallbackColor - Color for fallback texture (default: 0x888888)
-     * @param {boolean} options.pixelArt - Whether to use nearest filter (default: true)
-     * @returns {THREE.Texture} The loaded texture or a fallback
      */
-    load(url, options = {}) {
+    load(url: string, options: TextureLoadOptions = {}): THREE.Texture {
         const { fallbackColor = 0x888888, pixelArt = true } = options;
 
-        // Check cache first
         if (this.cache.has(url)) {
-            return this.cache.get(url);
+            const cached = this.cache.get(url);
+            if (cached) return cached;
         }
 
-        // Check if URL previously failed
         if (this.failedUrls.has(url)) {
             return this.createFallbackTexture(fallbackColor);
         }
 
         this.loadingCount++;
 
-        // Create a placeholder texture that will be updated when loaded
         const texture = this.createFallbackTexture(fallbackColor);
 
-        // Load the actual texture
         this.loader.load(
             url,
             (loadedTexture) => {
-                // Success - update properties and cache
                 if (pixelArt) {
                     loadedTexture.magFilter = THREE.NearestFilter;
                     loadedTexture.minFilter = THREE.NearestFilter;
@@ -79,44 +85,37 @@ export class TextureManager {
                 this.cache.set(url, loadedTexture);
                 this.loadedCount++;
 
-                // Copy loaded texture properties to the placeholder
                 texture.image = loadedTexture.image;
                 texture.needsUpdate = true;
             },
-            undefined, // Progress callback (not used)
+            undefined,
             (error) => {
-                // Error - keep fallback texture
                 console.warn(`TextureManager: Failed to load texture: ${url}`, error);
                 this.failedUrls.add(url);
                 this.errorCount++;
-
-                // The fallback texture is already in place
                 this.cache.set(url, texture);
             }
         );
 
-        // Return the placeholder (which may be updated later)
         this.cache.set(url, texture);
         return texture;
     }
 
     /**
      * Loads a texture and returns a Promise.
-     * @param {string} url - Texture URL
-     * @param {Object} options - Loading options
-     * @returns {Promise<THREE.Texture>} Promise resolving to the texture
      */
-    loadAsync(url, options = {}) {
+    loadAsync(url: string, options: TextureLoadOptions = {}): Promise<THREE.Texture> {
         const { fallbackColor = 0x888888, pixelArt = true, timeout = 10000 } = options;
 
         return new Promise((resolve) => {
-            // Check cache first
             if (this.cache.has(url)) {
-                resolve(this.cache.get(url));
-                return;
+                const cached = this.cache.get(url);
+                if (cached) {
+                    resolve(cached);
+                    return;
+                }
             }
 
-            // Check if URL previously failed
             if (this.failedUrls.has(url)) {
                 resolve(this.createFallbackTexture(fallbackColor));
                 return;
@@ -124,7 +123,6 @@ export class TextureManager {
 
             this.loadingCount++;
 
-            // Set up timeout
             const timeoutId = setTimeout(() => {
                 console.warn(`TextureManager: Timeout loading texture: ${url}`);
                 this.failedUrls.add(url);
@@ -165,11 +163,11 @@ export class TextureManager {
 
     /**
      * Preloads multiple textures.
-     * @param {string[]} urls - Array of texture URLs
-     * @param {Function} onProgress - Progress callback (loaded, total)
-     * @returns {Promise<void>} Promise resolving when all textures are loaded
      */
-    async preload(urls, onProgress) {
+    async preload(
+        urls: string[],
+        onProgress?: (loaded: number, total: number) => void
+    ): Promise<void> {
         const total = urls.length;
         let loaded = 0;
 
@@ -187,9 +185,14 @@ export class TextureManager {
 
     /**
      * Gets loading statistics.
-     * @returns {Object} Stats object with loading, loaded, error counts
      */
-    getStats() {
+    getStats(): {
+        loading: number;
+        loaded: number;
+        errors: number;
+        cached: number;
+        failed: number;
+    } {
         return {
             loading: this.loadingCount,
             loaded: this.loadedCount,
@@ -202,7 +205,7 @@ export class TextureManager {
     /**
      * Clears the texture cache and disposes textures.
      */
-    clear() {
+    clear(): void {
         this.cache.forEach(texture => {
             if (texture && texture.dispose) {
                 texture.dispose();
@@ -217,9 +220,8 @@ export class TextureManager {
 
     /**
      * Disposes a specific texture by URL.
-     * @param {string} url - Texture URL to dispose
      */
-    dispose(url) {
+    dispose(url: string): void {
         const texture = this.cache.get(url);
         if (texture && texture.dispose) {
             texture.dispose();

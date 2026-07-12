@@ -1,6 +1,6 @@
-import { Game } from './game.js';
-import { initAdvancedAnalytics } from './utils/advancedAnalytics.js';
-import { trackEvent } from './utils/analytics.js';
+import { Game } from './game';
+import { initAdvancedAnalytics } from './utils/advancedAnalytics';
+import { trackEvent } from './utils/analytics';
 
 // Load analytics script dynamically (env vars baked in at build time)
 if (import.meta.env.VITE_ANALYTICS_ID && import.meta.env.VITE_ANALYTICS_SRC) {
