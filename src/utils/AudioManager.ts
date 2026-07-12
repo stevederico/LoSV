@@ -2,24 +2,52 @@
  * Manages game audio including background music and sound effects.
  * Uses Web Audio API for precise control and mixing.
  */
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+type AudioSettings = {
+    masterVolume: number;
+    musicVolume: number;
+    sfxVolume: number;
+    muted: boolean;
+};
+
+type AudioFiles = {
+    music: Record<string, string>;
+    sfx: Record<string, string>;
+};
+
 export class AudioManager {
+    audioContext: AudioContext | null;
+    masterGain: GainNode | null;
+    musicGain: GainNode | null;
+    sfxGain: GainNode | null;
+    currentMusic: string | null;
+    musicSource: AudioBufferSourceNode | null;
+    audioBuffers: Map<string, AudioBuffer>;
+    masterVolume: number;
+    musicVolume: number;
+    sfxVolume: number;
+    audioFiles: AudioFiles;
+    initialized: boolean;
+    muted: boolean;
+
     constructor() {
         this.audioContext = null;
         this.masterGain = null;
         this.musicGain = null;
         this.sfxGain = null;
 
-        // Track currently playing audio
         this.currentMusic = null;
         this.musicSource = null;
         this.audioBuffers = new Map();
 
-        // Volume settings (0-1)
         this.masterVolume = 1.0;
         this.musicVolume = 0.5;
         this.sfxVolume = 0.7;
 
-        // Audio file paths
         this.audioFiles = {
             music: {
                 main: '/assets/audio/music/main-theme.mp3',
@@ -44,7 +72,6 @@ export class AudioManager {
         this.initialized = false;
         this.muted = false;
 
-        // Load saved settings
         this.loadSettings();
     }
 
@@ -52,32 +79,32 @@ export class AudioManager {
      * Initializes the Web Audio API context.
      * Must be called after a user interaction (browser requirement).
      */
-    async init() {
+    async init(): Promise<void> {
         if (this.initialized) return;
 
         try {
-            // Create audio context
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                console.warn('AudioManager: Web Audio API not available');
+                return;
+            }
+            this.audioContext = new AudioCtx();
 
-            // Create gain nodes for volume control
             this.masterGain = this.audioContext.createGain();
             this.musicGain = this.audioContext.createGain();
             this.sfxGain = this.audioContext.createGain();
 
-            // Connect gain nodes: music/sfx -> master -> destination
             this.musicGain.connect(this.masterGain);
             this.sfxGain.connect(this.masterGain);
             this.masterGain.connect(this.audioContext.destination);
 
-            // Apply saved volume settings
             this.updateVolumes();
 
             this.initialized = true;
             console.log('AudioManager: Initialized');
 
-            // Preload common sounds
             await this.preloadAudio();
-        } catch (error) {
+        } catch (error: unknown) {
             console.warn('AudioManager: Failed to initialize', error);
         }
     }
@@ -85,7 +112,7 @@ export class AudioManager {
     /**
      * Preloads audio files into buffers for faster playback.
      */
-    async preloadAudio() {
+    async preloadAudio(): Promise<void> {
         const preloadList = [
             ...Object.values(this.audioFiles.sfx)
         ];
@@ -98,13 +125,13 @@ export class AudioManager {
 
     /**
      * Loads an audio file into a buffer.
-     * @param {string} url - URL of the audio file
-     * @returns {Promise<AudioBuffer>} The loaded audio buffer
      */
-    async loadAudioBuffer(url) {
+    async loadAudioBuffer(url: string): Promise<AudioBuffer | null> {
         if (this.audioBuffers.has(url)) {
-            return this.audioBuffers.get(url);
+            return this.audioBuffers.get(url) ?? null;
         }
+
+        if (!this.audioContext) return null;
 
         try {
             const response = await fetch(url);
@@ -115,7 +142,7 @@ export class AudioManager {
             const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
             this.audioBuffers.set(url, audioBuffer);
             return audioBuffer;
-        } catch (error) {
+        } catch (error: unknown) {
             console.warn(`AudioManager: Failed to load ${url}`, error);
             return null;
         }
@@ -123,12 +150,10 @@ export class AudioManager {
 
     /**
      * Plays background music with optional looping.
-     * @param {string} trackName - Name of the music track (from audioFiles.music)
-     * @param {boolean} loop - Whether to loop the music (default: true)
-     * @param {number} fadeIn - Fade in duration in seconds (default: 1)
      */
-    async playMusic(trackName, loop = true, fadeIn = 1) {
+    async playMusic(trackName: string, loop = true, fadeIn = 1): Promise<void> {
         if (!this.initialized || this.muted) return;
+        if (!this.audioContext || !this.musicGain) return;
 
         const url = this.audioFiles.music[trackName];
         if (!url) {
@@ -136,24 +161,20 @@ export class AudioManager {
             return;
         }
 
-        // Stop current music
         this.stopMusic(0.5);
 
         try {
-            // Load the audio buffer
             let buffer = this.audioBuffers.get(url);
             if (!buffer) {
-                buffer = await this.loadAudioBuffer(url);
+                buffer = await this.loadAudioBuffer(url) ?? undefined;
             }
             if (!buffer) return;
 
-            // Create source node
             this.musicSource = this.audioContext.createBufferSource();
             this.musicSource.buffer = buffer;
             this.musicSource.loop = loop;
             this.musicSource.connect(this.musicGain);
 
-            // Fade in
             this.musicGain.gain.setValueAtTime(0, this.audioContext.currentTime);
             this.musicGain.gain.linearRampToValueAtTime(
                 this.musicVolume,
@@ -163,49 +184,46 @@ export class AudioManager {
             this.musicSource.start(0);
             this.currentMusic = trackName;
             console.log(`AudioManager: Playing music - ${trackName}`);
-        } catch (error) {
+        } catch (error: unknown) {
             console.warn(`AudioManager: Failed to play music ${trackName}`, error);
         }
     }
 
     /**
      * Stops the current background music.
-     * @param {number} fadeOut - Fade out duration in seconds (default: 0.5)
      */
-    stopMusic(fadeOut = 0.5) {
+    stopMusic(fadeOut = 0.5): void {
         if (!this.musicSource) return;
+        if (!this.audioContext || !this.musicGain) return;
 
         try {
-            // Fade out
             this.musicGain.gain.linearRampToValueAtTime(
                 0,
                 this.audioContext.currentTime + fadeOut
             );
 
-            // Stop after fade
             const source = this.musicSource;
             setTimeout(() => {
                 try {
                     source.stop();
-                } catch (e) {
+                } catch {
                     // Already stopped
                 }
             }, fadeOut * 1000);
 
             this.musicSource = null;
             this.currentMusic = null;
-        } catch (error) {
+        } catch (error: unknown) {
             console.warn('AudioManager: Error stopping music', error);
         }
     }
 
     /**
      * Plays a sound effect.
-     * @param {string} sfxName - Name of the sound effect (from audioFiles.sfx)
-     * @param {number} volume - Volume multiplier (default: 1)
      */
-    async playSFX(sfxName, volume = 1) {
+    async playSFX(sfxName: string, volume = 1): Promise<void> {
         if (!this.initialized || this.muted) return;
+        if (!this.audioContext || !this.sfxGain) return;
 
         const url = this.audioFiles.sfx[sfxName];
         if (!url) {
@@ -214,18 +232,15 @@ export class AudioManager {
         }
 
         try {
-            // Get or load the audio buffer
             let buffer = this.audioBuffers.get(url);
             if (!buffer) {
-                buffer = await this.loadAudioBuffer(url);
+                buffer = await this.loadAudioBuffer(url) ?? undefined;
             }
             if (!buffer) return;
 
-            // Create source node
             const source = this.audioContext.createBufferSource();
             source.buffer = buffer;
 
-            // Create individual gain for this sound
             const gainNode = this.audioContext.createGain();
             gainNode.gain.value = this.sfxVolume * volume;
 
@@ -233,60 +248,42 @@ export class AudioManager {
             gainNode.connect(this.sfxGain);
 
             source.start(0);
-        } catch (error) {
+        } catch (error: unknown) {
             console.warn(`AudioManager: Failed to play SFX ${sfxName}`, error);
         }
     }
 
-    /**
-     * Sets the master volume.
-     * @param {number} volume - Volume level (0-1)
-     */
-    setMasterVolume(volume) {
+    setMasterVolume(volume: number): void {
         this.masterVolume = Math.max(0, Math.min(1, volume));
         this.updateVolumes();
         this.saveSettings();
     }
 
-    /**
-     * Sets the music volume.
-     * @param {number} volume - Volume level (0-1)
-     */
-    setMusicVolume(volume) {
+    setMusicVolume(volume: number): void {
         this.musicVolume = Math.max(0, Math.min(1, volume));
         this.updateVolumes();
         this.saveSettings();
     }
 
-    /**
-     * Sets the sound effects volume.
-     * @param {number} volume - Volume level (0-1)
-     */
-    setSFXVolume(volume) {
+    setSFXVolume(volume: number): void {
         this.sfxVolume = Math.max(0, Math.min(1, volume));
         this.updateVolumes();
         this.saveSettings();
     }
 
-    /**
-     * Updates all gain nodes with current volume settings.
-     */
-    updateVolumes() {
+    updateVolumes(): void {
         if (!this.initialized) return;
+        if (!this.masterGain || !this.musicGain || !this.sfxGain) return;
 
         this.masterGain.gain.value = this.masterVolume;
         this.musicGain.gain.value = this.musicVolume;
         this.sfxGain.gain.value = this.sfxVolume;
     }
 
-    /**
-     * Toggles mute state.
-     * @returns {boolean} New mute state
-     */
-    toggleMute() {
+    toggleMute(): boolean {
         this.muted = !this.muted;
 
-        if (this.initialized) {
+        if (this.initialized && this.masterGain) {
             this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
         }
 
@@ -294,36 +291,25 @@ export class AudioManager {
         return this.muted;
     }
 
-    /**
-     * Sets mute state.
-     * @param {boolean} muted - Whether audio should be muted
-     */
-    setMuted(muted) {
+    setMuted(muted: boolean): void {
         this.muted = muted;
 
-        if (this.initialized) {
+        if (this.initialized && this.masterGain) {
             this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
         }
 
         this.saveSettings();
     }
 
-    /**
-     * Resumes the audio context if suspended.
-     * Call this on user interaction if audio isn't playing.
-     */
-    async resume() {
+    async resume(): Promise<void> {
         if (this.audioContext && this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
             console.log('AudioManager: Context resumed');
         }
     }
 
-    /**
-     * Saves volume settings to localStorage.
-     */
-    saveSettings() {
-        const settings = {
+    saveSettings(): void {
+        const settings: AudioSettings = {
             masterVolume: this.masterVolume,
             musicVolume: this.musicVolume,
             sfxVolume: this.sfxVolume,
@@ -332,29 +318,23 @@ export class AudioManager {
         localStorage.setItem('losv_audio_settings', JSON.stringify(settings));
     }
 
-    /**
-     * Loads volume settings from localStorage.
-     */
-    loadSettings() {
+    loadSettings(): void {
         try {
             const saved = localStorage.getItem('losv_audio_settings');
-            if (saved) {
-                const settings = JSON.parse(saved);
-                this.masterVolume = settings.masterVolume ?? 1.0;
-                this.musicVolume = settings.musicVolume ?? 0.5;
-                this.sfxVolume = settings.sfxVolume ?? 0.7;
-                this.muted = settings.muted ?? false;
-            }
-        } catch (error) {
+            if (!saved) return;
+            const parsed: unknown = JSON.parse(saved);
+            // yagni: narrow JSON without full zod; upgrade if settings schema grows
+            if (!isPlainObject(parsed)) return;
+            if (typeof parsed.masterVolume === 'number') this.masterVolume = parsed.masterVolume;
+            if (typeof parsed.musicVolume === 'number') this.musicVolume = parsed.musicVolume;
+            if (typeof parsed.sfxVolume === 'number') this.sfxVolume = parsed.sfxVolume;
+            if (typeof parsed.muted === 'boolean') this.muted = parsed.muted;
+        } catch (error: unknown) {
             console.warn('AudioManager: Failed to load settings', error);
         }
     }
 
-    /**
-     * Gets current volume settings.
-     * @returns {Object} Volume settings
-     */
-    getSettings() {
+    getSettings(): AudioSettings {
         return {
             masterVolume: this.masterVolume,
             musicVolume: this.musicVolume,
@@ -363,14 +343,11 @@ export class AudioManager {
         };
     }
 
-    /**
-     * Cleans up audio resources.
-     */
-    dispose() {
+    dispose(): void {
         this.stopMusic(0);
 
         if (this.audioContext) {
-            this.audioContext.close();
+            void this.audioContext.close();
         }
 
         this.audioBuffers.clear();

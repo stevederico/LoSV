@@ -1,8 +1,30 @@
 import * as THREE from 'three';
-import { NES_PALETTE, ROOM_THEMES, hexToRgba } from '../utils/NESPalette.js';
-import { spriteGenerator } from '../utils/SpriteGenerator.js';
+import { NES_PALETTE, ROOM_THEMES, hexToRgba } from '../utils/NESPalette';
+import { spriteGenerator } from '../utils/SpriteGenerator';
+import { disposeObject3D } from '../utils/dispose';
 
 export class Player {
+    scene: import('three').Scene;
+    camera: import('./camera').Camera;
+    speed: number;
+    position: import('three').Vector3;
+    direction: string;
+    isMoving: boolean;
+    game: import('../game').Game | null;
+    currentSpeaker: import('three').Object3D | null;
+    textureLoader: import('three').TextureLoader;
+    textures: Record<string, import('three').Texture>;
+    mesh: import('three').Mesh;
+    isInBuilding: boolean;
+    buildingObstacles: import('three').Object3D[];
+    interactiveNPCs: import('three').Object3D[];
+    nearbyNPC: import('three').Object3D | null;
+    onExitBuildingCallback: (() => void) | null;
+    onEnterBuildingCallback: ((building: import('three').Object3D) => void) | null;
+    lastEnteredBuildingData: { position: import('three').Vector3; width: number; depth: number } | null;
+    currentRoomDepth: number;
+    buildingInteractiveElements: import('three').Object3D[] = [];
+    currentBuilding: string | null = null;
     /**
      * Creates a new Player instance.
      * @param {THREE.Scene} scene - The Three.js scene
@@ -10,7 +32,7 @@ export class Player {
      * @param {Function} onExitBuildingCallback - Callback when player exits a building
      * @param {Function} onEnterBuildingCallback - Callback when player enters a building
      */
-    constructor(scene, camera, onExitBuildingCallback, onEnterBuildingCallback) {
+    constructor(scene: import("three").Scene, camera: import("./camera").Camera, onExitBuildingCallback: (() => void) | null, onEnterBuildingCallback: ((building: import("three").Object3D) => void) | null) {
         this.scene = scene;
         this.camera = camera;
         this.speed = 0.2; // Increased speed for better movement
@@ -81,17 +103,18 @@ export class Player {
         return mesh;
     }
 
-    updateDirection(newDirection) {
+    updateDirection(newDirection: string) {
         if (this.direction !== newDirection) {
             this.direction = newDirection;
-            if (this.textures[this.direction]) {
-                this.mesh.material.map = this.textures[this.direction];
+            const tex = this.textures[this.direction];
+            if (tex && this.mesh.material instanceof THREE.MeshBasicMaterial) {
+                this.mesh.material.map = tex;
                 this.mesh.material.needsUpdate = true;
             }
         }
     }
 
-    update(keys, worldObstacles = []) {
+    update(keys: Record<string, boolean>, worldObstacles: import("three").Object3D[] = []) {
         this.isMoving = false;
         const moveVector = new THREE.Vector3(0, 0, 0);
 
@@ -224,28 +247,28 @@ export class Player {
 
         this.mesh.position.copy(this.position);
 
-        if (this.camera && this.camera.position) {
+        if (this.camera && this.camera.getCamera().position) {
             // Camera follows player's XZ, Y is for height/zoom
-            this.camera.position.set(this.position.x, this.camera.position.y, this.position.z + 5); // Keep camera slightly behind or adjust as needed
-            this.camera.lookAt(this.position.x, this.position.y, this.position.z); // Look at player's actual Y
+            this.camera.getCamera().position.set(this.position.x, this.camera.getCamera().position.y, this.position.z + 5); // Keep camera slightly behind or adjust as needed
+            this.camera.getCamera().lookAt(this.position.x, this.position.y, this.position.z); // Look at player's actual Y
 
             // Further refined zoom functionality with explicit Math.max
             if (keys['+'] || keys['=']) {  // Zoom in
-                if (this.camera.position.y > 5) {
-                    this.camera.position.y = Math.max(5, this.camera.position.y - 1);
+                if (this.camera.getCamera().position.y > 5) {
+                    this.camera.getCamera().position.y = Math.max(5, this.camera.getCamera().position.y - 1);
                 }
             } else if (keys['-']) {  // Zoom out
-                this.camera.position.y += 1;
+                this.camera.getCamera().position.y += 1;
             }
         }
     }
 
-    enterBuilding(building) {
+    enterBuilding(building: import("three").Object3D) {
         // Store data of the building being entered for correct exit positioning
         this.lastEnteredBuildingData = {
             position: building.position.clone(),
-            width: building.width,
-            depth: building.depth
+            width: building.width ?? 3,
+            depth: building.depth ?? 3
         };
 
         this.isInBuilding = true;
@@ -256,7 +279,7 @@ export class Player {
         this.clearScene();
 
         // Create building-specific interior based on building type
-        const buildingType = building.userData.buildingType;
+        const buildingType = building.userData?.buildingType;
         
         if (buildingType === 'house') {
             this.createHouseInterior();
@@ -580,6 +603,7 @@ export class Player {
         cableCanvas.width = 32;
         cableCanvas.height = 64;
         const cctx = cableCanvas.getContext('2d');
+        if (!cctx) throw new Error('2d context unavailable');
         cctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_DARK);
         cctx.fillRect(14, 0, 4, 64);
         // Cable colors
@@ -760,6 +784,7 @@ export class Player {
         certCanvas.width = 32;
         certCanvas.height = 24;
         const cctx = certCanvas.getContext('2d');
+        if (!cctx) throw new Error('2d context unavailable');
         cctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
         cctx.fillRect(0, 0, 32, 24);
         cctx.fillStyle = hexToRgba(NES_PALETTE.CREAM);
@@ -844,6 +869,7 @@ export class Player {
         tickerCanvas.width = 128;
         tickerCanvas.height = 32;
         const tctx = tickerCanvas.getContext('2d');
+        if (!tctx) throw new Error('2d context unavailable');
         tctx.fillStyle = hexToRgba(NES_PALETTE.BLACK);
         tctx.fillRect(0, 0, 128, 32);
         // Stock data
@@ -875,6 +901,7 @@ export class Player {
         bellCanvas.width = 24;
         bellCanvas.height = 32;
         const bctx = bellCanvas.getContext('2d');
+        if (!bctx) throw new Error('2d context unavailable');
         // Stand
         bctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
         bctx.fillRect(10, 20, 4, 12);
@@ -961,6 +988,7 @@ export class Player {
         credenzaCanvas.width = 64;
         credenzaCanvas.height = 24;
         const cctx = credenzaCanvas.getContext('2d');
+        if (!cctx) throw new Error('2d context unavailable');
         cctx.fillStyle = hexToRgba(NES_PALETTE.MAHOGANY);
         cctx.fillRect(0, 0, 64, 24);
         cctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
@@ -985,6 +1013,7 @@ export class Player {
         portraitCanvas.width = 32;
         portraitCanvas.height = 40;
         const pctx = portraitCanvas.getContext('2d');
+        if (!pctx) throw new Error('2d context unavailable');
         // Gold frame
         pctx.fillStyle = hexToRgba(NES_PALETTE.GOLD);
         pctx.fillRect(0, 0, 32, 40);
@@ -1062,7 +1091,7 @@ export class Player {
      * @param {number} z - Z position
      * @returns {THREE.Mesh} The furniture sprite mesh
      */
-    createFurnitureSprite(texture, width, height, x, y, z) {
+    createFurnitureSprite(texture: import("three").Texture, width: number, height: number, x: number, y: number, z: number) {
         const geometry = new THREE.PlaneGeometry(width, height);
         const material = new THREE.MeshBasicMaterial({
             map: texture,
@@ -1086,7 +1115,7 @@ export class Player {
      * @param {number} tileSize - Size of each tile (for repeat calculation)
      * @returns {THREE.Mesh} The floor mesh
      */
-    createTexturedFloor(texture, roomWidth, roomDepth, tileSize = 2) {
+    createTexturedFloor(texture: import("three").Texture, roomWidth: number, roomDepth: number, tileSize: number = 2) {
         const clonedTexture = texture.clone();
         clonedTexture.wrapS = THREE.RepeatWrapping;
         clonedTexture.wrapT = THREE.RepeatWrapping;
@@ -1109,7 +1138,7 @@ export class Player {
      * @param {number} z - Z position
      * @returns {THREE.Mesh} The rug mesh
      */
-    createRug(width, depth, x, z) {
+    createRug(width: number, depth: number, x: number, z: number) {
         const texture = spriteGenerator.generateRug();
         const geometry = new THREE.PlaneGeometry(width, depth);
         const material = new THREE.MeshBasicMaterial({
@@ -1133,7 +1162,7 @@ export class Player {
      * @param {number} rotationY - Rotation around Y axis
      * @returns {THREE.Mesh} The wall mesh
      */
-    createTexturedWall(texture, width, height, x, y, z, rotationY = 0) {
+    createTexturedWall(texture: import("three").Texture, width: number, height: number, x: number, y: number, z: number, rotationY: number = 0) {
         const clonedTexture = texture.clone();
         clonedTexture.wrapS = THREE.RepeatWrapping;
         clonedTexture.wrapT = THREE.RepeatWrapping;
@@ -1159,7 +1188,7 @@ export class Player {
      * @param {number} wallHeight - Wall height
      * @param {THREE.Texture} wallTexture - Texture for walls
      */
-    createTexturedWalls(roomWidth, roomDepth, wallHeight, wallTexture) {
+    createTexturedWalls(roomWidth: number, roomDepth: number, wallHeight: number, wallTexture: import("three").Texture) {
         // Back wall
         const backWall = this.createTexturedWall(
             wallTexture, roomWidth, wallHeight,
@@ -1221,11 +1250,12 @@ export class Player {
      * @param {number} x - X position
      * @param {number} z - Z position
      */
-    addShadow(width, depth, x, z) {
+    addShadow(width: number, depth: number, x: number, z: number) {
         const canvas = document.createElement('canvas');
         canvas.width = 32;
         canvas.height = 32;
         const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('2d context unavailable');
 
         const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
         gradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
@@ -1245,7 +1275,7 @@ export class Player {
         this.scene.add(shadow);
     }
 
-    createWalls(roomWidth, roomDepth, wallHeight, wallColor) {
+    createWalls(roomWidth: number, roomDepth: number, wallHeight: number, wallColor: number) {
         const wallMaterial = new THREE.MeshBasicMaterial({ color: wallColor });
 
         // Back wall
@@ -1424,6 +1454,7 @@ export class Player {
         toolboxCanvas.width = 16;
         toolboxCanvas.height = 16;
         const tctx = toolboxCanvas.getContext('2d');
+        if (!tctx) throw new Error('2d context unavailable');
         tctx.fillStyle = hexToRgba(NES_PALETTE.RED_MED);
         tctx.fillRect(0, 0, 16, 16);
         tctx.fillStyle = hexToRgba(NES_PALETTE.RED_DARK);
@@ -1440,6 +1471,7 @@ export class Player {
         garageDoorCanvas.width = 64;
         garageDoorCanvas.height = 48;
         const gctx = garageDoorCanvas.getContext('2d');
+        if (!gctx) throw new Error('2d context unavailable');
         gctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
         gctx.fillRect(0, 0, 64, 48);
         // Horizontal panel lines
@@ -1506,6 +1538,7 @@ export class Player {
         blueBeanbagCanvas.width = 24;
         blueBeanbagCanvas.height = 24;
         const bbctx = blueBeanbagCanvas.getContext('2d');
+        if (!bbctx) throw new Error('2d context unavailable');
         // Shadow
         bbctx.fillStyle = 'rgba(0,0,0,0.3)';
         bbctx.beginPath();
@@ -1533,6 +1566,7 @@ export class Player {
         coolerCanvas.width = 16;
         coolerCanvas.height = 24;
         const cctx = coolerCanvas.getContext('2d');
+        if (!cctx) throw new Error('2d context unavailable');
         // Base
         cctx.fillStyle = hexToRgba(NES_PALETTE.GRAY_STEEL);
         cctx.fillRect(2, 12, 12, 12);
@@ -1553,6 +1587,7 @@ export class Player {
         posterCanvas.width = 32;
         posterCanvas.height = 24;
         const pctx = posterCanvas.getContext('2d');
+        if (!pctx) throw new Error('2d context unavailable');
         // Orange YC-style poster
         pctx.fillStyle = hexToRgba(NES_PALETTE.FIRE_ORANGE);
         pctx.fillRect(0, 0, 32, 24);
@@ -1574,6 +1609,7 @@ export class Player {
         motivePosterCanvas.width = 32;
         motivePosterCanvas.height = 24;
         const mctx = motivePosterCanvas.getContext('2d');
+        if (!mctx) throw new Error('2d context unavailable');
         mctx.fillStyle = hexToRgba(NES_PALETTE.BLUE_MED);
         mctx.fillRect(0, 0, 32, 24);
         mctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
@@ -1611,6 +1647,7 @@ export class Player {
         easelCanvas.width = 24;
         easelCanvas.height = 32;
         const ectx = easelCanvas.getContext('2d');
+        if (!ectx) throw new Error('2d context unavailable');
         // Easel legs
         ectx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
         ectx.fillRect(4, 16, 3, 16);
@@ -1655,6 +1692,7 @@ export class Player {
         islandCanvas.width = 48;
         islandCanvas.height = 32;
         const ictx = islandCanvas.getContext('2d');
+        if (!ictx) throw new Error('2d context unavailable');
         // Shadow
         ictx.fillStyle = 'rgba(0,0,0,0.3)';
         ictx.fillRect(4, 4, 44, 28);
@@ -1680,6 +1718,7 @@ export class Player {
         stoolCanvas.width = 16;
         stoolCanvas.height = 16;
         const sctx = stoolCanvas.getContext('2d');
+        if (!sctx) throw new Error('2d context unavailable');
         sctx.fillStyle = 'rgba(0,0,0,0.3)';
         sctx.beginPath();
         sctx.arc(9, 9, 6, 0, Math.PI * 2);
@@ -1744,6 +1783,7 @@ export class Player {
         screenCanvas.width = 64;
         screenCanvas.height = 48;
         const sctx = screenCanvas.getContext('2d');
+        if (!sctx) throw new Error('2d context unavailable');
         // Screen white
         sctx.fillStyle = hexToRgba(NES_PALETTE.WHITE);
         sctx.fillRect(0, 0, 64, 48);
@@ -1775,6 +1815,7 @@ export class Player {
         podiumCanvas.width = 24;
         podiumCanvas.height = 32;
         const pctx = podiumCanvas.getContext('2d');
+        if (!pctx) throw new Error('2d context unavailable');
         pctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_DARK);
         pctx.fillRect(2, 0, 20, 32);
         pctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
@@ -1794,6 +1835,7 @@ export class Player {
         coffeeCanvas.width = 32;
         coffeeCanvas.height = 24;
         const cctx = coffeeCanvas.getContext('2d');
+        if (!cctx) throw new Error('2d context unavailable');
         cctx.fillStyle = hexToRgba(NES_PALETTE.WOOD_MED);
         cctx.fillRect(0, 0, 32, 24);
         // Coffee maker
@@ -2402,9 +2444,9 @@ export class Player {
         this.interactiveNPCs.push(budgetSprite);
     }
 
-    createNPC(x, z, color, characterId) {
+    createNPC(x: number, z: number, color: number, characterId: string) {
         // Map character IDs to sprite filenames
-        const spriteMap = {
+        const spriteMap: Record<string, string> = {
             'sam': 'sam-visionary',
             'alex': 'alex-builder',
             'jordan': 'jordan-connector',
@@ -2439,7 +2481,7 @@ export class Player {
         return npc;
     }
 
-    addPlayerToRoom(roomDepth) {
+    addPlayerToRoom(roomDepth: number) {
         // Store the room depth for exit logic
         this.currentRoomDepth = roomDepth;
         
@@ -2454,7 +2496,7 @@ export class Player {
      * @param {number} color - Light color (hex)
      * @param {number} intensity - Light intensity (0-1)
      */
-    addInteriorLighting(color = 0xffffff, intensity = 0.6) {
+    addInteriorLighting(color: number = 0xffffff, intensity: number = 0.6) {
         // Add ambient lighting for interior with room-specific color
         const ambientLight = new THREE.AmbientLight(color, intensity);
         this.scene.add(ambientLight);
@@ -2478,51 +2520,15 @@ export class Player {
      * Disposes of a Three.js object and its children, freeing GPU memory.
      * @param {THREE.Object3D} object - The object to dispose
      */
-    disposeObject(object) {
-        if (!object) return;
-
-        // Recursively dispose children first
-        if (object.children && object.children.length > 0) {
-            // Clone children array since we're modifying it
-            const children = [...object.children];
-            children.forEach(child => this.disposeObject(child));
-        }
-
-        // Dispose geometry
-        if (object.geometry) {
-            object.geometry.dispose();
-        }
-
-        // Dispose material(s)
-        if (object.material) {
-            if (Array.isArray(object.material)) {
-                object.material.forEach(material => this.disposeMaterial(material));
-            } else {
-                this.disposeMaterial(object.material);
-            }
-        }
+    disposeObject(object: import("three").Object3D) {
+        disposeObject3D(object);
     }
 
     /**
      * Disposes of a material and its textures.
      * @param {THREE.Material} material - The material to dispose
      */
-    disposeMaterial(material) {
-        if (!material) return;
-
-        // Dispose all texture properties
-        const textureProperties = [
-            'map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap',
-            'envMap', 'alphaMap', 'aoMap', 'displacementMap',
-            'emissiveMap', 'gradientMap', 'metalnessMap', 'roughnessMap'
-        ];
-
-        textureProperties.forEach(prop => {
-            if (material[prop]) {
-                material[prop].dispose();
-            }
-        });
-
+    disposeMaterial(material: import("three").Material) {
         material.dispose();
     }
 

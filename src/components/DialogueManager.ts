@@ -1,7 +1,26 @@
-import { DialogueLoader } from '../utils/DialogueLoader.js';
-import { trackEvent } from '../utils/analytics.js';
+import { DialogueLoader } from '../utils/DialogueLoader';
+import { trackEvent } from '../utils/analytics';
 
 export class DialogueManager {
+    dialogueBox: HTMLElement | null;
+    dialogueTextElement: HTMLElement | null;
+    dialogueNPCNameElement: HTMLElement | null;
+    instructionElement: HTMLElement | null = null;
+    currentDialogueLines: string[] = [];
+    currentLineIndex: number = 0;
+    isVisible: boolean = false;
+    onDialogueCompleteCallback: (() => void) | null = null;
+    waitingForInput: boolean = false;
+    dialogueLoader: import('../utils/DialogueLoader').DialogueLoader;
+    currentCharacterId: string | null = null;
+    currentDialogueId: string | null = null;
+    keyHandler: ((event: KeyboardEvent) => void) | null = null;
+    waitingForChoiceConfirm: boolean = false;
+    selectedChoiceIndex: number = 0;
+    currentChoices: import('../types').DialogueChoice[] = [];
+    onChoiceCallback: ((choice: import('../types').DialogueChoice, index: number) => void) | null = null;
+    choiceContainer: HTMLElement | null = null;
+    onStartSimulator: (() => void) | null = null;
     constructor() {
         this.dialogueBox = document.getElementById('dialogue-box');
         this.dialogueTextElement = document.getElementById('dialogue-text');
@@ -131,7 +150,7 @@ export class DialogueManager {
         this.choiceContainer = document.createElement('div');
         this.choiceContainer.id = 'dialogue-choices';
         this.choiceContainer.style.marginTop = '15px';
-        this.choiceContainer.style.display = 'none';
+        if (this.choiceContainer) this.choiceContainer.style.display = 'none';
 
         // Track choice state
         this.currentChoices = [];
@@ -153,7 +172,7 @@ export class DialogueManager {
     }
 
     // New method to show dialogue from JSON data
-    showCharacterDialogue(characterId, dialogueId = 'greeting', onComplete = null) {
+    showCharacterDialogue(characterId: string, dialogueId: string = 'greeting', onComplete: (() => void) | null = null) {
         const dialogue = this.dialogueLoader.getCharacterDialogue(characterId, dialogueId);
         if (!dialogue) {
             console.warn(`No dialogue found for ${characterId}:${dialogueId}`);
@@ -189,7 +208,7 @@ export class DialogueManager {
         return true;
     }
 
-    handleChoiceAction(characterId, choice, originalCallback) {
+    handleChoiceAction(characterId: string, choice: import("../types").DialogueChoice, originalCallback: (() => void) | null) {
         switch (choice.action) {
             case 'start_simulator':
                 // Trigger simulator for current building
@@ -213,7 +232,7 @@ export class DialogueManager {
                 this.showDialogue(hintLines, () => {
                     this.hideDialogue();
                     if (this.dialogueLoader) {
-                        this.dialogueLoader.setQuestMarker(choice.target, choice.targetNPC);
+                        this.dialogueLoader.setQuestMarker(choice.target ?? "", choice.targetNPC ?? "");
                     }
                     if (originalCallback) originalCallback();
                 });
@@ -244,7 +263,7 @@ export class DialogueManager {
     }
 
     // Show global dialogue (system messages, tutorial, etc.)
-    showGlobalDialogue(category, dialogueId, onComplete = null) {
+    showGlobalDialogue(category: string, dialogueId: string, onComplete: (() => void) | null = null) {
         const dialogue = this.dialogueLoader.getGlobalDialogue(category, dialogueId);
         if (!dialogue) {
             console.warn(`No global dialogue found for ${category}:${dialogueId}`);
@@ -261,7 +280,7 @@ export class DialogueManager {
     }
 
     // Show random dialogue from a category
-    showRandomDialogue(category, onComplete = null) {
+    showRandomDialogue(category: string, onComplete: (() => void) | null = null) {
         const dialogue = this.dialogueLoader.getRandomDialogue(category);
         if (!dialogue) {
             console.warn(`No random dialogue found for category: ${category}`);
@@ -278,7 +297,7 @@ export class DialogueManager {
     }
 
     // Show conditional dialogue based on player stats
-    showConditionalDialogue(playerStats, onComplete = null) {
+    showConditionalDialogue(playerStats: import("../types").PlayerStats, onComplete: (() => void) | null = null) {
         const dialogue = this.dialogueLoader.getConditionalDialogue(playerStats);
         if (!dialogue) {
             return false;
@@ -294,7 +313,7 @@ export class DialogueManager {
     }
 
     // Original method for backward compatibility
-    showDialogue(lines, onComplete) {
+    showDialogue(lines: string[], onComplete: (() => void) | null) {
         if (!this.dialogueBox || !this.dialogueTextElement) {
             console.error("Cannot show dialogue, UI elements are missing.");
             return;
@@ -315,7 +334,7 @@ export class DialogueManager {
 
     showCurrentLine() {
         if (this.currentLineIndex < this.currentDialogueLines.length) {
-            this.dialogueTextElement.textContent = this.currentDialogueLines[this.currentLineIndex];
+            if (this.dialogueTextElement) this.dialogueTextElement.textContent = this.currentDialogueLines[this.currentLineIndex];
             this.waitingForInput = true;
         } else {
             this.hideDialogue();
@@ -356,7 +375,7 @@ export class DialogueManager {
         this.currentDialogueId = null;
     }
 
-    showChoices(choices, onChoiceSelected) {
+    showChoices(choices: import("../types").DialogueChoice[], onChoiceSelected: ((choice: import("../types").DialogueChoice, index: number) => void) | null) {
         this.currentChoices = choices;
         this.selectedChoiceIndex = 0;
         this.onChoiceCallback = onChoiceSelected;
@@ -368,38 +387,38 @@ export class DialogueManager {
         }
 
         // Build choice list
-        this.choiceContainer.innerHTML = '';
-        choices.forEach((choice, index) => {
+        if (this.choiceContainer) this.choiceContainer.innerHTML = '';
+        choices.forEach((choice: import("../types").DialogueChoice, index: number) => {
             const choiceElement = document.createElement('div');
             choiceElement.dataset.umamiEvent = 'dialogue-choice-clicked';
             choiceElement.style.padding = '8px';
             choiceElement.style.marginBottom = '5px';
             choiceElement.style.cursor = 'pointer';
             choiceElement.style.borderRadius = '4px';
-            choiceElement.dataset.choiceIndex = index;
+            choiceElement.dataset.choiceIndex = String(index);
 
             // Add arrow for selected choice
             const arrow = document.createElement('span');
-            arrow.textContent = index === 0 ? '▶ ' : '  ';
+            if (arrow) arrow.textContent = index === 0 ? '▶ ' : '  ';
             arrow.style.color = '#ffff00';
 
             const text = document.createElement('span');
-            text.textContent = choice.text;
+            text.textContent = choice.text ?? "";
 
             choiceElement.appendChild(arrow);
             choiceElement.appendChild(text);
-            this.choiceContainer.appendChild(choiceElement);
+            this.choiceContainer?.appendChild(choiceElement);
         });
 
-        this.choiceContainer.style.display = 'block';
+        if (this.choiceContainer) this.choiceContainer.style.display = 'block';
         this.updateChoiceHighlight();
     }
 
     updateChoiceHighlight() {
-        const choices = this.choiceContainer.querySelectorAll('div');
+        const choices = this.choiceContainer ? this.choiceContainer.querySelectorAll('div') : [];
         choices.forEach((elem, index) => {
             const arrow = elem.querySelector('span');
-            arrow.textContent = index === this.selectedChoiceIndex ? '▶ ' : '  ';
+            if (arrow) arrow.textContent = index === this.selectedChoiceIndex ? '▶ ' : '  ';
             elem.style.backgroundColor = index === this.selectedChoiceIndex ?
                 'rgba(255, 255, 255, 0.2)' : 'transparent';
         });
@@ -407,8 +426,8 @@ export class DialogueManager {
 
     hideChoices() {
         if (this.choiceContainer) {
-            this.choiceContainer.style.display = 'none';
-            this.choiceContainer.innerHTML = '';
+            if (this.choiceContainer) this.choiceContainer.style.display = 'none';
+            if (this.choiceContainer) this.choiceContainer.innerHTML = '';
         }
         this.currentChoices = [];
         this.waitingForChoiceConfirm = false;
@@ -434,17 +453,17 @@ export class DialogueManager {
     }
 
     // Get available dialogues for a character
-    getAvailableDialogues(characterId) {
+    getAvailableDialogues(characterId: string) {
         return this.dialogueLoader.getAvailableDialogues(characterId);
     }
 
     // Get dialogue chain progress
-    getDialogueChainProgress(chainId) {
+    getDialogueChainProgress(chainId: string) {
         return this.dialogueLoader.getDialogueChainProgress(chainId);
     }
 
     // Get next dialogue in chain
-    getNextDialogueInChain(chainId) {
+    getNextDialogueInChain(chainId: string) {
         return this.dialogueLoader.getNextDialogueInChain(chainId);
     }
 
@@ -464,5 +483,9 @@ export class DialogueManager {
         if (this.keyHandler) {
             document.removeEventListener('keydown', this.keyHandler);
         }
+    }
+    showMessage(message: string, _npcName: string = ''): void {
+        void _npcName;
+        this.showDialogue([message], null);
     }
 }

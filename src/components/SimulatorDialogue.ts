@@ -1,7 +1,15 @@
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../utils/analytics';
 
 export class SimulatorDialogue {
-    constructor(dialogueManager) {
+    dialogueManager: import('./DialogueManager').DialogueManager;
+    simulatorBox: HTMLDivElement = document.createElement('div');
+    contentContainer: HTMLDivElement = document.createElement('div');
+    progressContainer: HTMLDivElement = document.createElement('div');
+    isVisible: boolean = false;
+    currentOptions: import('../types').SimulatorOption[];
+    onChoiceCallback: ((choice: import('../types').SimulatorOption, index: number) => void) | null;
+    waitingForChoice: boolean = false;
+    constructor(dialogueManager: import("./DialogueManager").DialogueManager) {
         this.dialogueManager = dialogueManager;
         this.currentOptions = [];
         this.waitingForChoice = false;
@@ -70,7 +78,7 @@ export class SimulatorDialogue {
         this.onChoiceCallback = null;
     }
     
-    handleKeyPress(event) {
+    handleKeyPress(event: KeyboardEvent) {
         if (!this.waitingForChoice) return;
         
         const key = event.key;
@@ -81,16 +89,24 @@ export class SimulatorDialogue {
                 trackEvent('simulator-choice-made', { choice: selectedOption.name, index: choice });
                 this.waitingForChoice = false;
                 if (this.onChoiceCallback) {
-                    this.onChoiceCallback(choice);
+                    this.onChoiceCallback(selectedOption, choice - 1);
                 }
             }
         }
     }
     
-    displayRound(roundData) {
+    displayRound(roundData: {
+        level?: number;
+        round?: number;
+        levelName?: string;
+        options?: import('../types').SimulatorOption[];
+        prompt?: string;
+        description?: string;
+        [key: string]: unknown;
+    }) {
         trackEvent('simulator-round-displayed', { level: roundData.level, round: roundData.round, levelName: roundData.levelName });
         this.contentContainer.innerHTML = '';
-        this.currentOptions = roundData.options;
+        this.currentOptions = roundData.options ?? [];
         
         // Round header
         const header = document.createElement('div');
@@ -112,7 +128,7 @@ export class SimulatorDialogue {
         const optionsContainer = document.createElement('div');
         optionsContainer.style.marginBottom = '20px';
         
-        roundData.options.forEach((option, index) => {
+        (roundData.options ?? []).forEach((option: import("../types").SimulatorOption, index: number) => {
             const optionDiv = document.createElement('div');
             optionDiv.dataset.umamiEvent = 'simulator-option-viewed';
             optionDiv.style.marginBottom = '15px';
@@ -144,13 +160,13 @@ export class SimulatorDialogue {
         this.contentContainer.appendChild(choosePrompt);
         
         // Show progress
-        this.updateProgress(roundData.currentProgress, roundData.goalTarget, roundData.goal, roundData.progressUnit);
+        this.updateProgress(Number(roundData.currentProgress ?? 0), Number(roundData.goalTarget ?? 0), String(roundData.goal ?? ""), String(roundData.progressUnit ?? ""));
         
         this.waitingForChoice = true;
         this.show();
     }
     
-    getOptionDetails(option) {
+    getOptionDetails(option: import("../types").SimulatorOption) {
         const details = [];
         
         // Add relevant details based on available properties
@@ -194,7 +210,7 @@ export class SimulatorDialogue {
         return details;
     }
     
-    displayResult(result) {
+    displayResult(result: Record<string, unknown>) {
         if (result.levelComplete) {
             trackEvent('level-completed', { score: result.finalScore, success: result.levelSuccess });
         }
@@ -248,10 +264,16 @@ export class SimulatorDialogue {
             eventDiv.style.border = '2px solid';
             eventDiv.style.borderRadius = '4px';
             
-            if (result.randomEvent.type === 'positive') {
+            const randomEventRaw = Reflect.get(result, 'randomEvent');
+            const randomEvent: Record<string, unknown> = {};
+            if (randomEventRaw && typeof randomEventRaw === 'object' && !Array.isArray(randomEventRaw)) {
+                for (const [k, v] of Object.entries(randomEventRaw)) randomEvent[k] = v;
+            }
+            if (randomEvent['type'] === 'positive') {
+
                 eventDiv.style.borderColor = '#00ff00';
                 eventDiv.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
-            } else if (result.randomEvent.type === 'negative') {
+            } else if (randomEvent['type'] === 'negative') {
                 eventDiv.style.borderColor = '#ff0000';
                 eventDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
             } else {
@@ -264,7 +286,7 @@ export class SimulatorDialogue {
                     <strong>Random Event!</strong>
                 </div>
                 <div style="color: #ffffff; font-size: 11px;">
-                    ${result.randomEvent.message}
+                    ${String(randomEvent["message"] ?? "")}
                 </div>
             `;
             this.contentContainer.appendChild(eventDiv);
@@ -324,7 +346,7 @@ export class SimulatorDialogue {
         }
     }
     
-    updateProgress(current, target, goalText, unit) {
+    updateProgress(current: number, target: number, goalText: string, unit: string) {
         this.progressContainer.innerHTML = '';
         this.progressContainer.style.display = 'block';
         
@@ -379,11 +401,11 @@ export class SimulatorDialogue {
         this.progressContainer.appendChild(progressText);
     }
     
-    setChoiceCallback(callback) {
+    setChoiceCallback(callback: ((choice: import("../types").SimulatorOption, index: number) => void) | null): void {
         this.onChoiceCallback = callback;
     }
     
-    displayMessage(message, duration = 3000) {
+    displayMessage(message: string, duration: number = 3000) {
         this.contentContainer.innerHTML = '';
         
         const messageDiv = document.createElement('div');

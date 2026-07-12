@@ -4,22 +4,22 @@
  * All tracking is disabled on localhost via isLocal() guard
  */
 
-/** @returns {boolean} True if running on localhost — skip all tracking */
-const isLocal = () => ['localhost', '127.0.0.1'].includes(window.location.hostname);
+/** True if running on localhost — skip all tracking */
+const isLocal = (): boolean =>
+  ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+type EventValue = string | number | boolean;
+type EventData = Record<string, EventValue>;
 
 /**
  * Sanitize event data for Umami
- * Ensures data is always a valid object with proper types
- *
- * @param {Object} data - Raw event data
- * @returns {Object} Sanitized event data
  */
-const sanitizeEventData = (data) => {
+const sanitizeEventData = (data: unknown): EventData => {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return {};
   }
 
-  const sanitized = {};
+  const sanitized: EventData = {};
 
   for (const [key, value] of Object.entries(data)) {
     if (value === undefined || value === null || typeof value === 'function') {
@@ -46,17 +46,14 @@ const sanitizeEventData = (data) => {
 
 /**
  * Track an event with optional data
- *
- * @param {string} eventName - Name of the event (kebab-case)
- * @param {Object} data - Optional event data
  */
-export const trackEvent = (eventName, data = {}) => {
+export const trackEvent = (eventName: string, data: unknown = {}): void => {
   if (isLocal()) return;
   if (typeof window !== 'undefined' && window.umami) {
     try {
       const sanitizedData = sanitizeEventData(data);
       window.umami.track(eventName, sanitizedData);
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('Analytics tracking failed:', error);
     }
   }
@@ -64,11 +61,8 @@ export const trackEvent = (eventName, data = {}) => {
 
 /**
  * Identify a user with optional metadata
- *
- * @param {string} userId - User ID
- * @param {Object} data - Optional user metadata
  */
-export const identifyUser = (userId, data = {}) => {
+export const identifyUser = (userId: string, data: Record<string, unknown> = {}): void => {
   if (isLocal()) return;
   if (typeof window !== 'undefined' && window.umami) {
     try {
@@ -77,7 +71,7 @@ export const identifyUser = (userId, data = {}) => {
       } else {
         window.umami.identify(data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('User identification failed:', error);
     }
   }
@@ -86,12 +80,12 @@ export const identifyUser = (userId, data = {}) => {
 /**
  * Track a page view
  */
-export const trackPageView = () => {
+export const trackPageView = (): void => {
   if (isLocal()) return;
   if (typeof window !== 'undefined' && window.umami) {
     try {
       window.umami.track();
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('Page view tracking failed:', error);
     }
   }

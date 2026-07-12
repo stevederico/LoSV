@@ -1,20 +1,44 @@
 import * as THREE from 'three';
-import { Player } from './components/player.js';
-import { World } from './components/world.js';
-import { Camera } from './components/camera.js';
-import { Controls } from './components/controls.js';
-import { Enemies } from './components/enemies.js';
-import { DialogueManager } from './components/DialogueManager.js';
-import { StartupSimulator } from './components/StartupSimulator.js';
-import { SimulatorDialogue } from './components/SimulatorDialogue.js';
-import { Inventory } from './components/Inventory.js';
-import { ProgressionManager } from './components/ProgressionManager.js';
-import { PauseMenu } from './components/PauseMenu.js';
-import { audioManager } from './utils/AudioManager.js';
-import { loadAssets, setupKeyboardControls } from './utils/helpers.js';
-import { trackEvent } from './utils/analytics.js';
+import { Player } from './components/player';
+import { World } from './components/world';
+import { Camera } from './components/camera';
+import { Controls } from './components/controls';
+import { Enemies } from './components/enemies';
+import { DialogueManager } from './components/DialogueManager';
+import { StartupSimulator } from './components/StartupSimulator';
+import { SimulatorDialogue } from './components/SimulatorDialogue';
+import { Inventory } from './components/Inventory';
+import { ProgressionManager } from './components/ProgressionManager';
+import { PauseMenu } from './components/PauseMenu';
+import { audioManager } from './utils/AudioManager';
+import { loadAssets, setupKeyboardControls } from './utils/helpers';
+import { trackEvent } from './utils/analytics';
 
 export class Game {
+    scene: import('three').Scene;
+    renderer: import('three').WebGLRenderer;
+    keys: Record<string, boolean>;
+    dialogueManager: import('./components/DialogueManager').DialogueManager;
+    startupSimulator: import('./components/StartupSimulator').StartupSimulator;
+    simulatorDialogue: import('./components/SimulatorDialogue').SimulatorDialogue;
+    inventory: import('./components/Inventory').Inventory;
+    progressionManager: import('./components/ProgressionManager').ProgressionManager;
+    pickedUpItems: Record<string, string[]>;
+    world: import('./components/world').World;
+    camera: import('./components/camera').Camera;
+    player: import('./components/player').Player;
+    controls: import('./components/controls').Controls;
+    enemies: import('./components/enemies').Enemies;
+    audioManager: import('./utils/AudioManager').AudioManager;
+    pauseMenu: import('./components/PauseMenu').PauseMenu;
+    gamePaused: boolean = false;
+    assetsLoaded: boolean = false;
+    gameOverShown: boolean = false;
+    rupeesElement: HTMLElement | null = null;
+    lifeHeartsContainer: HTMLElement | null = null;
+    dauElement: HTMLElement | null = null;
+    mrrElement: HTMLElement | null = null;
+    interactionPrompt: HTMLElement | null = null;
     constructor() {
         // Set up the scene
         this.scene = new THREE.Scene();
@@ -96,7 +120,9 @@ export class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(0x87CEEB); // Light blue sky color - Default for main world
-        document.getElementById('game-container').appendChild(this.renderer.domElement);
+        const gameContainer = document.getElementById('game-container');
+        if (!gameContainer) throw new Error('missing #game-container');
+        gameContainer.appendChild(this.renderer.domElement);
 
         // Create interaction prompt element
         this.interactionPrompt = document.createElement('div');
@@ -142,14 +168,14 @@ export class Game {
 
             // Initialize UI with progression manager values
             const stats = this.progressionManager.currentStats;
-            this.updateFunding(stats.funding);
-            this.updateRunway(stats.runway);
+            this.updateFunding(stats.funding ?? 0);
+            this.updateRunway(stats.runway ?? 12);
             this.updateDAU(stats.dau);
             this.updateMRR(stats.mrr);
         }, 100);
     }
 
-    updateFunding(amount) {
+    updateFunding(amount: number) {
         if (this.rupeesElement) {
             // Format funding (e.g., $2.5M, $500k, $0)
             let displayText;
@@ -169,7 +195,7 @@ export class Game {
         }
     }
 
-    updateRunway(months) {
+    updateRunway(months: number) {
         if (this.lifeHeartsContainer) {
             this.lifeHeartsContainer.innerHTML = '';
             const maxHearts = 12; // Maximum runway is 12 months
@@ -187,7 +213,7 @@ export class Game {
         }
     }
 
-    updateDAU(count) {
+    updateDAU(count: number) {
         // Find the DAU value element directly
         const dauValueElement = document.querySelector('#dau-display .stat-value') || 
                                document.querySelector('#dau-display span:last-child');
@@ -196,7 +222,7 @@ export class Game {
         }
     }
 
-    updateMRR(amount) {
+    updateMRR(amount: number) {
         // Find the MRR value element directly
         const mrrValueElement = document.querySelector('#mrr-display .stat-value') || 
                                document.querySelector('#mrr-display span:last-child');
@@ -207,7 +233,7 @@ export class Game {
 
     setupLights() {
         // Clear existing lights first to prevent duplicates if called multiple times
-        const lights = this.scene.children.filter(obj => obj.isLight);
+        const lights = this.scene.children.filter(obj => 'isLight' in obj && Boolean(Reflect.get(obj, 'isLight')));
         lights.forEach(light => this.scene.remove(light));
 
         // Add ambient light for overall illumination
@@ -259,7 +285,7 @@ export class Game {
      * Plays a sound effect through the audio manager.
      * @param {string} sfxName - Name of the sound effect
      */
-    playSFX(sfxName) {
+    playSFX(sfxName: string) {
         if (this.audioManager && this.audioManager.initialized) {
             this.audioManager.playSFX(sfxName);
         }
@@ -332,7 +358,7 @@ export class Game {
                 camera.right = frustumSize * aspect / 2;
                 camera.top = frustumSize / 2;
                 camera.bottom = frustumSize / -2;
-            } else {
+            } else if ('aspect' in camera) {
                 // For perspective camera
                 camera.aspect = aspect;
             }
@@ -344,10 +370,10 @@ export class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    handleEnterBuilding(building) {
-        console.log("Game: Handling enter building:", building.userData.buildingType);
-
-        const buildingType = building.userData.buildingType;
+    handleEnterBuilding(building: import("three").Object3D) {
+        const buildingTypeRaw = building.userData.buildingType;
+        const buildingType = typeof buildingTypeRaw === 'string' ? buildingTypeRaw : 'unknown';
+        console.log("Game: Handling enter building:", buildingType);
         trackEvent('building-entered', { building: buildingType });
 
         // Check if building is locked
@@ -370,15 +396,15 @@ export class Game {
         }
 
         this.player.isInBuilding = true;
-        this.player.currentBuilding = building;
+        this.player.currentBuilding = typeof building.userData.buildingType === "string" ? building.userData.buildingType : null;
 
         // 1. Clear the main scene (except player and camera, if they are managed separately)
         // Remove world elements
-        this.world.terrain.forEach(t => this.scene.remove(t));
+        this.world.terrain.forEach((t: import("three").Object3D) => this.scene.remove(t));
         this.world.obstacles.forEach(o => this.scene.remove(o));
-        this.world.interactiveElements.forEach(i => this.scene.remove(i));
-        this.world.buildings.forEach(b => this.scene.remove(b)); // Remove building sprites from outdoor scene
-        this.world.colliders.forEach(c => { // Also ensure colliders that are meshes are removed
+        this.world.interactiveElements.forEach((i: import("three").Object3D) => this.scene.remove(i));
+        this.world.buildings.forEach((b: import("three").Object3D) => this.scene.remove(b)); // Remove building sprites from outdoor scene
+        this.world.colliders.forEach((c: import("three").Object3D) => { // Also ensure colliders that are meshes are removed
             if (c instanceof THREE.Mesh) {
                 this.scene.remove(c);
             }
@@ -386,7 +412,7 @@ export class Game {
 
 
         // Remove enemies from the outdoor scene
-        this.enemies.enemies.forEach(enemy => this.scene.remove(enemy.mesh));
+        this.enemies.enemies.forEach((enemy: import("three").Mesh) => this.scene.remove(enemy));
         this.enemies.enemies = []; // Clear the list
 
         // 2. Set up the building interior and start simulator if applicable
@@ -456,10 +482,10 @@ export class Game {
         this.player.getMesh().position.set(0, 0.5, 0); // Adjust as needed for each interior
 
         // 4. Adjust camera if necessary (e.g., different zoom or angle for interiors)
-        this.camera.setInteriorView(); // You'll need to implement this in Camera.js
+        this.camera.setInteriorView(true);
 
         // 5. Remove main world lights and set up interior lighting
-        const lights = this.scene.children.filter(obj => obj.isLight);
+        const lights = this.scene.children.filter(obj => 'isLight' in obj && Boolean(Reflect.get(obj, 'isLight')));
         lights.forEach(light => this.scene.remove(light));
         
         const interiorLight = new THREE.PointLight(0xffffff, 0.8, 50);
@@ -476,7 +502,7 @@ export class Game {
      * Shows the building name at the top of the screen.
      * @param {string} buildingType - The building type identifier
      */
-    showBuildingName(buildingType) {
+    showBuildingName(buildingType: string) {
         const nameElement = document.getElementById('building-name');
         if (nameElement) {
             nameElement.textContent = this.formatBuildingName(buildingType);
@@ -499,8 +525,8 @@ export class Game {
      * @param {string} buildingType - The building type identifier
      * @returns {string} The formatted building name
      */
-    formatBuildingName(buildingType) {
-        const names = {
+    formatBuildingName(buildingType: string) {
+        const names: Record<string, string> = {
             'house': 'Home',
             'garage': 'Garage',
             'accelerator': 'Accelerator',
@@ -532,7 +558,7 @@ export class Game {
 
         // Clean up building-specific items
         if (this.player.buildingInteractiveElements) {
-            this.player.buildingInteractiveElements.forEach(item => {
+            this.player.buildingInteractiveElements.forEach((item: import("three").Object3D) => {
                 if (item.parent) {
                     item.parent.remove(item);
                 }
@@ -541,7 +567,7 @@ export class Game {
         }
         
         // Clean up building obstacles
-        this.player.buildingObstacles.forEach(obstacle => {
+        this.player.buildingObstacles.forEach((obstacle: import("three").Object3D) => {
             if (obstacle.parent) {
                 obstacle.parent.remove(obstacle);
             }
@@ -567,14 +593,14 @@ export class Game {
         // 5. Re-initialize or re-add enemies
         // If enemies are simple, re-creating them might be easiest.
         // Otherwise, you might need a method to re-add existing enemy meshes to the scene.
-        this.scene.remove(this.enemies.enemies.map(e => e.mesh)); // Remove old enemy meshes if any
+        this.enemies.enemies.forEach(e => this.scene.remove(e)); // Remove old enemy meshes if any
         this.enemies = new Enemies(this.scene, this.world); // Recreate enemies for the main world
 
         console.log("Game: Main world restored. Player and enemies re-added.");
     }
     
     // Startup Simulator Methods
-    startSimulatorLevel(levelNumber) {
+    startSimulatorLevel(levelNumber: number) {
         console.log(`Starting simulator level ${levelNumber}`);
         
         // Start the level
@@ -588,16 +614,18 @@ export class Game {
         this.simulatorDialogue.displayRound(roundData);
         
         // Set up choice callback
-        this.simulatorDialogue.setChoiceCallback((choice) => {
+        this.simulatorDialogue.setChoiceCallback((choice: import("./types").SimulatorOption, _index: number) => {
+            void _index;
             this.handleSimulatorChoice(choice);
         });
     }
     
-    handleSimulatorChoice(choice) {
+    handleSimulatorChoice(choice: import("./types").SimulatorOption) {
         console.log(`Player chose option ${choice}`);
         
         // Process the choice
-        const result = this.startupSimulator.makeChoice(choice);
+        const choiceNum = typeof choice === "number" ? choice : Number(choice.id ?? choice.score ?? 1);
+        const result = this.startupSimulator.makeChoice(choiceNum);
         if (!result) {
             console.error('Failed to process choice');
             return;
@@ -612,9 +640,9 @@ export class Game {
         this.simulatorDialogue.displayResult(result);
         
         // Handle next round or level completion
-        if (!result.levelComplete) {
+        if (!result["levelComplete"]) {
             // Wait for player to press any key, then show next round
-            const handleContinue = (event) => {
+            const handleContinue = (event: KeyboardEvent) => {
                 document.removeEventListener('keydown', handleContinue);
                 
                 const nextRound = this.startupSimulator.getCurrentRoundData();
@@ -628,8 +656,8 @@ export class Game {
             }, 1000);
         } else {
             // Level complete - update progression
-            const finalScore = result.score || 0;
-            const currentBuilding = this.player.currentBuilding?.userData.buildingType;
+            const finalScore = Number(result["score"] ?? result["finalScore"] ?? 0);
+            const currentBuilding = this.player.currentBuilding;
 
             if (currentBuilding) {
                 // Mark level as complete in progression
@@ -791,7 +819,7 @@ export class Game {
         
         chairPositions.forEach(pos => {
             const chair = new THREE.Mesh(chairGeometry, chairMaterial);
-            chair.position.set(...pos);
+            chair.position.set(pos[0], pos[1], pos[2]);
             this.scene.add(chair);
             this.player.buildingObstacles.push(chair);
         });
@@ -1063,7 +1091,7 @@ export class Game {
      * Displays the victory screen when the player completes level 10 (NASDAQ).
      * @param {Object} stats - Final player stats to display
      */
-    showVictoryScreen(stats) {
+    showVictoryScreen(stats: import("./types").PlayerStats) {
         // Play victory music
         if (this.audioManager && this.audioManager.initialized) {
             this.audioManager.playMusic('victory', false, 0.3);
@@ -1091,7 +1119,7 @@ export class Game {
             animation: fadeIn 1s ease-in;
         `;
 
-        const formatMoney = (amount) => {
+        const formatMoney = (amount: number) => {
             if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
             if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
             return `$${amount}`;
@@ -1141,13 +1169,13 @@ export class Game {
         document.body.appendChild(overlay);
 
         // Button handlers
-        document.getElementById('play-again-btn').addEventListener('click', () => {
+        document.getElementById('play-again-btn')?.addEventListener('click', () => {
             overlay.remove();
             this.progressionManager.resetProgress();
             location.reload();
         });
 
-        document.getElementById('main-menu-btn').addEventListener('click', () => {
+        document.getElementById('main-menu-btn')?.addEventListener('click', () => {
             overlay.remove();
             location.reload();
         });
@@ -1168,7 +1196,6 @@ export class Game {
         const overlay = document.createElement('div');
         overlay.id = 'game-over-screen';
         overlay.dataset.sectionId = 'game-over';
-        trackEvent('game-over', { completedLevels, dau: stats.dau, mrr: stats.mrr });
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -1188,6 +1215,7 @@ export class Game {
 
         const stats = this.progressionManager.currentStats;
         const completedLevels = this.progressionManager.completedLevels.length;
+        trackEvent('game-over', { completedLevels, dau: stats.dau, mrr: stats.mrr });
 
         overlay.innerHTML = `
             <style>
@@ -1217,13 +1245,13 @@ export class Game {
 
         document.body.appendChild(overlay);
 
-        document.getElementById('try-again-btn').addEventListener('click', () => {
+        document.getElementById('try-again-btn')?.addEventListener('click', () => {
             overlay.remove();
             this.progressionManager.resetProgress();
             location.reload();
         });
 
-        document.getElementById('main-menu-btn-go').addEventListener('click', () => {
+        document.getElementById('main-menu-btn-go')?.addEventListener('click', () => {
             overlay.remove();
             location.reload();
         });
