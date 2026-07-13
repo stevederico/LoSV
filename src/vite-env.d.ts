@@ -7,5 +7,6 @@ interface UmamiTracker {
 
 interface Window {
   umami?: UmamiTracker;
+  dottie?: UmamiTracker;
   webkitAudioContext?: typeof AudioContext;
 }
