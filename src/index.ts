@@ -2,12 +2,22 @@ import { Game } from './game';
 import { initAdvancedAnalytics } from './utils/advancedAnalytics';
 import { trackEvent } from './utils/analytics';
 
-// Load analytics script dynamically (env vars baked in at build time)
+// Load analytics scripts dynamically (env vars baked in at build time)
 if (import.meta.env.VITE_ANALYTICS_ID && import.meta.env.VITE_ANALYTICS_SRC) {
   const s = document.createElement('script');
   s.defer = true;
   s.src = import.meta.env.VITE_ANALYTICS_SRC;
   s.dataset.websiteId = import.meta.env.VITE_ANALYTICS_ID;
+  document.head.appendChild(s);
+}
+
+// dottie analytics — dual-fire alongside Umami (env-loaded id; never hardcode in OSS)
+if (import.meta.env.VITE_DOTTIE_ID && import.meta.env.VITE_DOTTIE_SRC) {
+  const s = document.createElement('script');
+  s.defer = true;
+  s.src = import.meta.env.VITE_DOTTIE_SRC;
+  s.dataset.websiteId = import.meta.env.VITE_DOTTIE_ID;
+  s.dataset.domains = 'losv.bixbyapps.com';
   document.head.appendChild(s);
 }
 

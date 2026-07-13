@@ -49,10 +49,11 @@ const sanitizeEventData = (data: unknown): EventData => {
  */
 export const trackEvent = (eventName: string, data: unknown = {}): void => {
   if (isLocal()) return;
-  if (typeof window !== 'undefined' && window.umami) {
+  if (typeof window !== 'undefined') {
     try {
       const sanitizedData = sanitizeEventData(data);
-      window.umami.track(eventName, sanitizedData);
+      window.umami?.track?.(eventName, sanitizedData);
+      window.dottie?.track?.(eventName, sanitizedData);
     } catch (error: unknown) {
       console.warn('Analytics tracking failed:', error);
     }
@@ -64,12 +65,14 @@ export const trackEvent = (eventName: string, data: unknown = {}): void => {
  */
 export const identifyUser = (userId: string, data: Record<string, unknown> = {}): void => {
   if (isLocal()) return;
-  if (typeof window !== 'undefined' && window.umami) {
+  if (typeof window !== 'undefined') {
     try {
       if (userId) {
-        window.umami.identify(userId, data);
+        window.umami?.identify?.(userId, data);
+        window.dottie?.identify?.(userId, data);
       } else {
-        window.umami.identify(data);
+        window.umami?.identify?.(data);
+        window.dottie?.identify?.(data);
       }
     } catch (error: unknown) {
       console.warn('User identification failed:', error);
@@ -82,9 +85,10 @@ export const identifyUser = (userId: string, data: Record<string, unknown> = {})
  */
 export const trackPageView = (): void => {
   if (isLocal()) return;
-  if (typeof window !== 'undefined' && window.umami) {
+  if (typeof window !== 'undefined') {
     try {
-      window.umami.track();
+      window.umami?.track?.();
+      window.dottie?.track?.();
     } catch (error: unknown) {
       console.warn('Page view tracking failed:', error);
     }
