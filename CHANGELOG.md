@@ -13,6 +13,13 @@ Add board room building
 
 ### Changes
 
+## [1.2.0] - 2026-10-30
+
+  Remove analytics tracker
+  Remove trackEvent calls
+  Remove analytics build args
+
+
 ## [1.1.0] - 2026-07-12
 
   Convert src to TypeScript

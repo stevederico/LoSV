@@ -1,5 +1,3 @@
-import { trackEvent } from '../utils/analytics';
-
 export class StartupSimulator {
     currentLevel: number;
     currentRound: number;
@@ -1042,7 +1040,6 @@ export class StartupSimulator {
 
         const level = this.levels[levelNumber];
         this.levelGoal = level.goalTarget;
-        trackEvent('level-started', { level: levelNumber, name: level.name, location: level.location });
 
         return this.getCurrentRoundData();
     }
@@ -1215,7 +1212,6 @@ export class StartupSimulator {
     }
     
     reset() {
-        trackEvent('simulator-reset', { totalScore: this.totalScore });
         this.currentLevel = 1;
         this.currentRound = 1;
         this.levelScores = {};

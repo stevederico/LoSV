@@ -1,5 +1,3 @@
-import { trackEvent } from '../utils/analytics';
-
 export class SimulatorDialogue {
     dialogueManager: import('./DialogueManager').DialogueManager;
     simulatorBox: HTMLDivElement = document.createElement('div');
@@ -26,7 +24,6 @@ export class SimulatorDialogue {
         // Create main simulator container
         this.simulatorBox = document.createElement('div');
         this.simulatorBox.id = 'simulator-box';
-        this.simulatorBox.dataset.sectionId = 'simulator';
         this.simulatorBox.style.position = 'fixed';
         this.simulatorBox.style.bottom = '30px';
         this.simulatorBox.style.left = '50%';
@@ -86,7 +83,6 @@ export class SimulatorDialogue {
             const choice = parseInt(key);
             if (choice <= this.currentOptions.length) {
                 const selectedOption = this.currentOptions[choice - 1];
-                trackEvent('simulator-choice-made', { choice: selectedOption.name, index: choice });
                 this.waitingForChoice = false;
                 if (this.onChoiceCallback) {
                     this.onChoiceCallback(selectedOption, choice - 1);
@@ -104,7 +100,6 @@ export class SimulatorDialogue {
         description?: string;
         [key: string]: unknown;
     }) {
-        trackEvent('simulator-round-displayed', { level: roundData.level, round: roundData.round, levelName: roundData.levelName });
         this.contentContainer.innerHTML = '';
         this.currentOptions = roundData.options ?? [];
         
@@ -130,7 +125,6 @@ export class SimulatorDialogue {
         
         (roundData.options ?? []).forEach((option: import("../types").SimulatorOption, index: number) => {
             const optionDiv = document.createElement('div');
-            optionDiv.dataset.umamiEvent = 'simulator-option-viewed';
             optionDiv.style.marginBottom = '15px';
             optionDiv.style.padding = '10px';
             optionDiv.style.border = '1px solid #00ff00';
@@ -211,9 +205,6 @@ export class SimulatorDialogue {
     }
     
     displayResult(result: Record<string, unknown>) {
-        if (result.levelComplete) {
-            trackEvent('level-completed', { score: result.finalScore, success: result.levelSuccess });
-        }
         this.contentContainer.innerHTML = '';
         
         // Results header
