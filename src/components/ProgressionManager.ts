@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { trackEvent } from '../utils/analytics';
 
 export class ProgressionManager {
     unlockedBuildings: Record<string, { unlocked: boolean; completed: boolean; score: number }>;
@@ -139,7 +138,6 @@ export class ProgressionManager {
   unlockBuilding(buildingType: string) {
     if (this.unlockedBuildings[buildingType]) {
       this.unlockedBuildings[buildingType].unlocked = true;
-      trackEvent('building-unlocked', { building: buildingType });
       this.saveProgress();
       return true;
     }
@@ -153,7 +151,6 @@ export class ProgressionManager {
         this.unlockedBuildings[buildingType].score,
         score
       );
-      trackEvent('progression-level-completed', { building: buildingType, score });
 
       const levelNumber = this.levelRequirements[buildingType]?.levelNumber;
       if (levelNumber !== undefined && !this.completedLevels.includes(String(levelNumber))) {

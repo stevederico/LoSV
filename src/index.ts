@@ -1,28 +1,4 @@
 import { Game } from './game';
-import { initAdvancedAnalytics } from './utils/advancedAnalytics';
-import { trackEvent } from './utils/analytics';
-
-// Load analytics scripts dynamically (env vars baked in at build time)
-if (import.meta.env.VITE_ANALYTICS_ID && import.meta.env.VITE_ANALYTICS_SRC) {
-  const s = document.createElement('script');
-  s.defer = true;
-  s.src = import.meta.env.VITE_ANALYTICS_SRC;
-  s.dataset.websiteId = import.meta.env.VITE_ANALYTICS_ID;
-  document.head.appendChild(s);
-}
-
-// dottie analytics — dual-fire alongside Umami (env-loaded id; never hardcode in OSS)
-if (import.meta.env.VITE_DOTTIE_ID && import.meta.env.VITE_DOTTIE_SRC) {
-  const s = document.createElement('script');
-  s.defer = true;
-  s.src = import.meta.env.VITE_DOTTIE_SRC;
-  s.dataset.websiteId = import.meta.env.VITE_DOTTIE_ID;
-  s.dataset.domains = 'losv.bixbyapps.com';
-  document.head.appendChild(s);
-}
-
-// Initialize passive analytics (time-on-page, errors, exit intent, etc.)
-initAdvancedAnalytics();
 
 // Add loading screen
 const loadingScreen = document.createElement('div');
@@ -210,10 +186,9 @@ function startGame() {
     if ('ontouchstart' in window && window.innerWidth < 768) {
         const mobileNotice = document.createElement('div');
         mobileNotice.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;color:#fff;font-family:"Press Start 2P",monospace;text-align:center;padding:20px;box-sizing:border-box';
-        mobileNotice.dataset.sectionId = 'mobile-notice';
         mobileNotice.innerHTML = `
             <p style="font-size:14px;line-height:2;margin-bottom:30px">Best played on desktop<br>with keyboard</p>
-            <button style="font-family:'Press Start 2P',monospace;font-size:12px;padding:12px 24px;background:#e4c025;color:#000;border:none;cursor:pointer;border-radius:4px" data-umami-event="mobile-play-anyway" onclick="this.parentElement.remove()">Play Anyway</button>
+            <button style="font-family:'Press Start 2P',monospace;font-size:12px;padding:12px 24px;background:#e4c025;color:#000;border:none;cursor:pointer;border-radius:4px" onclick="this.parentElement.remove()">Play Anyway</button>
         `;
         document.body.appendChild(mobileNotice);
     }
@@ -221,7 +196,6 @@ function startGame() {
     // Create game instance to start the game
     const game = new Game();
     console.log('Game initialized!');
-    trackEvent('game-started');
     
     // DAU and MRR start at 0 and will be updated by the simulator
     
