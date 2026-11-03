@@ -13,6 +13,11 @@ Add board room building
 
 ### Changes
 
+## [1.2.1] - 2026-11-03
+
+  Pin base images
+
+
 ## [1.2.0] - 2026-10-30
 
   Remove analytics tracker
