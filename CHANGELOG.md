@@ -13,6 +13,10 @@ Add board room building
 
 ### Changes
 
+## [1.3.0] - 2026-11-07
+
+  Add MIT license
+
 ## [1.2.1] - 2026-11-03
 
   Pin base images
